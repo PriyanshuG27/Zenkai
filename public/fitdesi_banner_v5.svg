@@ -40,7 +40,9 @@
     </filter>
 
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900&amp;family=Outfit:wght@400;500;600;700&amp;family=DM+Mono:wght@500&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900');
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700');
+      @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500');
       
       /* Base Typography */
       .font-display {
@@ -181,7 +183,6 @@
       .brand-title-group:hover .brand-logo-text {
         fill: url(#cyanLime) !important;
       }
-    </g>
     </style>
   </defs>
 

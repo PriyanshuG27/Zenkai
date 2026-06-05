@@ -10,19 +10,31 @@
   <h3>⚡ Premium Dark Athletic Gym Tracker &amp; Recovery Platform ⚡</h3>
   
   <p>
-    FitDesi is a dark athletic fitness tracking web app designed to solve the core failure modes of Indian gym culture: inconsistent attendance, lack of tracking, and difficult comeback phases after breaks.
+    FitDesi is a high-energy, dark-themed fitness tracking platform designed to combat inconsistent training habits and structured comebacks for Indian gym users (ages 18–25).
   </p>
 
-  <p>
-    <strong>Built for React + Vite · Tailwind CSS · Zustand · Firebase · Gemini Flash API</strong>
-  </p>
+  <!-- Real-time Status Bento Grid -->
+  <table align="center" style="border: 2px solid #222; background: #0c0c0c; font-family: 'DM Mono', monospace; text-align: left;">
+    <tr style="border-bottom: 1px solid #222;">
+      <td style="padding: 10px; border-right: 1px solid #222;"><strong>⚡ System Status</strong></td>
+      <td style="padding: 10px; color: #B5FF2D; border-right: 1px solid #222;">🟢 PRODUCTION ACTIVE</td>
+      <td style="padding: 10px; border-right: 1px solid #222;"><strong>🤖 AI Engine</strong></td>
+      <td style="padding: 10px; color: #00D4FF;">⚡ GEMINI 1.5 FLASH</td>
+    </tr>
+    <tr>
+      <td style="padding: 10px; border-right: 1px solid #222;"><strong>💾 Database</strong></td>
+      <td style="padding: 10px; color: #FF5C00; border-right: 1px solid #222;">🔥 CLOUD FIRESTORE</td>
+      <td style="padding: 10px; border-right: 1px solid #222;"><strong>🔒 Auth Gateway</strong></td>
+      <td style="padding: 10px; color: #F0F0F0;">🛡️ FIREBASE SECURE</td>
+    </tr>
+  </table>
 </div>
 
 ---
 
 ## 🎨 The Design System (Neubrutalism &amp; OLED)
 
-FitDesi uses a custom **Neubrutalism + Dark OLED** style designed to look premium, energetic, and highly tactile. Interactive elements look *liftable*, matching the physical gym environment.
+FitDesi uses a custom **Neubrutalism + Dark OLED** layout built for maximum battery efficiency on AMOLED screens in high-glare gym settings.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -35,7 +47,7 @@ FitDesi uses a custom **Neubrutalism + Dark OLED** style designed to look premiu
 ```
 
 <details>
-<summary><b>🎨 View Color Token Registry (CSS Variables)</b></summary>
+<summary><b>🎨 View CSS Variables &amp; Design Token Values</b></summary>
 
 ```css
 :root {
@@ -63,43 +75,75 @@ FitDesi uses a custom **Neubrutalism + Dark OLED** style designed to look premiu
 
 ---
 
-## 🚀 Key Features
+## ⌨️ Desktop Keyboard Controls (Power-User Panel)
 
-Click to expand and explore the technical implementation of FitDesi's features:
+To speed up logging on desktop views, the app binds keyboard hotkeys directly to the Zustand workout logger state:
+
+| Action | Shortcut Key | Description |
+| :--- | :--- | :--- |
+| **Start Workout** | <kbd>Alt</kbd> + <kbd>S</kbd> | Fires the active session timer and opens the slide-in logger panel. |
+| **Add Exercise** | <kbd>Alt</kbd> + <kbd>E</kbd> | Triggers the search input overlay to add a movement. |
+| **Add Set** | <kbd>Alt</kbd> + <kbd>A</kbd> | Inserts a new set row to the active exercise block. |
+| **Confirm Set** | <kbd>Enter</kbd> | Toggles completion checkmark on the currently focused set row. |
+| **Finish Workout** | <kbd>Alt</kbd> + <kbd>F</kbd> | Concludes the session, triggers the summary calculations and XP awards. |
+| **Close Panel** | <kbd>Esc</kbd> | Closes modals, dropdowns, and overlays. |
+
+---
+
+## 🚀 Interactive Feature Matrix
+
+Explore how FitDesi's recovery mechanics are structured technically:
 
 <details>
-<summary><b>📱 Dual-Viewport App Layout (Mobile-Native vs. Bento Grid)</b></summary>
-<blockquote>
-FitDesi mounts completely different component trees based on screen width detection. Mobile screens (width &lt; 768px) load a bottom navigation bar and full-screen workout logger optimized for one-handed thumb reach. Desktop screens load a persistent sidebar with a dense bento-box dashboard of charts, tables, and recent activity logs.
-</blockquote>
+<summary><b>📱 Dual-Viewport Layout Switcher</b></summary>
+
+```
+┌───────────────────────────────────────────────┐
+│               App Root (Mount)                │
+│             Reads useDeviceLayout()           │
+└───────────────────────┬───────────────────────┘
+                        │
+            ┌───────────┴───────────┐
+            ▼                       ▼
+    [Width < 768px]         [Width >= 768px]
+     MobileApp Shell       DesktopApp Shell
+    ┌───────────────┐       ┌───────────────┐
+    │  Bottom Nav   │       │ Side Sidebar  │
+    │ Fullscreen Log│       │ Bento Grid    │
+    └───────────────┘       └───────────────┘
+```
+The client listens to browser resizing on a 100ms debounced hooks handler. It swaps component trees on the fly, sharing the same `BrowserRouter` instance and memory references, so user state is never lost.
 </details>
 
 <details>
-<summary><b>⚡ Fast Gym Logger &amp; PR Engine</b></summary>
-<blockquote>
-Designed to be faster than standard notes apps, requiring less than 10 total taps to complete a workout. Reps and weights use large, tactile increment/decrement buttons. When a PR is broken, the app detects it instantly and triggers a full-screen canvas particle celebration.
-</blockquote>
+<summary><b>🧠 Gemini AI Training Optimizer (HTTP Callable)</b></summary>
+
+The AI routine builder acts as a serverless personal trainer that never schedules unsafe exercises:
+
+```javascript
+// functions/src/generatePlan.js
+1. Receives client trigger: userType, equipmentList, medicalFlags, trainingHistory.
+2. Compiles user data into a clean, system-directed prompt.
+3. Invokes Gemini-1.5-Flash requesting strict structured JSON.
+4. Updates the database at `users/{uid}/weeklyPlans/{weekId}`.
+```
+*   **Safety Gate**: If `varicocele` or `lower back` is flagged, the prompt bans heavy load vectors like Squats, Deadlifts, and Leg Press.
+*   **Fatigue Check**: If the user logged stomach cramps or low energy in the last 2 weeks, the generator automatically reduces workout volumes by 15%.
 </details>
 
 <details>
-<summary><b>🧠 Gemini AI Workout Planner</b></summary>
-<blockquote>
-Every week, a serverless Cloud Function triggers `gemini-1.5-flash` to construct a new 6-day training routine. The prompt feeds the model with the user's available equipment, medical limitations, session mood tags, fatigue logs, and training history, forcing it to outputs structured, type-safe JSON.
-</blockquote>
-</details>
+<summary><b>🩹 Adaptive Phoenix Comeback Challenge</b></summary>
 
-<details>
-<summary><b>🔥 phoenix &amp; Streak Challenges</b></summary>
-<blockquote>
-To solve the "post-break" failure loop where returning lifters overtrain and quit, the Phoenix Comeback Challenge scales down previous weights to 40-70% capacity, ramping up over 6-12 weeks with a $2\times$ XP bonus multiplier.
-</blockquote>
+Designed to prevent injury after long training breaks:
+*   **Week 1-2 (Initiation)**: Loads are limited to 40% of previous personal records. Volume is capped at 2 working sets per movement.
+*   **Week 3-4 (Recovery)**: Increases workload to 55-60%.
+*   **Week 5-8 (Progression)**: Restores standard volume (3-4 sets) and gradually targets 100% baseline weight.
+*   **XP Multiplier**: Completing a Comeback Session awards $2\times$ base XP.
 </details>
 
 ---
 
 ## 📐 System Architecture
-
-This flowchart maps the relationships between the client, state stores, and Firebase services:
 
 ```mermaid
 graph TD
@@ -140,8 +184,6 @@ graph TD
 
 ## 🧭 Application Flow & User Journey
 
-Here is the step-by-step navigation path of a user from onboarding configuration to tracking exercises and generating routines:
-
 ```mermaid
 flowchart TD
     %% Styling
@@ -179,7 +221,7 @@ flowchart TD
 
 ## 🎮 Gamification & Level Tiers
 
-XP earned through workouts unlocks different athlete ranks. The progression is configured as follows:
+Earn XP through logging workouts, setting PRs, and checking in. Tiers unlock specific settings:
 
 | Tier | Level Range | Required XP | Description / Perks |
 | :--- | :--- | :--- | :--- |
@@ -187,6 +229,70 @@ XP earned through workouts unlocks different athlete ranks. The progression is c
 | **Challenger** 🔵 | 6 – 15 | 1,000 – 4,999 XP | Unlocks Custom Challenge builder and streak-at-risk warning notifications |
 | **Athlete** 🟡 | 16 – 30 | 5,000 – 14,999 XP | Unlocks detailed progress range filters (90-day & 180-day charts) |
 | **Elite** 🔴 | 31+ | 15,000+ XP | Unlocks global leaderboards and Streak Shield power-ups |
+
+<details>
+<summary><b>💎 View Detailed XP Point System</b></summary>
+
+*   **Workout Session Completed**: `+50 XP`
+*   **New Personal Record (PR) Broken**: `+10 XP` per lift
+*   **Daily Target Mission Cleared**: `+25 XP`
+*   **Weekly Body Measurements Updated**: `+20 XP`
+*   **Streak Bonus (3 Days)**: `+30 XP`
+*   **Streak Bonus (7 Days)**: `+100 XP`
+*   **Streak Bonus (30 Days)**: `+500 XP` + Phoenix Badge
+</details>
+
+---
+
+## 🛡️ Medical Safety Rules Engine
+
+FitDesi runs client-side and server-side checks to prevent user injury. Here is how medical flags govern exercise selection:
+
+| Flagged Issue | Banned Exercises (Filtered Out) | Safe AI Alternatives |
+| :--- | :--- | :--- |
+| **Varicocele / Lower Back** | Leg Press, Deadlifts, Heavy Squats | Leg Extensions, Hamstring Curls, Pull-ups |
+| **Bad Knees** | Barbell Back Squats, Lunges | Bulgarian Split Squats (Bodyweight), Leg Extensions |
+| **Shoulder Impingement** | Overhead Press, Heavy Dips | Incline DB Flys, Cable Laterals (Low angle) |
+| **Post-Surgery** | High intensity compound movements | Isolation movements (Volume &lt; 40%) |
+
+---
+
+## 🏋️ Curated Indian Gym Exercise Bank
+
+The application includes a targeted exercise database specifically calibrated for common Indian gym setups:
+
+<details>
+<summary><b>🍗 Chest &amp; Shoulders</b></summary>
+
+*   Barbell Bench Press (Flat/Incline/Decline)
+*   Dumbbell Chest Press / Incline Dumbbell Press
+*   Dumbbell Flys
+*   Overhead Press (OHP) / Seated DB Shoulder Press
+*   Dumbbell Lateral Raises / Cable Lateral Raises
+*   Rear Delt Pec Deck Flys
+</details>
+
+<details>
+<summary><b>🦎 Back &amp; Core</b></summary>
+
+*   Lat Pulldowns (Wide grip / Close grip)
+*   Chest-Supported Rows / Seated Cable Rows
+*   One-Arm Dumbbell Rows
+*   Pull-Ups / Chin-Ups (Bodyweight or Assisted)
+*   Crunches / Hanging Leg Raises
+*   Plank variations
+</details>
+
+<details>
+<summary><b>🦵 Legs &amp; Arms</b></summary>
+
+*   Leg Press / Smith Machine Squats
+*   Leg Extensions / Lying Leg Curls
+*   Seated Calf Raises
+*   Barbell Bicep Curls / Dumbbell Hammer Curls
+*   Tricep Cable Pushdowns (Rope or V-bar)
+*   Overhead Cable Tricep Extensions
+</details>
 
 ---
 
