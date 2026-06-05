@@ -36,7 +36,7 @@
       <td style="padding: 15px; border-right: 1px solid #333;"><strong>⚡ SYSTEM STATUS</strong></td>
       <td style="padding: 15px; color: #B5FF2D; border-right: 1px solid #333; text-shadow: 0 0 5px #B5FF2D;">🟢 PRODUCTION ACTIVE</td>
       <td style="padding: 15px; border-right: 1px solid #333;"><strong>🤖 AI ENGINE</strong></td>
-      <td style="padding: 15px; color: #00D4FF; text-shadow: 0 0 5px #00D4FF;">⚡ GEMINI 1.5 FLASH</td>
+      <td style="padding: 15px; color: #00D4FF; text-shadow: 0 0 5px #00D4FF;">⚡ GEMINI 3 FLASH</td>
     </tr>
     <tr>
       <td style="padding: 15px; border-right: 1px solid #333;"><strong>💾 DATABASE</strong></td>
@@ -114,7 +114,7 @@ Designed to be faster than standard notes apps, requiring less than 10 total tap
 <details>
 <summary><b>🧠 Gemini AI Workout Planner</b></summary>
 <blockquote>
-Every week, a serverless Cloud Function triggers `gemini-1.5-flash` to construct a new 6-day training routine. The prompt feeds the model with the user's available equipment, medical limitations, session mood tags, fatigue logs, and training history, forcing it to outputs structured, type-safe JSON.
+Every week, a serverless Cloud Function triggers `gemini-3-flash` to construct a new 6-day training routine. The prompt feeds the model with the user's available equipment, medical limitations, session mood tags, fatigue logs, and training history, forcing it to outputs structured, type-safe JSON.
 </blockquote>
 </details>
 
@@ -151,7 +151,7 @@ graph TD
     end
 
     subgraph "🧠 AI Core"
-        AI[Gemini 1.5 Flash]:::gemini
+        AI[Gemini 3 Flash]:::gemini
     end
 
     Store -->|Syncs Data| DB
@@ -251,7 +251,7 @@ Fitdesi/
 │   ├── index.js              # Entrypoint for Cloud Functions export
 │   ├── package.json          # Node.js 20 functions dependencies
 │   └── src/
-│       └── generatePlan.js   # Gemini 1.5 Flash workout prompt generator
+│       └── generatePlan.js   # Gemini 3 Flash workout prompt generator
 │
 └── src/                      # Client Application (Frontend)
     ├── App.jsx               # Layout toggle entrypoint
