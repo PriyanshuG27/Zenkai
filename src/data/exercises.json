@@ -1,0 +1,18 @@
+[
+  {
+    "key": "barbell_bench_press",
+    "name": "Barbell Bench Press",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": [],
+    "aliases": ["bench press", "flat bench"]
+  },
+  {
+    "key": "overhead_press",
+    "name": "Overhead Press",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["OHP", "military press", "shoulder press"]
+  }
+]

@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --bg-base:       #080808;   /* True OLED black */
+  --bg-oled:       #080808;   /* OLED black */
+  --bg-surface:    #111111;   /* Cards, panels */
+  --surface:       #111111;   /* Surface panel */
+  --bg-elevated:   #1A1A1A;   /* Modals, dropdowns */
+  --bg-input:      #141414;   /* Input fields */
+
+  /* Brand */
+  --primary:       #FF5C00;   /* Burnt orange — energy, saffron nod */
+  --primary-glow:  rgba(255, 92, 0, 0.25);
+  --secondary:     #00D4FF;   /* Electric cyan — stats, XP, data */
+  --secondary-glow:rgba(0, 212, 255, 0.20);
+  --accent-xp:     #B5FF2D;   /* Acid lime — level-up, rewards, PRs */
+  --accent-xp-glow:rgba(181, 255, 45, 0.20);
+  --accent-lime:   #B5FF2D;   /* Accent lime for success/PR */
+
+  /* Semantic */
+  --success:       #22C55E;
+  --warning:       #F59E0B;
+  --destructive:   #EF4444;
+
+  /* Text */
+  --text-primary:  #F0F0F0;
+  --text-secondary:#888888;
+  --text-muted:    #444444;
+
+  /* Borders */
+  --border:        #222222;
+  --border-bright: #333333;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Scrollbars matching the theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-elevated);
+}

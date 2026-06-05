@@ -1,0 +1,14 @@
+import React from 'react';
+
+export const MobileProfile = () => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[70dvh] text-center p-6 bg-[var(--bg-oled)] text-[var(--text-primary)]">
+      <h1 className="font-display text-4xl font-extrabold tracking-widest text-[var(--primary)] uppercase drop-shadow-[0_0_12px_var(--primary-glow)] animate-pulse">
+        Mobile Profile
+      </h1>
+      <p className="text-[var(--text-secondary)] font-sans text-xs mt-2 tracking-wider">
+        FITDESI Mobile Profile & Settings Shell
+      </p>
+    </div>
+  );
+};
