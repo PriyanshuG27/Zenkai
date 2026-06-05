@@ -1,8 +1,18 @@
-# FitDesi
+<div align="center">
+  <img src="./public/fitdesi_banner.svg" alt="FitDesi Banner" width="100%" />
 
-FitDesi is a premium dark athletic fitness tracking web application tailored specifically for Indian gym users (ages 18–25). It is designed to address the unique challenges of Indian gym culture—such as inconsistent attendance, lack of workout tracking, and the difficulty of rebuilding consistency after breaks. 
+  <br />
 
-By integrating equipment-aware, medically gated, comeback-first plans with gamified XP and challenge mechanics, FitDesi helps users build lasting habits.
+  <img src="./public/gemini_badge.svg" alt="Powered by Gemini AI" />
+  
+  <p>
+    <strong>A premium, dark athletic fitness tracking web app tailored for Indian gym users (ages 18–25).</strong>
+  </p>
+  
+  <p>
+    FitDesi addresses the unique challenges of Indian gym culture—such as inconsistent attendance, lack of workout tracking, and the difficulty of rebuilding consistency after breaks. By integrating equipment-aware, medically gated, comeback-first plans with gamified XP and challenge mechanics, FitDesi helps users build lasting habits.
+  </p>
+</div>
 
 ---
 
@@ -32,6 +42,86 @@ By integrating equipment-aware, medically gated, comeback-first plans with gamif
 | **Backend & AI** | **Firebase Cloud Functions (Gen 2)** | Secure, isolated Node.js 20 serverless functions for calling Gemini. |
 | **AI Model** | **Gemini 1.5 Flash** | Cost-effective, high-speed structured JSON output generation. |
 | **Hosting** | **Vercel** | Automated CI/CD deployments connected to GitHub. |
+
+---
+
+## 📐 System Architecture
+
+This flowchart outlines the data flows and integration points between the React/Vite frontend, Zustand state stores, Firebase Authentication, Cloud Firestore, and the backend Firebase Cloud Functions that communicate with Gemini Flash.
+
+```mermaid
+graph TD
+    %% Styling
+    classDef client fill:#111111,stroke:#00D4FF,stroke-width:2px,color:#F0F0F0;
+    classDef firebase fill:#111111,stroke:#FF5C00,stroke-width:2px,color:#F0F0F0;
+    classDef gemini fill:#111111,stroke:#B5FF2D,stroke-width:2px,color:#F0F0F0;
+
+    subgraph Client [React & Vite App]
+        Layout[useDeviceLayout]:::client
+        Layout -->|Mobile View| MobileApp[MobileApp Tree]:::client
+        Layout -->|Desktop View| DesktopApp[DesktopApp Tree]:::client
+        
+        MobileApp & DesktopApp --> Hooks[Custom React Hooks]:::client
+        Hooks --> Stores[Zustand Stores]:::client
+    end
+
+    subgraph FirebaseServices [Firebase Backend]
+        Auth[Firebase Auth]:::firebase
+        Firestore[(Cloud Firestore)]:::firebase
+        Functions[Cloud Functions Gen 2]:::firebase
+    end
+
+    subgraph External [AI Core]
+        Gemini[Gemini 1.5 Flash API]:::gemini
+    end
+
+    Hooks -->|Authenticate| Auth
+    Hooks -->|Direct Read/Write| Firestore
+    Hooks -->|Trigger Plan Gen| Functions
+    Functions -->|Fetch User Profiles & Sessions| Firestore
+    Functions -->|Execute AI Prompt| Gemini
+    Gemini -->|Structured JSON Plan| Functions
+    Functions -->|Save Generated Plan| Firestore
+```
+
+---
+
+## 🧭 Application Flow & User Journey
+
+Here is the step-by-step navigation path of a user from onboarding configuration to tracking exercises, achieving level-up tiers, and generating routines:
+
+```mermaid
+flowchart TD
+    %% Styling
+    classDef start fill:#111111,stroke:#FF5C00,stroke-width:2px,color:#F0F0F0;
+    classDef step fill:#111111,stroke:#333333,stroke-width:1px,color:#888888;
+    classDef highlight fill:#111111,stroke:#B5FF2D,stroke-width:2px,color:#F0F0F0;
+    classDef special fill:#111111,stroke:#00D4FF,stroke-width:2px,color:#F0F0F0;
+
+    Landing[Landing Page]:::start -->|Sign Up / Login| Onboarding{Onboarding?}:::step
+    
+    Onboarding -->|No / Skip| Home[Home Dashboard]:::step
+    Onboarding -->|Yes| Options[Choose Profile]:::step
+    
+    Options --> Type[User Type: Comeback/Beginner]:::step
+    Type --> Equip[Equipment Picker]:::step
+    Equip --> Med[Medical Flags & Restrictions]:::step
+    Med --> Home
+    
+    Home -->|Start Session| Logger[Active Workout Logger]:::step
+    Logger -->|Log Sets & Weights| XP[Earn XP & Streaks]:::special
+    
+    Logger -->|Finish Session| Summary[Session Complete]:::step
+    Summary -->|Auto-Detect PR| PRCelebrate[PR Particle Celebration!]:::highlight
+    
+    PRCelebrate --> Home
+    
+    Home -->|Trigger AI Plan| PlanGen[AI Plan Generator]:::special
+    PlanGen -->|Update weekly routine| WeeklyPlan[Weekly Routine View]:::step
+    WeeklyPlan --> Home
+    
+    Home -->|Active Challenges| Phoenix[Phoenix / Comeback Challenge]:::highlight
+```
 
 ---
 

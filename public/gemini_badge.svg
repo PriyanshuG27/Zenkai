@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
+  <defs>
+    <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D4FF" />
+      <stop offset="50%" stop-color="#7A22FF" />
+      <stop offset="100%" stop-color="#B5FF2D" />
+    </linearGradient>
+    
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700&amp;display=swap');
+      .badge-bg {
+        fill: #111111;
+        stroke: #222222;
+        stroke-width: 1.5;
+        transition: stroke 0.3s;
+      }
+      .badge-text {
+        font-family: 'Outfit', -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 11px;
+        fill: #F0F0F0;
+        letter-spacing: 1.5px;
+      }
+      .gemini-text {
+        fill: url(#geminiGrad);
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.15); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.7; }
+      }
+      @keyframes borderGlow {
+        0% { stroke: #00D4FF; }
+        50% { stroke: #B5FF2D; }
+        100% { stroke: #00D4FF; }
+      }
+      .pulsing-star {
+        transform-origin: 24px 20px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+      .glowing-border {
+        animation: borderGlow 4s infinite ease-in-out;
+      }
+    </style>
+  </defs>
+
+  <!-- Background with Animated Border -->
+  <rect class="badge-bg glowing-border" x="1" y="1" width="198" height="38" rx="8" />
+
+  <!-- Animated Star Icon (Representing AI/Gemini) -->
+  <g class="pulsing-star">
+    <path d="M 24,11 L 26,17 L 32,17 L 27,21 L 29,27 L 24,23 L 19,27 L 21,21 L 16,17 L 22,17 Z" fill="url(#geminiGrad)" />
+  </g>
+
+  <!-- Text -->
+  <text x="44" y="24" class="badge-text">POWERED BY <tspan class="gemini-text">GEMINI AI</tspan></text>
+</svg>

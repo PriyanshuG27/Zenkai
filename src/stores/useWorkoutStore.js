@@ -21,60 +21,73 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export const useWorkoutStore = create((set) => ({
-  activeSession:  null,
-  exercises:      [],
-  elapsedSeconds: 0,
-  sessionLoading: false,
-  sessionError:   null,
-
-  startSession: (planDay) =>
-    set({
-      activeSession:  { planDayId: planDay.id, startedAt: Date.now(), exercises: planDay.exercises },
-      exercises:      planDay.exercises.map((ex) => ({
-        exerciseId: ex.id,
-        name:       ex.name,
-        sets:       [{ reps: '', weight: '', completed: false }],
-      })),
+export const useWorkoutStore = create(
+  persist(
+    (set) => ({
+      activeSession:  null,
+      exercises:      [],
       elapsedSeconds: 0,
+      sessionLoading: false,
       sessionError:   null,
+
+      startSession: (planDay) =>
+        set({
+          activeSession:  { planDayId: planDay.id, startedAt: Date.now(), exercises: planDay.exercises },
+          exercises:      planDay.exercises.map((ex) => ({
+            exerciseId: ex.id,
+            name:       ex.name,
+            sets:       [{ reps: '', weight: '', completed: false }],
+          })),
+          elapsedSeconds: 0,
+          sessionError:   null,
+        }),
+
+      logSet: (exIdx, setIdx, data) =>
+        set((state) => {
+          const exercises = state.exercises.map((ex, i) => {
+            if (i !== exIdx) return ex;
+            const sets = ex.sets.map((s, j) => (j === setIdx ? { ...s, ...data } : s));
+            return { ...ex, sets };
+          });
+          return { exercises };
+        }),
+
+      addSet: (exIdx) =>
+        set((state) => {
+          const exercises = state.exercises.map((ex, i) => {
+            if (i !== exIdx) return ex;
+            return { ...ex, sets: [...ex.sets, { reps: '', weight: '', completed: false }] };
+          });
+          return { exercises };
+        }),
+
+      removeSet: (exIdx, setIdx) =>
+        set((state) => {
+          const exercises = state.exercises.map((ex, i) => {
+            if (i !== exIdx) return ex;
+            const sets = ex.sets.filter((_, j) => j !== setIdx);
+            return { ...ex, sets };
+          });
+          return { exercises };
+        }),
+
+      tick: () => set((state) => ({ elapsedSeconds: state.elapsedSeconds + 1 })),
+
+      setSessionLoading: (sessionLoading) => set({ sessionLoading }),
+      setSessionError:   (sessionError)   => set({ sessionError }),
+
+      clearSession: () =>
+        set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null }),
     }),
-
-  logSet: (exIdx, setIdx, data) =>
-    set((state) => {
-      const exercises = state.exercises.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        const sets = ex.sets.map((s, j) => (j === setIdx ? { ...s, ...data } : s));
-        return { ...ex, sets };
-      });
-      return { exercises };
-    }),
-
-  addSet: (exIdx) =>
-    set((state) => {
-      const exercises = state.exercises.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        return { ...ex, sets: [...ex.sets, { reps: '', weight: '', completed: false }] };
-      });
-      return { exercises };
-    }),
-
-  removeSet: (exIdx, setIdx) =>
-    set((state) => {
-      const exercises = state.exercises.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        const sets = ex.sets.filter((_, j) => j !== setIdx);
-        return { ...ex, sets };
-      });
-      return { exercises };
-    }),
-
-  tick: () => set((state) => ({ elapsedSeconds: state.elapsedSeconds + 1 })),
-
-  setSessionLoading: (sessionLoading) => set({ sessionLoading }),
-  setSessionError:   (sessionError)   => set({ sessionError }),
-
-  clearSession: () =>
-    set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null }),
-}));
+    {
+      name: 'fitdesi-workout-session',
+      partialize: (state) => ({
+        activeSession:  state.activeSession,
+        exercises:      state.exercises,
+        elapsedSeconds: state.elapsedSeconds,
+      }),
+    }
+  )
+);

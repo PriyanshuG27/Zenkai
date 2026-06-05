@@ -63,12 +63,13 @@ export const LoginPage = () => {
   }, [cooldown]);
 
   // Client Validation Email (RFC 5322)
-  const validateEmail = () => {
+  const validateEmail = (e) => {
+    const val = (e && e.target) ? e.target.value : email;
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    if (!email) {
+    if (!val) {
       setEmailErr('Email is required');
       return false;
-    } else if (!emailRegex.test(email)) {
+    } else if (!emailRegex.test(val)) {
       setEmailErr('Please enter a valid email address');
       return false;
     }
@@ -77,14 +78,15 @@ export const LoginPage = () => {
   };
 
   // Client Validation Password (min 8 chars, 1 number)
-  const validatePassword = () => {
-    if (!password) {
+  const validatePassword = (e) => {
+    const val = (e && e.target) ? e.target.value : password;
+    if (!val) {
       setPasswordErr('Password is required');
       return false;
-    } else if (password.length < 8) {
+    } else if (val.length < 8) {
       setPasswordErr('Password must be at least 8 characters');
       return false;
-    } else if (!/\d/.test(password)) {
+    } else if (!/\d/.test(val)) {
       setPasswordErr('Password must contain at least one number');
       return false;
     }
