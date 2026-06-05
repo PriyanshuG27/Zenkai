@@ -51,7 +51,7 @@ export const DesktopSidebar = () => {
         {/* Navigation Links */}
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
             const { path, label, Icon } = item;
 
             return (
