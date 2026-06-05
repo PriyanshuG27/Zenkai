@@ -158,6 +158,197 @@ graph TD
 <img src="public/neon_divider.svg?v=2" width="100%" />
 <br/>
 
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=00D4FF&vCenter=true&width=500&lines=📂+Project+Structure" alt="Project Structure" />
+
+<details>
+<summary><b>📂 View Complete Directory Map</b></summary>
+
+```
+Fitdesi/
+├── .env.example              # Template for frontend environment variables
+├── .gitignore                # Production ignore patterns for keys & node_modules
+├── eslint.config.js          # Code linting settings
+├── index.html                # App entry document
+├── package.json              # Client packages and scripts
+├── postcss.config.js         # PostCSS plugins
+├── tailwind.config.js        # Neubrutalism theme & typography customisations
+├── vite.config.js            # Vite configurations and port setup
+│
+├── docs/                     # Full system documentation
+│   ├── APP_FLOW.md           # Visual user flows and state diagrams
+│   ├── AUDIT_CHECKLIST.md    # Pre-launch security & quality checklist
+│   ├── BACKEND_SCHEMA.md     # Firestore collection structures & schemas
+│   ├── DEPLOYMENT.md         # Detailed environment deployment procedures
+│   ├── ENV_CONFIG.md         # Environment variable documentation
+│   ├── ERROR_HANDLING.md     # Client & function error policies
+│   ├── IMPLEMENTATION_PLAN.md# Technical breakdown of features
+│   ├── PERFORMANCE.md        # Loading, interaction, and rendering targets
+│   ├── PRD.md                # Product Requirements Document
+│   ├── SECURITY.md           # Firestore rules and client token rotation
+│   ├── TESTING.md            # Comprehensive client/backend testing manual
+│   ├── TRD.md                # Technical Requirements Document
+│   └── UI_UX_BRIEF.md        # CSS color tokens, layouts, & animations brief
+│
+├── functions/                # Firebase Cloud Functions (Backend)
+│   ├── .env.example          # Template for backend Cloud Functions keys
+│   ├── index.js              # Entrypoint for Cloud Functions export
+│   ├── package.json          # Node.js 20 functions dependencies
+│   └── src/
+│       └── generatePlan.js   # Gemini 3 Flash workout prompt generator
+│
+└── src/                      # Client Application (Frontend)
+    ├── App.jsx               # Layout toggle entrypoint
+    ├── index.css             # Main stylesheet (Neubrutalism styles + Google Fonts)
+    ├── main.jsx              # App mount point & env validation execution
+    │
+    ├── assets/               # Image/SVG asset files
+    ├── components/           # Dual Viewport UI Components
+    │   ├── desktop/          # Sidebar navigation, Bento dashboard, Dense graphs
+    │   ├── mobile/           # Bottom navigation, fullscreen logger, Swipe panels
+    │   └── shared/           # Protected routing and general layout wrappers
+    │
+    ├── data/                 # Curated exercise dataset & static mappings
+    ├── hooks/                # Layout-agnostic Custom React Hooks
+    │   ├── useAuth.js        # Auth state observer
+    │   ├── useWorkout.js     # Active session, logging actions
+    │   ├── useXPEngine.js    # Level tier and streak calculation
+    │   ├── usePlan.js        # Custom plan generation handler
+    │   └── ...
+    │
+    ├── lib/                  # Library SDK initializers
+    │   ├── firebase.js       # Firebase Client SDK initializer
+    │   └── firebaseConfig.js # Firebase config variables
+    │
+    └── stores/               # Zustand Global State Stores
+        ├── useAuthStore.js
+        ├── usePlanStore.js
+        ├── useWorkoutStore.js
+        └── ...
+```
+</details>
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=B5FF2D&vCenter=true&width=500&lines=⚙️+Environment+Config" alt="Environment Configuration" />
+
+<details>
+<summary><b>🔑 View Local & Production Configuration Keys</b></summary>
+
+### Client Environment Variables (`.env`)
+Create a `.env` file in the project root:
+```bash
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=fitdesi-app.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=fitdesi-app
+VITE_FIREBASE_STORAGE_BUCKET=fitdesi-app.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+### Backend Environment Variables (`functions/.env`)
+Create a `.env` file in the `/functions` folder for local emulator testing:
+```bash
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+For production, configure the key in the Firebase Cloud Function environment:
+```bash
+firebase functions:config:set gemini.key="YOUR_GEMINI_API_KEY"
+```
+</details>
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=FF5C00&vCenter=true&width=500&lines=🛠️+Local+Development" alt="Local Development Setup" />
+
+Follow these steps to run the FitDesi application locally:
+
+### 1. Installation
+Install the project dependencies for the client and backend functions:
+```bash
+# Clone the repository
+git clone https://github.com/PriyanshuG27/Fitdesi.git
+cd Fitdesi
+
+# Install client packages
+npm install
+
+# Install functions packages
+cd functions
+npm install
+cd ..
+```
+
+### 2. Set Up Firebase Emulators
+The project is configured to work with Firestore and Firebase Auth Emulators:
+```bash
+# Install Firebase Tools if not already installed globally
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Initialize project references
+firebase use --add
+
+# Run the emulators
+firebase emulators:start
+```
+
+### 3. Run the Frontend Development Server
+In a new terminal window, start the local Vite development server:
+```bash
+npm run dev
+```
+Open `http://localhost:5173` to view the app in your browser.
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=00D4FF&vCenter=true&width=500&lines=🚀+Deployment" alt="Deployment" />
+
+<details>
+<summary><b>📦 View Deployment Steps (Vercel & Firebase)</b></summary>
+
+### Deploying the Backend (Firebase Functions & Security Rules)
+```bash
+# Deploy firestore rules, indexes, and cloud functions
+firebase deploy
+```
+
+### Deploying the Frontend (Vercel)
+Install Vercel CLI and trigger a production deploy:
+```bash
+npm install -g vercel
+vercel --prod
+```
+Ensure you have configured all client environment variables in the Vercel project dashboard under **Settings > Environment Variables**.
+</details>
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=B5FF2D&vCenter=true&width=500&lines=📖+Deep-Dive+Docs" alt="Reference Docs" />
+
+For detailed reviews of technical requirements, audits, and performance targets:
+* 📄 [Product Requirements Document (PRD)](./docs/PRD.md)
+* 📄 [Technical Requirements Document (TRD)](./docs/TRD.md)
+* 📄 [UI/UX Design Specification Brief](./docs/UI_UX_BRIEF.md)
+* 📄 [Environment Configuration Guide](./docs/ENV_CONFIG.md)
+* 📄 [Firestore Security & Rules Spec](./docs/SECURITY.md)
+* 📄 [Performance & Load Optimization Plans](./docs/PERFORMANCE.md)
+* 📄 [System Testing & Audit Framework](./docs/TESTING.md)
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
 <div align="center">
   <p style="color: #666; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 2px;">
     BUILT FOR THE COMEBACK. BUILT FOR FITDESI.
