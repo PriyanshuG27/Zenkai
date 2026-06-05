@@ -1,53 +1,105 @@
 <div align="center">
+  <!-- Animated Neubrutalism App Mockup Banner -->
   <img src="./public/fitdesi_banner.svg" alt="FitDesi Banner" width="100%" />
 
   <br />
 
+  <!-- Animated Glowing Gemini Badge -->
   <img src="./public/gemini_badge.svg" alt="Powered by Gemini AI" />
   
-  <p>
-    <strong>A premium, dark athletic fitness tracking web app tailored for Indian gym users (ages 18–25).</strong>
-  </p>
+  <h3>⚡ Premium Dark Athletic Gym Tracker &amp; Recovery Platform ⚡</h3>
   
   <p>
-    FitDesi addresses the unique challenges of Indian gym culture—such as inconsistent attendance, lack of workout tracking, and the difficulty of rebuilding consistency after breaks. By integrating equipment-aware, medically gated, comeback-first plans with gamified XP and challenge mechanics, FitDesi helps users build lasting habits.
+    FitDesi is a dark athletic fitness tracking web app designed to solve the core failure modes of Indian gym culture: inconsistent attendance, lack of tracking, and difficult comeback phases after breaks.
+  </p>
+
+  <p>
+    <strong>Built for React + Vite · Tailwind CSS · Zustand · Firebase · Gemini Flash API</strong>
   </p>
 </div>
 
 ---
 
-## 🚀 Key Features
+## 🎨 The Design System (Neubrutalism &amp; OLED)
 
-* **📱 Mobile-First Responsive Layout**: Dual-viewport layout optimized for a native-feeling mobile app experience (true OLED dark base + Neubrutalism UI with $\ge$ 44x44px touch targets) and a dense, feature-rich desktop dashboard.
-* **⚡ Rapid Tap-Based Logging**: Log a complete workout in under 10 taps with large, easy-to-use weight and rep counters designed for gym use.
-* **🧠 Gemini AI Weekly Plan Generation**: Generates customized weekly workout plans powered by `gemini-1.5-flash` via Firebase Cloud Functions based on training history, equipment availability, medical restrictions, and fatigue tags.
-* **🔥 Phoenix & Streak Challenges**: First-class "Comeback Challenge" that starts users at a lower workload (40-70%) with $2\times$ XP rewards to ease them back into training without fatigue or injury.
-* **🎮 Gamified XP & Streak Engine**: Earn XP from completed sets, PRs, and challenges. Unlock level tiers (Rookie ➔ Challenger ➔ Athlete ➔ Elite) and track workout streaks with streak-at-risk warning systems.
-* **📊 Visual Progress Dashboards**: Line charts showing strength progression and bar charts tracking weekly training volume using Recharts.
-* **🎉 Fluid UI Celebrations**: Staged level-up reveals, PR particle bursts, and set-completion checkmark animations powered by Framer Motion.
+FitDesi uses a custom **Neubrutalism + Dark OLED** style designed to look premium, energetic, and highly tactile. Interactive elements look *liftable*, matching the physical gym environment.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 PATTERN:     Mobile Bottom Navigation + Full-Screen Context Logging
+                Desktop Left Sidebar + Multi-column Bento Grid
+💻 THEME:       True OLED Black base (#080808) + High-contrast Borders
+💥 ACCENTS:     Burnt Orange (#FF5C00) · Electric Cyan (#00D4FF) · Acid Lime (#B5FF2D)
+⚡ TRANSITIONS: Framer Motion spring physics on actions & celebrations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+<details>
+<summary><b>🎨 View Color Token Registry (CSS Variables)</b></summary>
+
+```css
+:root {
+  /* Backgrounds */
+  --bg-base:       #080808;   /* True OLED black */
+  --bg-surface:    #111111;   /* Cards, panels */
+  --bg-elevated:   #1A1A1A;   /* Modals, dropdowns */
+  --bg-input:      #141414;   /* Input fields */
+
+  /* Brand Accents */
+  --primary:       #FF5C00;   /* Burnt orange — energy & drive */
+  --primary-glow:  rgba(255, 92, 0, 0.25);
+  --secondary:     #00D4FF;   /* Electric cyan — stats & tracking */
+  --secondary-glow:rgba(0, 212, 255, 0.20);
+  --accent-xp:     #B5FF2D;   /* Acid lime — level-up, PRs, milestones */
+  --accent-xp-glow:rgba(181, 255, 45, 0.20);
+
+  /* Typography Scale */
+  --font-display:  'Barlow Condensed', sans-serif; /* Headings */
+  --font-body:     'Outfit', sans-serif;           /* Main UI & reading */
+  --font-mono:     'DM Mono', monospace;           /* Numeric stats */
+}
+```
+</details>
 
 ---
 
-## 🛠 Technology Stack
+## 🚀 Key Features
 
-| Layer | Technology | Rationale / Details |
-|---|---|---|
-| **Frontend Framework** | **React (Vite)** | High-performance dev server, fast Hot Module Replacement (HMR). |
-| **Styling** | **Tailwind CSS v3** | Responsive utility classes, dark-mode styling, zero runtime overhead. |
-| **State Management** | **Zustand** | Scoped, lightweight, boilerplate-free state stores. |
-| **Animations** | **Framer Motion** | Spring physics, fluid page transitions, and interactive celebration moments. |
-| **Charts** | **Recharts** | Lightweight, clean SVG-based data visualizations. |
-| **Authentication** | **Firebase Auth** | Google OAuth and Email/Password flows with persistent user sessions. |
-| **Database** | **Cloud Firestore** | Document model mapping for workouts, user profiles, and challenges. |
-| **Backend & AI** | **Firebase Cloud Functions (Gen 2)** | Secure, isolated Node.js 20 serverless functions for calling Gemini. |
-| **AI Model** | **Gemini 1.5 Flash** | Cost-effective, high-speed structured JSON output generation. |
-| **Hosting** | **Vercel** | Automated CI/CD deployments connected to GitHub. |
+Click to expand and explore the technical implementation of FitDesi's features:
+
+<details>
+<summary><b>📱 Dual-Viewport App Layout (Mobile-Native vs. Bento Grid)</b></summary>
+<blockquote>
+FitDesi mounts completely different component trees based on screen width detection. Mobile screens (width &lt; 768px) load a bottom navigation bar and full-screen workout logger optimized for one-handed thumb reach. Desktop screens load a persistent sidebar with a dense bento-box dashboard of charts, tables, and recent activity logs.
+</blockquote>
+</details>
+
+<details>
+<summary><b>⚡ Fast Gym Logger &amp; PR Engine</b></summary>
+<blockquote>
+Designed to be faster than standard notes apps, requiring less than 10 total taps to complete a workout. Reps and weights use large, tactile increment/decrement buttons. When a PR is broken, the app detects it instantly and triggers a full-screen canvas particle celebration.
+</blockquote>
+</details>
+
+<details>
+<summary><b>🧠 Gemini AI Workout Planner</b></summary>
+<blockquote>
+Every week, a serverless Cloud Function triggers `gemini-1.5-flash` to construct a new 6-day training routine. The prompt feeds the model with the user's available equipment, medical limitations, session mood tags, fatigue logs, and training history, forcing it to outputs structured, type-safe JSON.
+</blockquote>
+</details>
+
+<details>
+<summary><b>🔥 phoenix &amp; Streak Challenges</b></summary>
+<blockquote>
+To solve the "post-break" failure loop where returning lifters overtrain and quit, the Phoenix Comeback Challenge scales down previous weights to 40-70% capacity, ramping up over 6-12 weeks with a $2\times$ XP bonus multiplier.
+</blockquote>
+</details>
 
 ---
 
 ## 📐 System Architecture
 
-This flowchart outlines the data flows and integration points between the React/Vite frontend, Zustand state stores, Firebase Authentication, Cloud Firestore, and the backend Firebase Cloud Functions that communicate with Gemini Flash.
+This flowchart maps the relationships between the client, state stores, and Firebase services:
 
 ```mermaid
 graph TD
@@ -88,7 +140,7 @@ graph TD
 
 ## 🧭 Application Flow & User Journey
 
-Here is the step-by-step navigation path of a user from onboarding configuration to tracking exercises, achieving level-up tiers, and generating routines:
+Here is the step-by-step navigation path of a user from onboarding configuration to tracking exercises and generating routines:
 
 ```mermaid
 flowchart TD
@@ -125,7 +177,23 @@ flowchart TD
 
 ---
 
-## 📂 Project Architecture
+## 🎮 Gamification & Level Tiers
+
+XP earned through workouts unlocks different athlete ranks. The progression is configured as follows:
+
+| Tier | Level Range | Required XP | Description / Perks |
+| :--- | :--- | :--- | :--- |
+| **Rookie** 🟢 | 1 – 5 | 0 – 999 XP | Entry-level rank, basic onboarding badges unlocked |
+| **Challenger** 🔵 | 6 – 15 | 1,000 – 4,999 XP | Unlocks Custom Challenge builder and streak-at-risk warning notifications |
+| **Athlete** 🟡 | 16 – 30 | 5,000 – 14,999 XP | Unlocks detailed progress range filters (90-day & 180-day charts) |
+| **Elite** 🔴 | 31+ | 15,000+ XP | Unlocks global leaderboards and Streak Shield power-ups |
+
+---
+
+## 📂 Project Structure
+
+<details>
+<summary><b>📂 View Complete Directory Map</b></summary>
 
 ```
 Fitdesi/
@@ -189,10 +257,14 @@ Fitdesi/
         ├── useWorkoutStore.js
         └── ...
 ```
+</details>
 
 ---
 
 ## ⚙️ Environment Configuration
+
+<details>
+<summary><b>🔑 View Local &amp; Production Configuration Keys</b></summary>
 
 ### Client Environment Variables (`.env`)
 Create a `.env` file in the project root:
@@ -211,10 +283,11 @@ Create a `.env` file in the `/functions` folder for local emulator testing:
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-For production, set it using the Firebase CLI config:
+For production, configure the key in the Firebase Cloud Function environment:
 ```bash
 firebase functions:config:set gemini.key="YOUR_GEMINI_API_KEY"
 ```
+</details>
 
 ---
 
@@ -265,6 +338,9 @@ Open `http://localhost:5173` to view the app in your browser.
 
 ## 🚀 Deployment
 
+<details>
+<summary><b>📦 View Deployment Steps (Vercel &amp; Firebase)</b></summary>
+
 ### Deploying the Backend (Firebase Functions & Security Rules)
 ```bash
 # Deploy firestore rules, indexes, and cloud functions
@@ -278,14 +354,17 @@ npm install -g vercel
 vercel --prod
 ```
 Ensure you have configured all client environment variables in the Vercel project dashboard under **Settings > Environment Variables**.
+</details>
 
 ---
 
-## 📖 Related Documentation
+## 📖 Deep-Dive Reference Docs
 
-For deep dives into the technical details and product architecture of the FitDesi platform, check out:
-* [Product Requirements Document (PRD)](file:///d:/Fitdesi/docs/PRD.md)
-* [Technical Requirements Document (TRD)](file:///d:/Fitdesi/docs/TRD.md)
-* [UI/UX Design Brief](file:///d:/Fitdesi/docs/UI_UX_BRIEF.md)
-* [Environment Configuration Guide](file:///d:/Fitdesi/docs/ENV_CONFIG.md)
-* [System Security & Access Control](file:///d:/Fitdesi/docs/SECURITY.md)
+For detailed reviews of technical requirements, audits, and performance targets:
+* 📄 [Product Requirements Document (PRD)](file:///d:/Fitdesi/docs/PRD.md)
+* 📄 [Technical Requirements Document (TRD)](file:///d:/Fitdesi/docs/TRD.md)
+* 📄 [UI/UX Design Specification Brief](file:///d:/Fitdesi/docs/UI_UX_BRIEF.md)
+* 📄 [Environment Configuration Guide](file:///d:/Fitdesi/docs/ENV_CONFIG.md)
+* 📄 [Firestore Security & Rules Spec](file:///d:/Fitdesi/docs/SECURITY.md)
+* 📄 [Performance & Load Optimization Plans](file:///d:/Fitdesi/docs/PERFORMANCE.md)
+* 📄 [System Testing & Audit Framework](file:///d:/Fitdesi/docs/TESTING.md)

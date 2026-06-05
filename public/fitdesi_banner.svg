@@ -1,158 +1,243 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 250" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 310" width="100%" height="100%">
   <defs>
     <!-- Background Aurora Gradient Animations -->
     <linearGradient id="aurora" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF5C00" stop-opacity="0.25">
-        <animate attributeName="stop-color" values="#FF5C00;#00D4FF;#B5FF2D;#FF5C00" dur="10s" repeatCount="indefinite" />
+      <stop offset="0%" stop-color="#FF5C00" stop-opacity="0.2">
+        <animate attributeName="stop-color" values="#FF5C00;#00D4FF;#B5FF2D;#FF5C00" dur="12s" repeatCount="indefinite" />
       </stop>
-      <stop offset="50%" stop-color="#111111" stop-opacity="0.95" />
+      <stop offset="60%" stop-color="#080808" stop-opacity="0.98" />
       <stop offset="100%" stop-color="#00D4FF" stop-opacity="0.15">
-        <animate attributeName="stop-color" values="#00D4FF;#B5FF2D;#FF5C00;#00D4FF" dur="10s" repeatCount="indefinite" />
+        <animate attributeName="stop-color" values="#00D4FF;#B5FF2D;#FF5C00;#00D4FF" dur="12s" repeatCount="indefinite" />
       </stop>
     </linearGradient>
 
-    <!-- Logo / Text Gradients -->
+    <!-- Theme Gradients -->
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#FF5C00" />
       <stop offset="50%" stop-color="#FF8A00" />
       <stop offset="100%" stop-color="#B5FF2D" />
     </linearGradient>
 
-    <linearGradient id="subGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <linearGradient id="cyanLime" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#00D4FF" />
       <stop offset="100%" stop-color="#B5FF2D" />
     </linearGradient>
 
-    <!-- Pulse Filter for Glow Effect -->
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
+    <linearGradient id="phoneBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0A0A0A" />
+      <stop offset="100%" stop-color="#141414" />
+    </linearGradient>
+
+    <!-- Glowing Filters -->
+    <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
 
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900&amp;family=Outfit:wght@600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900&amp;family=Outfit:wght@400;500;600;700&amp;family=DM+Mono:wght@500&amp;display=swap');
       
-      .title-text {
+      /* Base Typography */
+      .font-display {
         font-family: 'Barlow Condensed', -apple-system, sans-serif;
-        font-weight: 900;
-        font-size: 72px;
-        fill: url(#textGrad);
-        letter-spacing: 4px;
+        text-transform: uppercase;
       }
       
-      .subtitle-text {
+      .font-body {
         font-family: 'Outfit', -apple-system, sans-serif;
-        font-weight: 600;
-        font-size: 16px;
-        fill: #888888;
-        letter-spacing: 3px;
-      }
-
-      .badge-text {
-        font-family: 'Outfit', -apple-system, sans-serif;
-        font-weight: 600;
-        font-size: 12px;
-        fill: #B5FF2D;
-        letter-spacing: 1.5px;
       }
       
-      /* Keyframe Animations */
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 5px rgba(255,92,0,0.5)); }
-        50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,92,0,0.9)); }
-        100% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 5px rgba(255,92,0,0.5)); }
+      .font-mono {
+        font-family: 'DM Mono', monospace;
       }
 
-      @keyframes float {
+      /* Animation keyframes */
+      @keyframes float-slow {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0px); }
+      }
+
+      @keyframes float-medium {
         0% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-8px) rotate(3deg); }
+        50% { transform: translateY(-8px) rotate(2deg); }
         100% { transform: translateY(0px) rotate(0deg); }
       }
 
-      @keyframes slideIn {
-        from { transform: translateX(-50px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+      @keyframes pulse-soft {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
       }
 
-      .animated-logo {
-        transform-origin: 110px 125px;
-        animation: pulse 3s infinite ease-in-out;
+      @keyframes draw-path {
+        from { stroke-dashoffset: 200; }
+        to { stroke-dashoffset: 0; }
       }
 
-      .floating-icons {
-        animation: float 6s infinite ease-in-out;
+      /* Classes */
+      .anim-float-slow {
+        animation: float-slow 5s infinite ease-in-out;
       }
 
-      .text-group {
-        animation: slideIn 1s ease-out forwards;
+      .anim-float-medium {
+        animation: float-medium 6s infinite ease-in-out;
       }
-      
-      .glowing-dot {
-        animation: pulse 1.5s infinite ease-in-out;
+
+      .anim-pulse {
+        animation: pulse-soft 2s infinite ease-in-out;
+      }
+
+      .animated-graph-path {
+        stroke-dasharray: 200;
+        stroke-dashoffset: 200;
+        animation: draw-path 3s ease-out forwards;
       }
     </style>
   </defs>
 
-  <!-- Deep OLED Black Canvas -->
+  <!-- Deep OLED Canvas -->
   <rect width="100%" height="100%" fill="#080808" rx="16" />
   
-  <!-- Aurora Glow Background -->
+  <!-- Aurora Glow Layer -->
   <rect width="100%" height="100%" fill="url(#aurora)" rx="16" />
 
-  <!-- Grid Pattern Overlay for Neubrutalism feel -->
-  <g opacity="0.07">
-    <path d="M 0,25 L 800,25 M 0,50 L 800,50 M 0,75 L 800,75 M 0,100 L 800,100 M 0,125 L 800,125 M 0,150 L 800,150 M 0,175 L 800,175 M 0,200 L 800,200 M 0,225 L 800,225" stroke="#FFFFFF" stroke-width="1" />
-    <path d="M 25,0 L 25,250 M 50,0 L 50,250 M 75,0 L 75,250 M 100,0 L 100,250 M 125,0 L 125,250 M 150,0 L 150,250 M 175,0 L 175,250 M 200,0 L 200,250 M 225,0 L 225,250 M 250,0 L 250,250 M 275,0 L 275,250 M 300,0 L 300,250" stroke="#FFFFFF" stroke-width="1" />
+  <!-- grid overlay -->
+  <g opacity="0.04">
+    <path d="M 0,31 L 800,31 M 0,62 L 800,62 M 0,93 L 800,93 M 0,124 L 800,124 M 0,155 L 800,155 M 0,186 L 800,186 M 0,217 L 800,217 M 0,248 L 800,248 M 0,279 L 800,279" stroke="#FFF" stroke-width="1" />
+    <path d="M 32,0 L 32,310 M 64,0 L 64,310 M 96,0 L 96,310 M 128,0 L 128,310 M 160,0 L 160,310 M 192,0 L 192,310 M 224,0 L 224,310 M 256,0 L 256,310 M 288,0 L 288,310 M 320,0 L 320,310 M 352,0 L 352,310 M 384,0 L 384,310 M 416,0 L 416,310 M 448,0 L 448,310 M 480,0 L 480,310 M 512,0 L 512,310 M 544,0 L 544,310 M 576,0 L 576,310 M 608,0 L 608,310 M 640,0 L 640,310" stroke="#FFF" stroke-width="1" />
   </g>
 
-  <!-- Animated Logo Graphic (Dumbbell with wings/energy) -->
-  <g class="animated-logo">
-    <!-- Outer Glow Circle -->
-    <circle cx="110" cy="125" r="48" fill="#111111" stroke="#FF5C00" stroke-width="3" style="filter: drop-shadow(0 0 10px rgba(255, 92, 0, 0.4));" />
-    <circle cx="110" cy="125" r="38" fill="#1a1a1a" stroke="#222222" stroke-width="1" />
-    
-    <!-- Dumbbell Icon -->
-    <g transform="translate(90, 105)">
-      <!-- Left Plate -->
-      <rect x="2" y="8" width="6" height="24" rx="2" fill="#FF5C00" />
-      <rect x="9" y="4" width="5" height="32" rx="2" fill="#FF8A00" />
-      <!-- Bar -->
-      <rect x="14" y="18" width="12" height="4" fill="#F0F0F0" />
-      <!-- Right Plate -->
-      <rect x="26" y="4" width="5" height="32" rx="2" fill="#FF8A00" />
-      <rect x="32" y="8" width="6" height="24" rx="2" fill="#FF5C00" />
-    </g>
-  </g>
-
-  <!-- Title & Subtitle Group -->
-  <g class="text-group" transform="translate(190, 0)">
-    <!-- Active release badge -->
-    <g transform="translate(0, 58)">
-      <rect x="0" y="0" width="190" height="24" rx="12" fill="#111111" stroke="#333333" stroke-width="1" />
-      <!-- Pulsing Dot -->
-      <circle class="glowing-dot" cx="15" cy="12" r="4" fill="#B5FF2D" />
-      <text x="30" y="16" class="badge-text">COMEBACK RELEASE v1.0</text>
+  <!-- ── LEFT SIDE: BRANDING & HEADLINE ────────────────────────────────────── -->
+  <g transform="translate(50, 0)">
+    <!-- Active Release Pill -->
+    <g transform="translate(0, 52)">
+      <rect x="0" y="0" width="180" height="24" rx="12" fill="#111111" stroke="#333333" stroke-width="1" />
+      <circle cx="14" cy="12" r="4.5" fill="#B5FF2D" class="anim-pulse" />
+      <text x="28" y="16" class="font-body" font-weight="700" font-size="11" fill="#B5FF2D" letter-spacing="1">COMEBACK v1.0 ACTIVE</text>
     </g>
 
     <!-- Main Title -->
-    <text x="0" y="138" class="title-text">FIT<tspan fill="#F0F0F0">DESI</tspan></text>
+    <text x="0" y="142" class="font-display" font-weight="900" font-size="78" fill="url(#textGrad)" letter-spacing="2">FIT<tspan fill="#F0F0F0">DESI</tspan></text>
     
-    <!-- Subtitle -->
-    <text x="3" y="176" class="subtitle-text">TRAIN SMARTER. COME BACK STRONGER.</text>
+    <!-- Tagline -->
+    <text x="3" y="178" class="font-body" font-weight="700" font-size="18" fill="#E2E2E2" letter-spacing="1">TRAIN SMARTER. COME BACK STRONGER.</text>
+    
+    <!-- Description -->
+    <text x="3" y="202" class="font-body" font-weight="400" font-size="13" fill="#888888">AI-powered recovery &amp; gym tracking for Indian gym contexts.</text>
+
+    <!-- Tags Row (Neubrutalism Outlines) -->
+    <g transform="translate(3, 230)">
+      <!-- Tag 1 -->
+      <rect x="0" y="0" width="136" height="26" rx="6" fill="#111" stroke="#FF5C00" stroke-width="1.5" />
+      <text x="12" y="17" class="font-body" font-weight="700" font-size="10" fill="#FF5C00" letter-spacing="0.5">NEUBRUTALISM UI</text>
+
+      <!-- Tag 2 -->
+      <rect x="146" y="0" width="156" height="26" rx="6" fill="#111" stroke="#00D4FF" stroke-width="1.5" />
+      <text x="12" y="17" class="font-body" font-weight="700" font-size="10" fill="#00D4FF" letter-spacing="0.5">EQUIPMENT-AWARE PLAN</text>
+    </g>
   </g>
 
-  <!-- Creative Drift Elements (Floating gym stats / icons) -->
-  <g class="floating-icons" transform="translate(680, 50)" opacity="0.8">
-    <!-- Small XP Stat Bubble -->
-    <rect x="0" y="0" width="90" height="36" rx="8" fill="#111111" stroke="#00D4FF" stroke-width="1" />
-    <text x="12" y="22" font-family="'Outfit', sans-serif" font-weight="bold" font-size="12" fill="#00D4FF">+150 XP</text>
-    <!-- Lightning zap indicator -->
-    <path d="M 68,10 L 76,18 L 71,20 L 78,28" stroke="#B5FF2D" stroke-width="2" fill="none" stroke-linejoin="round"/>
+  <!-- ── RIGHT SIDE: SMARTPHONE MOCKUP (NEUBRUTALISM UI) ───────────────────── -->
+  <!-- Container is translated so we can design in local phone coords (224x265) -->
+  <g transform="translate(510, 22)">
+    
+    <!-- Neubrutalism Solid Shadow -->
+    <rect x="8" y="8" width="224" height="265" rx="26" fill="#000" opacity="0.6" />
+    
+    <!-- Smartphone Bezel -->
+    <rect x="0" y="0" width="224" height="265" rx="26" fill="#0A0A0A" stroke="#222222" stroke-width="5" />
+    <rect x="3" y="3" width="218" height="259" rx="23" fill="url(#phoneBg)" />
+    
+    <!-- Camera Notch -->
+    <rect x="67" y="3" width="90" height="15" rx="7.5" fill="#000000" />
+    
+    <!-- Screen Content (Header) -->
+    <g transform="translate(15, 28)">
+      <text x="0" y="15" class="font-display" font-weight="900" font-size="16" fill="#FF5C00" letter-spacing="1">FD <tspan fill="#F0F0F0">FITDESI</tspan></text>
+      
+      <!-- Small Streak Pill -->
+      <rect x="142" y="0" width="52" height="20" rx="10" fill="#1A1A1A" stroke="#FF5C00" stroke-width="1" />
+      <text x="150" y="13" class="font-body" font-weight="700" font-size="9" fill="#F0F0F0">🔥 7</text>
+    </g>
+
+    <!-- Screen Content: "Today's Mission" Neubrutalism Card -->
+    <!-- Positioned inside the phone screen -->
+    <g transform="translate(12, 60)">
+      <!-- Card Solid Shadow -->
+      <rect x="3" y="3" width="200" height="74" rx="8" fill="#000000" />
+      <!-- Card Frame -->
+      <rect x="0" y="0" width="200" height="74" rx="8" fill="#151515" stroke="#FF5C00" stroke-width="1.5" />
+      
+      <!-- Accent Line Left -->
+      <line x1="0.75" y1="8" x2="0.75" y2="66" stroke="#FF5C00" stroke-width="3" />
+      
+      <text x="12" y="18" class="font-body" font-weight="700" font-size="8" fill="#888888" letter-spacing="0.5">TODAY'S MISSION</text>
+      <text x="12" y="34" class="font-display" font-weight="900" font-size="15" fill="#F0F0F0" letter-spacing="0.5">PUSH DAY: POWER</text>
+      <text x="12" y="47" class="font-body" font-weight="400" font-size="9" fill="#888888">Bench, OHP, Incline DB</text>
+
+      <!-- Simulated Button -->
+      <rect x="142" y="48" width="46" height="18" rx="4" fill="#FF5C00" />
+      <text x="151" y="60" class="font-body" font-weight="700" font-size="8" fill="#FFFFFF">START</text>
+    </g>
+
+    <!-- Screen Content: "Strength Volume" Line Chart Card -->
+    <g transform="translate(12, 148)">
+      <!-- Card Solid Shadow -->
+      <rect x="3" y="3" width="200" height="92" rx="8" fill="#000000" />
+      <!-- Card Frame -->
+      <rect x="0" y="0" width="200" height="92" rx="8" fill="#151515" stroke="#00D4FF" stroke-width="1.5" />
+      
+      <text x="12" y="16" class="font-body" font-weight="700" font-size="8" fill="#888888" letter-spacing="0.5">STRENGTH PROGRESS</text>
+      <text x="12" y="32" class="font-mono" font-weight="700" font-size="14" fill="#00D4FF">4,820 kg <tspan font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="#B5FF2D">+14%</tspan></text>
+
+      <!-- Mini Chart Gridlines -->
+      <line x1="20" y1="52" x2="180" y2="52" stroke="#222222" stroke-width="1" stroke-dasharray="2" />
+      <line x1="20" y1="72" x2="180" y2="72" stroke="#222222" stroke-width="1" stroke-dasharray="2" />
+
+      <!-- Chart Glowing Line Path (Dynamic animation) -->
+      <path d="M 22,78 L 48,72 L 74,74 L 100,58 L 126,62 L 152,48 L 178,38" fill="none" stroke="#00D4FF" stroke-width="4" opacity="0.3" stroke-linecap="round" stroke-linejoin="round" style="filter: url(#glow-cyan);" />
+      <path d="M 22,78 L 48,72 L 74,74 L 100,58 L 126,62 L 152,48 L 178,38" fill="none" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animated-graph-path" />
+
+      <!-- Glowing Endpoint Dot -->
+      <circle cx="178" cy="38" r="3" fill="#B5FF2D" style="filter: url(#glow-cyan);" class="anim-pulse" />
+    </g>
   </g>
 
-  <g class="floating-icons" transform="translate(650, 140)" opacity="0.6" style="animation-delay: -3s;">
-    <!-- Small Streak Card -->
-    <rect x="0" y="0" width="110" height="36" rx="8" fill="#111111" stroke="#FF5C00" stroke-width="1" />
-    <text x="12" y="22" font-family="'Outfit', sans-serif" font-weight="bold" font-size="12" fill="#F0F0F0">STREAK 🔥 7</text>
+  <!-- ── FLOATING DECORATIONS (Z-INDEX SIMULATION) ─────────────────────────── -->
+  <!-- Positioned container + child CSS floats prevent position reset bug -->
+  
+  <!-- Floating Badge 1: "+50 XP" -->
+  <g transform="translate(425, 75)">
+    <g class="anim-float-slow">
+      <rect x="0" y="0" width="85" height="34" rx="8" fill="#111111" stroke="#00D4FF" stroke-width="1.5" style="filter: drop-shadow(0 4px 10px rgba(0,212,255,0.25));" />
+      <circle cx="16" cy="17" r="4.5" fill="#00D4FF" class="anim-pulse" />
+      <text x="28" y="21" class="font-body" font-weight="700" font-size="11" fill="#00D4FF">+50 XP</text>
+    </g>
+  </g>
+
+  <!-- Floating Badge 2: "PR BROKEN" -->
+  <g transform="translate(415, 185)">
+    <g class="anim-float-medium">
+      <rect x="0" y="0" width="105" height="34" rx="8" fill="#111111" stroke="#B5FF2D" stroke-width="1.5" style="filter: drop-shadow(0 4px 10px rgba(181,255,45,0.2));" />
+      <!-- Small Trophy Icon in SVG path -->
+      <path d="M 12,12 L 18,12 L 18,14 Q 18,18 15,18 Q 12,18 12,14 Z" fill="#B5FF2D" />
+      <path d="M 14,18 L 14,21 L 12,21 L 12,23 L 18,23 L 18,21 L 16,21 L 16,18" stroke="#B5FF2D" stroke-width="1" fill="none" />
+      <text x="28" y="21" class="font-body" font-weight="700" font-size="10" fill="#B5FF2D" letter-spacing="0.5">PR CRUSHED</text>
+    </g>
+  </g>
+
+  <!-- Floating Badge 3: Streak shield -->
+  <g transform="translate(710, 100)">
+    <g class="anim-float-slow" style="animation-delay: -2.5s;">
+      <rect x="0" y="0" width="60" height="50" rx="10" fill="#111111" stroke="#FF5C00" stroke-width="1.5" style="filter: drop-shadow(0 4px 10px rgba(255,92,0,0.15));" />
+      <text x="30" y="22" class="font-body" font-weight="700" font-size="14" text-anchor="middle" fill="#FF5C00">🛡️</text>
+      <text x="30" y="38" class="font-body" font-weight="700" font-size="7" text-anchor="middle" fill="#888888" letter-spacing="0.5">SHIELD</text>
+    </g>
   </g>
 </svg>
