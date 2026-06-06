@@ -1,0 +1,29 @@
+{
+  "short_name": "FitDesi",
+  "name": "FitDesi Gym Tracker",
+  "description": "AI-powered gym workout planner and telemetric tracker.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/home",
+  "background_color": "#080808",
+  "theme_color": "#FF5C00",
+  "display": "standalone",
+  "orientation": "portrait"
+}

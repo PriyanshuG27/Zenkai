@@ -10,15 +10,26 @@
  */
 
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore }           from 'firebase/firestore';
-import { getAuth }                from 'firebase/auth';
-import { getFunctions }           from 'firebase/functions';
-import { firebaseConfig }         from './firebaseConfig'; // runs validation
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { firebaseConfig } from './firebaseConfig';
 
-// Prevent double-initialisation in hot-reload environments (Vite HMR)
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-export const db        = getFirestore(app);
-export const auth      = getAuth(app);
-export const functions = getFunctions(app, 'us-central1'); // match your deployment region
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const functions = getFunctions(app, 'asia-south2');
+
+// Connect to local emulators if running on localhost
+if (window.location.hostname === 'localhost') {
+  try {
+    // connectFirestoreEmulator(db, 'localhost', 8080); // Disabled due to Java 21 missing
+    // connectAuthEmulator(auth, 'http://localhost:9099'); // Disabled
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+  } catch (e) {
+    console.error('Firebase emulators already connected or failed:', e);
+  }
+}
+
 export { app };

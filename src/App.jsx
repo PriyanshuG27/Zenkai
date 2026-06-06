@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import { useAuthStore } from './stores/authStore';
 import { useDeviceLayout } from './hooks/useDeviceLayout';
+import { useUIStore } from './stores/useUIStore';
 
 // Layout Shells
 import { MobileApp }  from './components/mobile/MobileApp';
@@ -20,6 +21,8 @@ import { LandingPage } from './components/shared/LandingPage';
 import { LoginPage }   from './components/shared/LoginPage';
 import { SignupPage }  from './components/shared/SignupPage';
 import { OnboardingPage } from './components/shared/OnboardingPage';
+import { PWAInstallModal } from './components/shared/PWAInstallModal';
+import { PWAInstallBanner } from './components/shared/PWAInstallBanner';
 
 // Mobile Screens
 import { MobileHome }           from './components/mobile/MobileHome';
@@ -105,37 +108,85 @@ function AppRoutes({ layout }) {
 // ─── App root ─────────────────────────────────────────────────────────────────
 function App() {
   const { setUser, setLoading, setProfile } = useAuthStore();
+  const { setPwaDeferredPrompt, setIsStandalone, setIsIOS } = useUIStore();
 
   // layout is detected ONCE at root — 'mobile' | 'desktop'
   // Debounced resize listener inside the hook (100ms) prevents thrash.
   // Both layout trees share the same BrowserRouter context below.
   const layout = useDeviceLayout();
 
+  // Listen for PWA installation events globally
+  useEffect(() => {
+    // Detect standalone mode
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    setIsStandalone(!!isStandaloneMode);
+
+    // Detect iOS
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    setIsIOS(isIOSDevice);
+
+    // PWA install event listener
+    const handleInstallPrompt = (e) => {
+      e.preventDefault();
+      setPwaDeferredPrompt(e);
+    };
+
+    // Fired when the app is successfully installed
+    const handleAppInstalled = () => {
+      console.log('[PWA] App installed successfully');
+      setIsStandalone(true);
+      setPwaDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, [setPwaDeferredPrompt, setIsStandalone, setIsIOS]);
+
   // Single onAuthStateChanged — source of truth for session persistence.
   // Firebase IndexedDB keeps the session across refreshes (no logout on F5).
+  // Uses onSnapshot for real-time profile data updates (e.g. XP & streak increments).
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubProfile = null;
+    const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser ?? null);
       if (firebaseUser) {
         setLoading(true);
-        try {
-          const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (snap.exists()) {
-            setProfile(snap.data());
-          } else {
-            setProfile(null);
+        unsubProfile = onSnapshot(
+          doc(db, 'users', firebaseUser.uid),
+          (snap) => {
+            if (snap.exists()) {
+              setProfile(snap.data());
+            } else {
+              setProfile(null);
+            }
+            setLoading(false);
+          },
+          (err) => {
+            console.error('[App] Error in real-time profile listener:', err);
+            setLoading(false);
           }
-        } catch (err) {
-          console.error('[App] Error fetching profile:', err);
-        } finally {
-          setLoading(false);
-        }
+        );
       } else {
+        if (unsubProfile) {
+          unsubProfile();
+          unsubProfile = null;
+        }
         setProfile(null);
         setLoading(false);
       }
     });
-    return unsubscribe;
+
+    return () => {
+      unsubAuth();
+      if (unsubProfile) {
+        unsubProfile();
+      }
+    };
   }, [setUser, setLoading, setProfile]);
 
   return (
@@ -143,6 +194,8 @@ function App() {
     // Swapping layout shells (on resize) does NOT reset router state.
     <BrowserRouter>
       <AppRoutes layout={layout} />
+      <PWAInstallBanner />
+      <PWAInstallModal />
     </BrowserRouter>
   );
 }

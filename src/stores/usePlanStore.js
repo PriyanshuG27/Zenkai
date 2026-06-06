@@ -39,7 +39,7 @@ export const usePlanStore = create((set) => ({
   setPlan: (planDoc) =>
     set({
       currentPlan: planDoc,
-      planDays:    planDoc?.days ?? [],
+      planDays:    planDoc?.plan?.days ?? planDoc?.days ?? [],
       generatedAt: planDoc?.generatedAt ?? null,
       planError:   null,
     }),

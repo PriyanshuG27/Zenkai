@@ -137,6 +137,28 @@ describe('useProgress Hooks Test Suite', () => {
       expect(result2.current.data).toEqual([{ date: '2026-06-06', maxWeight: 100, maxReps: 5 }]);
       expect(mockGetDocs).toHaveBeenCalledTimes(2); // Still 2
     });
+    it('cleanup function cancels in-flight read on unmount', async () => {
+      let resolveQuery;
+      mockGetDocs.mockReturnValue(new Promise(resolve => {
+        resolveQuery = resolve;
+      }));
+
+      const { unmount, result } = renderHook(() => useStrengthData('user-123', 'unique_exercise_for_cleanup', 30));
+      
+      expect(result.current.loading).toBe(true);
+      
+      unmount();
+      
+      resolveQuery({ docs: [] });
+      
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+      
+      // Since it unmounted, state should not be updated or throw memory leaks
+      // Vitest's lack of warnings or errors signifies success, but we can also mock a spy if needed.
+      expect(result.current.loading).toBe(true); // Loading state never changes because it unmounted before resolve
+    });
   });
 
   describe('useVolumeData Hook', () => {

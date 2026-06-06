@@ -1,8 +1,8 @@
 import React from 'react';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -32,11 +32,11 @@ const CustomTooltip = ({ active, payload }) => {
     const dataPoint = payload[0].payload;
     const formattedDate = formatXAxisDate(dataPoint.date);
     return (
-      <div className="bg-[#1A1A1A] border border-[#333333] p-2.5 rounded shadow-[0_4px_12px_rgba(0,0,0,0.9)] font-mono text-xs text-[#F0F0F0]">
+      <div className="bg-[#1A1A1A] border-2 border-[#333333] p-2.5 rounded shadow-[4px_4px_0px_rgba(0,0,0,1)] font-mono text-xs text-[#F0F0F0]">
         <div className="flex items-center gap-1.5">
-          <span className="text-[#00D4FF] font-semibold">{dataPoint.maxWeight} kg</span>
-          <span className="text-[#888888]">×</span>
-          <span className="text-[#F0F0F0]">{dataPoint.maxReps} reps</span>
+          <span className="text-[#00D4FF] font-extrabold">{dataPoint.maxWeight} kg</span>
+          <span className="text-[#888888] font-bold">×</span>
+          <span className="text-[#F0F0F0] font-bold">{dataPoint.maxReps} reps</span>
         </div>
         <span className="text-[#888888] block mt-1 text-[10px]">on {formattedDate}</span>
       </div>
@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 // Skeleton loading component
 const ChartSkeleton = () => (
-  <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg p-4 flex flex-col justify-between animate-pulse">
+  <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg p-4 flex flex-col justify-between animate-pulse">
     <div className="h-4 bg-[#222222] rounded w-1/4 mb-4"></div>
     <div className="flex-1 flex items-end justify-between gap-2">
       <div className="w-8 bg-[#222222] rounded-t" style={{ height: '30%' }}></div>
@@ -62,11 +62,11 @@ const ChartSkeleton = () => (
 
 // Empty State component
 const EmptyState = ({ exerciseName }) => (
-  <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg flex flex-col items-center justify-center text-center p-6">
+  <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg flex flex-col items-center justify-center text-center p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
     <div className="p-3 bg-[#1A1A1A] rounded-full border border-[#222222] mb-3">
       <Dumbbell className="w-8 h-8 text-[#888888] stroke-[1.5]" />
     </div>
-    <p className="text-sm font-medium text-[#F0F0F0] font-sans">
+    <p className="text-sm font-bold text-[#F0F0F0] font-sans">
       Log {exerciseName || 'exercises'} to see strength progress
     </p>
     <p className="text-xs text-[#888888] mt-1 font-sans max-w-[280px]">
@@ -82,12 +82,18 @@ export const StrengthChart = ({ data = [], exerciseName = '', loading = false })
   if (!data || data.length === 0) return <EmptyState exerciseName={exerciseName} />;
 
   return (
-    <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg p-2 relative">
+    <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg p-2 relative shadow-[4px_4px_0px_rgba(0,0,0,1)]">
       <ResponsiveContainer key={sidebarOpen ? 'open' : 'closed'} width="100%" height="100%">
-        <LineChart
+        <AreaChart
           data={data}
           margin={{ top: 15, right: 15, left: -10, bottom: 5 }}
         >
+          <defs>
+            <linearGradient id="colorMaxWeight" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.35}/>
+              <stop offset="95%" stopColor="#00D4FF" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#222222" vertical={false} />
           <XAxis
             dataKey="date"
@@ -103,16 +109,19 @@ export const StrengthChart = ({ data = [], exerciseName = '', loading = false })
             width={52}
             dx={-4}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#222222', strokeWidth: 1 }} />
-          <Line
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#222222', strokeWidth: 1.5 }} />
+          <Area
             type="monotone"
             dataKey="maxWeight"
             stroke="#00D4FF"
             strokeWidth={2}
+            fillOpacity={1}
+            fill="url(#colorMaxWeight)"
+            isAnimationActive={true}
             dot={{ fill: '#00D4FF', r: 3, strokeWidth: 0 }}
             activeDot={{ r: 5, fill: '#00D4FF', strokeWidth: 0 }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

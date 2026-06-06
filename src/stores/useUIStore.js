@@ -31,6 +31,12 @@ export const useUIStore = create((set) => ({
   mobileTab:    'home',
   sidebarOpen:  true,
 
+  // PWA states
+  pwaDeferredPrompt: null,
+  pwaInstallable: false,
+  isStandalone: false,
+  isIOS: false,
+
   addToast: (message, type = 'info', duration = 3500) => {
     const id = ++toastCounter;
     set((state) => ({ toasts: [...state.toasts, { id, message, type, duration }] }));
@@ -48,4 +54,10 @@ export const useUIStore = create((set) => ({
 
   setMobileTab: (tab)   => set({ mobileTab: tab }),
   toggleSidebar: ()     => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
+  // PWA actions
+  setPwaDeferredPrompt: (prompt) => set({ pwaDeferredPrompt: prompt, pwaInstallable: !!prompt }),
+  clearPwaDeferredPrompt: () => set({ pwaDeferredPrompt: null, pwaInstallable: false }),
+  setIsStandalone: (val) => set({ isStandalone: val }),
+  setIsIOS: (val) => set({ isIOS: val }),
 }));

@@ -144,7 +144,8 @@ export function useWorkoutLogger() {
     const startedAt       = session.startedAt ? new Date(session.startedAt) : new Date();
     const durationMinutes = Math.max(1, Math.round((Date.now() - startedAt.getTime()) / 60000));
     const sessionId       = crypto.randomUUID();
-    const dateString      = new Date().toISOString().slice(0, 10);
+    const nowLocal = new Date();
+    const dateString = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
     // ── e. Evaluate PRs ────────────────────────────────────────────────────────
     const newPRs     = [];
@@ -228,6 +229,7 @@ export function useWorkoutLogger() {
 
     // ── h. Session document fields ─────────────────────────────────────────────
     const sessionDoc = {
+      planDayId:       session.planDayId      ?? 'custom',
       date:            serverTimestamp(),
       dateString,
       moodTag:         session.moodTag        ?? 'average',

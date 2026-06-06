@@ -27,9 +27,9 @@ const CustomTooltip = ({ active, payload }) => {
     const dataPoint = payload[0].payload;
     const formattedWeek = formatXAxisWeek(dataPoint.week);
     return (
-      <div className="bg-[#1A1A1A] border border-[#333333] p-2.5 rounded shadow-[0_4px_12px_rgba(0,0,0,0.9)] font-mono text-xs text-[#F0F0F0]">
+      <div className="bg-[#1A1A1A] border-2 border-[#333333] p-2.5 rounded shadow-[4px_4px_0px_rgba(0,0,0,1)] font-mono text-xs text-[#F0F0F0]">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[#FF5C00] font-semibold">{dataPoint.totalVolume} kg</span>
+          <span className="text-[#FF5C00] font-extrabold">{dataPoint.totalVolume.toLocaleString()} kg</span>
           <span className="text-[#888888] text-[10px] mt-0.5">Week: {formattedWeek}</span>
         </div>
       </div>
@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 // Skeleton loading component
 const ChartSkeleton = () => (
-  <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg p-4 flex flex-col justify-between animate-pulse">
+  <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg p-4 flex flex-col justify-between animate-pulse">
     <div className="h-4 bg-[#222222] rounded w-1/4 mb-4"></div>
     <div className="flex-1 flex items-end justify-between gap-2">
       <div className="w-8 bg-[#222222] rounded-t" style={{ height: '30%' }}></div>
@@ -55,11 +55,11 @@ const ChartSkeleton = () => (
 
 // Empty State component
 const EmptyState = () => (
-  <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg flex flex-col items-center justify-center text-center p-6">
+  <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg flex flex-col items-center justify-center text-center p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
     <div className="p-3 bg-[#1A1A1A] rounded-full border border-[#222222] mb-3">
       <BarChart2 className="w-8 h-8 text-[#888888] stroke-[1.5]" />
     </div>
-    <p className="text-sm font-medium text-[#F0F0F0] font-sans">
+    <p className="text-sm font-bold text-[#F0F0F0] font-sans">
       Start logging to see weekly volume
     </p>
     <p className="text-xs text-[#888888] mt-1 font-sans max-w-[280px]">
@@ -75,12 +75,18 @@ export const VolumeChart = ({ data = [], loading = false }) => {
   if (!data || data.length === 0) return <EmptyState />;
 
   return (
-    <div className="w-full h-[240px] bg-[#111111] border border-[#222222] rounded-lg p-2 relative">
+    <div className="w-full h-[240px] bg-[#111111] border-2 border-[#222222] rounded-lg p-2 relative shadow-[4px_4px_0px_rgba(0,0,0,1)]">
       <ResponsiveContainer key={sidebarOpen ? 'open' : 'closed'} width="100%" height="100%">
         <BarChart
           data={data}
           margin={{ top: 15, right: 15, left: -10, bottom: 5 }}
         >
+          <defs>
+            <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#FF5C00" stopOpacity={1}/>
+              <stop offset="95%" stopColor="#FF5C00" stopOpacity={0.3}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#222222" vertical={false} />
           <XAxis
             dataKey="week"
@@ -96,10 +102,10 @@ export const VolumeChart = ({ data = [], loading = false }) => {
             width={52}
             dx={-4}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 92, 0, 0.05)' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 92, 0, 0.04)' }} />
           <Bar
             dataKey="totalVolume"
-            fill="#FF5C00"
+            fill="url(#colorVolume)"
             radius={[4, 4, 0, 0]}
             activeBar={{ fill: '#FF7C2A' }}
           />

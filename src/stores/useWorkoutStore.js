@@ -62,20 +62,37 @@ export const useWorkoutStore = create(
 
       startSession: (planDayOrMood, stomachFlag = false) => {
         if (typeof planDayOrMood === 'object' && planDayOrMood !== null) {
+          const planDayId = planDayOrMood.id ?? planDayOrMood.day ?? 'custom';
           set({
             activeSession: {
-              planDayId: planDayOrMood.id,
+              planDayId,
               startedAt: Date.now(),
               exercises: planDayOrMood.exercises,
               moodTag: 'average',
               stomachFlag: false
             },
             exercises: planDayOrMood.exercises.map((ex) => {
-              const isBW = isBodyweightExercise(ex.key || ex.id, ex.id);
+              const exId = ex.id ?? ex.exerciseKey ?? ex.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+              const isBW = isBodyweightExercise(ex.key || exId, exId);
+              
+              // If sets count is specified, pre-populate that many sets with target details.
+              const setsCount = typeof ex.sets === 'number' ? ex.sets : 3;
+              const defaultWeight = isBW ? 'BW' : (ex.targetWeight !== undefined ? String(ex.targetWeight) : '');
+              
+              // For reps: if it's a range like "8-10", we can pre-fill it.
+              const defaultReps = ex.reps ? String(ex.reps) : '';
+
+              const sets = Array.from({ length: setsCount }).map(() => ({
+                reps: defaultReps,
+                weight: defaultWeight,
+                completed: false,
+                done: false
+              }));
+
               return {
-                exerciseId: ex.id,
+                exerciseId: exId,
                 name:       ex.name,
-                sets:       [{ reps: '', weight: isBW ? 'BW' : '', completed: false, done: false }],
+                sets,
               };
             }),
             elapsedSeconds: 0,

@@ -42,14 +42,6 @@ export function useStrengthData(uid, exerciseKey, rangeDays = 30) {
       return;
     }
 
-    const cacheKey = `${uid}_${exerciseKey}_${rangeDays}`;
-    if (strengthCache.has(cacheKey)) {
-      setData(strengthCache.get(cacheKey));
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -115,7 +107,6 @@ export function useStrengthData(uid, exerciseKey, rangeDays = 30) {
         const sortedData = records.sort((a, b) => a.date.localeCompare(b.date));
 
         if (!signal.aborted) {
-          strengthCache.set(cacheKey, sortedData);
           setData(sortedData);
         }
       } catch (err) {
@@ -278,7 +269,7 @@ export function usePRList(uid) {
           const data = docSnap.data();
           return {
             exerciseKey: docSnap.id,
-            exerciseName: data.exerciseName || '',
+            exerciseName: data.name || data.exerciseName || '',
             weight: data.weight,
             reps: data.reps,
             date: data.date,

@@ -13,20 +13,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ─────────────────────────────────────────────
-// Mock firebase-functions/v2/https
-// ─────────────────────────────────────────────
-
-vi.mock('firebase-functions/v2/https', () => {
-  class HttpsError extends Error {
-    constructor(code, message) {
-      super(message);
-      this.code    = code;
-      this.message = message;
-    }
-  }
-  return { HttpsError, onCall: vi.fn((fn) => fn) };
-});
 
 // ─────────────────────────────────────────────
 // Import modules under test (after mocks)
@@ -54,14 +40,14 @@ describe('validateUID', () => {
   });
 
   it('throws invalid-argument for empty string', () => {
-    expect(() => validateUID('')).toThrow(HttpsError);
+    expect(() => validateUID('')).toThrow();
     try { validateUID(''); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
   });
 
   it('throws invalid-argument for whitespace-only string', () => {
-    expect(() => validateUID('   ')).toThrow(HttpsError);
+    expect(() => validateUID('   ')).toThrow();
     try { validateUID('   '); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
@@ -69,7 +55,7 @@ describe('validateUID', () => {
 
   it('throws invalid-argument for UID longer than 128 characters', () => {
     const longUID = 'x'.repeat(129);
-    expect(() => validateUID(longUID)).toThrow(HttpsError);
+    expect(() => validateUID(longUID)).toThrow();
     try { validateUID(longUID); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
@@ -77,7 +63,10 @@ describe('validateUID', () => {
 
   it('throws invalid-argument for non-string types', () => {
     for (const bad of [null, undefined, 42, {}, []]) {
-      expect(() => validateUID(bad)).toThrow(HttpsError);
+      expect(() => validateUID(bad)).toThrow();
+      try { validateUID(bad); } catch (e) {
+        expect(e.code).toBe('invalid-argument');
+      }
     }
   });
 });
@@ -101,21 +90,21 @@ describe('validatePlanRequest', () => {
   });
 
   it('throws invalid-argument when uid is supplied in request body', () => {
-    expect(() => validatePlanRequest({ uid: 'hacker-attempt' })).toThrow(HttpsError);
+    expect(() => validatePlanRequest({ uid: 'hacker-attempt' })).toThrow();
     try { validatePlanRequest({ uid: 'hacker-attempt' }); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
   });
 
   it('throws invalid-argument when uid is supplied alongside other fields', () => {
-    expect(() => validatePlanRequest({ uid: 'x', weekId: '2026-W01' })).toThrow(HttpsError);
+    expect(() => validatePlanRequest({ uid: 'x', weekId: '2026-W01' })).toThrow();
     try { validatePlanRequest({ uid: 'x', weekId: '2026-W01' }); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
   });
 
   it('throws invalid-argument for unknown extra fields', () => {
-    expect(() => validatePlanRequest({ extraField: 'evil' })).toThrow(HttpsError);
+    expect(() => validatePlanRequest({ extraField: 'evil' })).toThrow();
     try { validatePlanRequest({ extraField: 'evil' }); } catch (e) {
       expect(e.code).toBe('invalid-argument');
     }
@@ -123,13 +112,22 @@ describe('validatePlanRequest', () => {
 
   it('throws invalid-argument for badly formatted weekId', () => {
     for (const bad of ['2026-23', 'W23', '2026/W23', '2026-W2', '', 123]) {
-      expect(() => validatePlanRequest({ weekId: bad })).toThrow(HttpsError);
+      expect(() => validatePlanRequest({ weekId: bad })).toThrow();
+      try { validatePlanRequest({ weekId: bad }); } catch (e) {
+        expect(e.code).toBe('invalid-argument');
+      }
     }
   });
 
   it('throws invalid-argument when data is a non-object', () => {
-    expect(() => validatePlanRequest('string')).toThrow(HttpsError);
-    expect(() => validatePlanRequest([1, 2])).toThrow(HttpsError);
+    expect(() => validatePlanRequest('string')).toThrow();
+    expect(() => validatePlanRequest([1, 2])).toThrow();
+    try { validatePlanRequest('string'); } catch (e) {
+      expect(e.code).toBe('invalid-argument');
+    }
+    try { validatePlanRequest([1, 2]); } catch (e) {
+      expect(e.code).toBe('invalid-argument');
+    }
   });
 });
 
@@ -236,7 +234,7 @@ describe('checkRateLimit', () => {
 
   it('throws resource-exhausted on 6th call (count=5 in window)', async () => {
     const db = makeDb({ exists: true, count: 5, windowStart: Date.now() });
-    await expect(checkRateLimit(db, 'uid-003')).rejects.toThrow(HttpsError);
+    await expect(checkRateLimit(db, 'uid-003')).rejects.toThrow();
     try {
       await checkRateLimit(db, 'uid-003');
     } catch (e) {
