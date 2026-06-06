@@ -101,7 +101,12 @@ export const MobileLogger = () => {
     const isCompleted = setRow.completed || setRow.done;
     if (!isCompleted) return false;
 
-    const isBW = isBodyweightExercise(null, exerciseId);
+    // 1. Get the current exercise from active state
+    const exercise = exercises.find((ex) => ex.exerciseId === exerciseId);
+    if (!exercise) return false;
+
+    const exerciseKey = exercise.exerciseKey ?? exercise.exerciseId;
+    const isBW = isBodyweightExercise(exerciseKey, exerciseId);
     const weight = setRow.weight === 'BW' ? 0 : (parseFloat(setRow.weight) || 0);
     const reps = parseInt(setRow.reps, 10) || 0;
     if (reps <= 0) return false;
@@ -111,10 +116,6 @@ export const MobileLogger = () => {
 
     const userBodyweight = parseFloat(profile?.weightKg) || 75;
     const current1RM = getEstimated1RM(weight, reps, isBW, userBodyweight);
-
-    // 1. Get the max 1RM achieved in the current workout session for this exercise
-    const exercise = exercises.find((ex) => ex.exerciseId === exerciseId);
-    if (!exercise) return false;
 
     const completedSets = exercise.sets.filter((s) => s.completed || s.done);
     if (completedSets.length === 0) return false;
@@ -132,8 +133,9 @@ export const MobileLogger = () => {
     // Only the best set in the current session can be marked as a PR
     if (current1RM < maxSession1RM) return false;
 
-    // 2. Compare against the existing database record
-    const existingPR = prsMap[exerciseId];
+    // 2. Compare against the existing database record (fetched in prsMap)
+    const cleanKey = exerciseKey ? exerciseKey.split('_')[0] : '';
+    const existingPR = prsMap[cleanKey] || prsMap[exerciseKey] || prsMap[exerciseId];
     if (!existingPR) return true; // first time performing beats no PR
 
     const existing1RM = getEstimated1RM(
@@ -392,36 +394,37 @@ export const MobileLogger = () => {
                     </button>
                   </div>
 
-                  {/* List of SetRows */}
-                  <div className="flex flex-col gap-2 mb-3">
-                    {ex.sets.map((s, setIndex) => (
-                      <div key={setIndex} className="flex items-center gap-2 w-full">
-                        <div className="flex-1 min-w-0">
-                          <SetRow
-                            exerciseId={ex.exerciseId}
-                            setIndex={setIndex}
-                            set={s}
-                            exerciseIndex={exIndex}
-                            isBodyweight={isBodyweightExercise(ex.exerciseKey, ex.exerciseId)}
-                            onUpdate={(field, val) =>
-                              updateSet(ex.exerciseId, setIndex, field, val)
-                            }
-                            onDone={() => markSetDone(ex.exerciseId, setIndex)}
-                            isPR={checkIfSetIsPR(ex.exerciseId, s)}
-                          />
-                        </div>
-                        {ex.sets.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeSet(exIndex, setIndex)}
-                            aria-label={`Remove set ${setIndex + 1}`}
-                            className="w-11 h-11 flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer focus:outline-none shrink-0"
-                            style={{ minWidth: '44px', minHeight: '44px' }}
-                          >
-                            <X size={15} />
-                          </button>
-                        )}
+                  {/* Column Headers */}
+                  {ex.sets.length > 0 && (
+                    <div className="flex items-center justify-between w-full px-1 mb-1 text-[10px] font-bold text-[var(--text-secondary)]/50 uppercase tracking-widest select-none">
+                      <div className="w-6 text-left">Set</div>
+                      <div className="w-[96px] text-center">Weight</div>
+                      <div className="w-[88px] text-center">Reps</div>
+                      <div className="w-[104px] flex items-center justify-between pl-2">
+                        <span className="w-8 text-left">Done</span>
+                        <span className="w-10 text-center">PR</span>
+                        <span className="w-6 text-right"></span>
                       </div>
+                    </div>
+                  )}
+
+                  {/* List of SetRows */}
+                  <div className="flex flex-col mb-4">
+                    {ex.sets.map((s, setIndex) => (
+                      <SetRow
+                        key={setIndex}
+                        exerciseId={ex.exerciseId}
+                        setIndex={setIndex}
+                        set={s}
+                        exerciseIndex={exIndex}
+                        isBodyweight={isBodyweightExercise(ex.exerciseKey, ex.exerciseId)}
+                        onUpdate={(field, val) =>
+                          updateSet(ex.exerciseId, setIndex, field, val)
+                        }
+                        onDone={() => markSetDone(ex.exerciseId, setIndex)}
+                        isPR={checkIfSetIsPR(ex.exerciseId, s)}
+                        onDelete={ex.sets.length > 1 ? () => removeSet(exIndex, setIndex) : null}
+                      />
                     ))}
                   </div>
 

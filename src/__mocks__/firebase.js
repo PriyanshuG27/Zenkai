@@ -74,6 +74,7 @@ vi.mock('firebase/firestore', () => ({
   query: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
+  where: vi.fn(),
 }));
 
 // Mock firebase/functions

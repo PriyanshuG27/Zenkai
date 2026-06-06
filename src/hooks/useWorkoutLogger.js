@@ -3,38 +3,35 @@
  *
  * Session completion hook — owns the entire "finish workout" flow.
  *
+ * IMPORTANT: Reads from useWorkoutStore (not sessionStore).
+ * MobileLogger uses useWorkoutStore for all session state.
+ *
  * ─── finishSession(uid) ────────────────────────────────────────────────────────
  *
  *  PRE-BATCH (deterministic, runs once):
  *    1. Validate uid + active session
- *    2. Snapshot exercises (immutable for the whole flow)
- *    3. Derive stats: totalVolume, totalSets, durationMinutes
- *    4. Evaluate PRs via Epley 1RM vs Firestore existing PRs
- *    5. Evaluate streak via evaluateStreak()
- *    6. Calculate XP: base 50 + 10 per PR
- *    7. Derive new level from XP
+ *    2. Snapshot exercises from useWorkoutStore
+ *    3. Fetch user profile + existing PRs from Firestore
+ *    4. Derive stats: totalVolume, totalSets, durationMinutes
+ *    5. Evaluate PRs via Epley 1RM
+ *    6. Evaluate streak via evaluateStreak()
+ *    7. Calculate XP: base 50 + 10 per PR
  *
  *  OPTIMISTIC UPDATE (before awaiting Firestore):
- *    - xpStore.awardXP(amount)   → local level/XP counters animate immediately
- *    - store setOptimisticDone() → session shows "complete" state in UI
+ *    - xpStore.awardXP(amount) → local level/XP counters animate immediately
  *
  *  ATOMIC BATCH (single writeBatch, 5 operation groups):
  *    1. SET   users/{uid}/sessions/{sessionId}
  *    2. SET   users/{uid}/sessions/{sessionId}/exercises/{id}  (× N)
  *    3. SET   users/{uid}/prs/{exerciseKey}                    (× PRs only)
- *    4. ADDOC users/{uid}/xpLog/{newId}                       (via batch.set with auto-id)
+ *    4. SET   users/{uid}/xpLog/{newId}                       (via batch.set with auto-id)
  *    5. UPDATE users/{uid}                                     (xp, level, streak, streakLastDate)
  *
  *  ON SUCCESS: resetSession() + return summary
  *  ON FAILURE:
  *    - Roll back optimistic XP (xpStore.rollbackXP)
- *    - Roll back optimistic done flag (store clearOptimisticDone)
- *    - Increment retryCount (exposed to UI for "save locally" UX at 3 failures)
- *    - Throw descriptive error (UI catches and shows retry button)
+ *    - Increment retryCount
  *    - Session state is PRESERVED so the user can retry
- *
- * ─── getSessionStats() ────────────────────────────────────────────────────────
- *   Pure derived read — safe to call every render.
  */
 
 import { useCallback, useRef } from 'react';
@@ -47,80 +44,60 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { useSessionStore } from '../stores/sessionStore';
+import { useWorkoutStore } from '../stores/useWorkoutStore';
 import { useXPStore } from '../stores/useXPStore';
-import { useXPEngine, evaluateStreak, deriveLevelFromXP } from './useXPEngine';
-import { isBodyweightExercise, getEstimated1RM } from '../stores/useWorkoutStore';
+import { evaluateStreak, deriveLevelFromXP } from './useXPEngine';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BASE_SESSION_XP = 50;  // awarded for completing a session
-const PR_XP           = 10;  // awarded per personal record broken
+const BASE_SESSION_XP = 50;   // awarded for completing any session
+const PR_XP           = 10;   // bonus per personal record broken
+
+// ─── Epley 1RM helper (inline — no import needed) ─────────────────────────────
+// effectiveWeight × (1 + reps / 30)
+// For bodyweight exercises: effectiveWeight = bodyweightKg + addedWeight
+
+const BODYWEIGHT_EXERCISE_KEYS = new Set([
+  'push_ups', 'pull_ups', 'chin_ups', 'dips', 'tricep_dips',
+  'bodyweight_squat', 'pistol_squat', 'inverted_row',
+  'hanging_leg_raise', 'plank', 'burpees', 'mountain_climbers',
+]);
+
+function isBodyweightEx(exerciseKey) {
+  return BODYWEIGHT_EXERCISE_KEYS.has(exerciseKey);
+}
+
+function epley1RM(effectiveWeight, reps) {
+  if (reps <= 0) return 0;
+  if (reps === 1) return effectiveWeight;
+  return effectiveWeight * (1 + reps / 30);
+}
+
+function get1RM(weight, reps, isBW, bodyweightKg) {
+  const w = weight === 'BW' ? 0 : (parseFloat(weight) || 0);
+  const r = parseInt(reps, 10) || 0;
+  const effective = isBW ? (bodyweightKg + w) : w;
+  return epley1RM(effective, r);
+}
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useWorkoutLogger() {
-  const {
-    isActive,
-    startTime,
-    moodTag,
-    stomachFlag,
-    exercises,
-    resetSession,
-  } = useSessionStore();
-
-  const { awardXP: awardXPLocally, rollbackXP } = useXPStore();
-  const { } = useXPEngine(); // ensure hook is initialised in this render tree
-
-  // Persists a fully-built batch payload across retries (avoids re-calculating)
+  // Cache built payload across retries (avoids re-calculating on retry)
   const pendingBatchRef = useRef(null);
-  // Counts how many times commit() has failed for this session
-  const retryCountRef = useRef(0);
-
-  // ── getSessionStats ─────────────────────────────────────────────────────────
-  const getSessionStats = useCallback(() => {
-    let totalSets   = 0;
-    let totalVolume = 0;
-
-    exercises.forEach((ex) => {
-      ex.sets.forEach((s) => {
-        if (s.done) {
-          totalSets   += 1;
-          totalVolume += (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0);
-        }
-      });
-    });
-
-    const durationMs      = startTime ? Date.now() - startTime.getTime() : 0;
-    const durationMinutes = Math.max(1, Math.round(durationMs / 60000));
-
-    return {
-      exerciseCount: exercises.length,
-      totalSets,
-      totalVolume,
-      duration: durationMinutes,
-    };
-  }, [exercises, startTime]);
+  const retryCountRef   = useRef(0);
 
   // ── _buildBatchPayload ──────────────────────────────────────────────────────
-  /**
-   * Fetches the user profile + existing PRs, then pre-computes every value
-   * that will go into the batch. Called once; result is cached in pendingBatchRef.
-   *
-   * @param {string} uid
-   * @returns {Promise<BatchPayload>}
-   */
   const _buildBatchPayload = useCallback(async (uid) => {
-    // ── a. Snapshot state ──────────────────────────────────────────────────────
-    const exercisesSnapshot = exercises;
-    const sessionStartTime  = startTime;
+    // ── a. Snapshot current state directly from useWorkoutStore ──────────────
+    const { activeSession: session, exercises: exercisesSnapshot } = useWorkoutStore.getState();
 
     // ── b. Validate ────────────────────────────────────────────────────────────
     if (!uid || typeof uid !== 'string' || uid.trim() === '') {
       throw new Error('[useWorkoutLogger] A valid UID is required.');
     }
-    if (!isActive || !sessionStartTime) {
-      throw new Error('[useWorkoutLogger] No active session to finish.');
+    if (!session) {
+      throw new Error('[useWorkoutLogger] No active session found.');
     }
 
     // ── c. Fetch user profile + existing PRs ──────────────────────────────────
@@ -132,9 +109,11 @@ export function useWorkoutLogger() {
       getDocs(prsColRef),
     ]);
 
-    if (!userSnap.exists()) throw new Error('[useWorkoutLogger] User profile not found.');
+    if (!userSnap.exists()) {
+      throw new Error('[useWorkoutLogger] User profile not found in Firestore.');
+    }
 
-    const userData  = userSnap.data();
+    const userData       = userSnap.data();
     const userBodyweight = parseFloat(userData.weightKg) || 70;
 
     const existingPRsMap = {};
@@ -146,33 +125,45 @@ export function useWorkoutLogger() {
 
     exercisesSnapshot.forEach((ex) => {
       ex.sets.forEach((s) => {
-        if (s.done) {
-          totalSets   += 1;
-          // BW sets: weight is 'BW' string — treat volume as 0 (bodyweight only)
+        // Support both 'done' and 'completed' flags (legacy compat)
+        if (s.done || s.completed) {
+          totalSets += 1;
           const w = s.weight === 'BW' ? 0 : (parseFloat(s.weight) || 0);
           totalVolume += w * (parseInt(s.reps, 10) || 0);
         }
       });
     });
 
-    const durationMinutes = Math.max(1, Math.round((Date.now() - sessionStartTime.getTime()) / 60000));
+    if (totalSets === 0) {
+      throw new Error(
+        '[useWorkoutLogger] Cannot save — no sets marked as done. ' +
+        'Tap the circle button on at least one set before finishing.'
+      );
+    }
+
+    const startedAt       = session.startedAt ? new Date(session.startedAt) : new Date();
+    const durationMinutes = Math.max(1, Math.round((Date.now() - startedAt.getTime()) / 60000));
     const sessionId       = crypto.randomUUID();
     const dateString      = new Date().toISOString().slice(0, 10);
 
     // ── e. Evaluate PRs ────────────────────────────────────────────────────────
-    const newPRs = []; // { exerciseKey, exerciseId, name, weight, reps, bestSet1RM }
-
-    const exerciseDocs = []; // Firestore sub-documents
+    const newPRs     = [];
+    const exerciseDocs = [];
 
     exercisesSnapshot.forEach((ex) => {
-      const doneSets = ex.sets.filter((s) => s.done);
+      // Support both 'done' and 'completed' flags
+      const doneSets = ex.sets.filter((s) => s.done || s.completed);
       if (doneSets.length === 0) return;
 
-      // Build exercise sub-doc
+      // exerciseId: useWorkoutStore uses 'exerciseId' as the key
+      const exerciseId  = ex.exerciseId ?? ex.id ?? crypto.randomUUID();
+      const exerciseKey = ex.exerciseKey ?? ex.exerciseId ?? exerciseId;
+
+      // Build exercise sub-document
       exerciseDocs.push({
-        exerciseId:  ex.id,
+        exerciseId,
         name:        ex.name,
-        exerciseKey: ex.exerciseKey ?? ex.id,
+        exerciseKey,
         muscleGroup: ex.muscleGroup ?? '',
         sets: doneSets.map((s) => ({
           reps:   parseInt(s.reps, 10)  || 0,
@@ -185,51 +176,40 @@ export function useWorkoutLogger() {
         ),
       });
 
-      // Find best set by Epley 1RM
-      const isBW = isBodyweightExercise(ex.exerciseKey, ex.id);
-      let best1RM   = -Infinity;
+      // Find best set in this session by Epley 1RM
+      const isBW = isBodyweightEx(exerciseKey);
+      let best1RM    = -Infinity;
       let bestWeight = 0;
       let bestReps   = 0;
 
       doneSets.forEach((s) => {
-        const w    = s.weight === 'BW' ? 0 : (parseFloat(s.weight) || 0);
-        const r    = parseInt(s.reps, 10) || 0;
-        const e1rm = getEstimated1RM(w, r, isBW, userBodyweight);
-        if (e1rm > best1RM) { best1RM = e1rm; bestWeight = w; bestReps = r; }
+        const e1rm = get1RM(s.weight, s.reps, isBW, userBodyweight);
+        if (e1rm > best1RM) {
+          best1RM    = e1rm;
+          bestWeight = s.weight === 'BW' ? 'BW' : (parseFloat(s.weight) || 0);
+          bestReps   = parseInt(s.reps, 10) || 0;
+        }
       });
 
-      // Compare against stored PR
-      const exKey = ex.exerciseKey ?? ex.id;
-      const stored = existingPRsMap[exKey];
-      const stored1RM = stored
-        ? getEstimated1RM(
-            stored.weight === 'BW' ? 0 : (parseFloat(stored.weight) || 0),
-            parseInt(stored.reps, 10) || 0,
-            isBW,
-            userBodyweight
-          )
+      // Compare to stored PR
+      const stored     = existingPRsMap[exerciseKey];
+      const stored1RM  = stored
+        ? get1RM(stored.weight, stored.reps, isBW, userBodyweight)
         : 0;
 
       if (best1RM > stored1RM) {
         newPRs.push({
-          exerciseKey:  exKey,
-          exerciseId:   ex.id,
-          name:         ex.name,
-          weight:       isBW && bestWeight === 0 ? 'BW' : bestWeight,
-          reps:         bestReps,
-          bestSet1RM:   best1RM,
+          exerciseKey,
+          exerciseId,
+          name:       ex.name,
+          weight:     bestWeight,
+          reps:       bestReps,
+          best1RM,
         });
       }
     });
 
-    if (exerciseDocs.length === 0) {
-      throw new Error(
-        '[useWorkoutLogger] Cannot save — no exercises have completed sets. ' +
-        'Mark at least one set as done before finishing.'
-      );
-    }
-
-    // ── f. Evaluate streak ────────────────────────────────────────────────────
+    // ── f. Evaluate streak ─────────────────────────────────────────────────────
     let lastDate = null;
     if (userData.streakLastDate) {
       lastDate = typeof userData.streakLastDate.toDate === 'function'
@@ -238,7 +218,7 @@ export function useWorkoutLogger() {
     }
     const { newStreak } = evaluateStreak(lastDate, userData.streak ?? 0);
 
-    // ── g. Calculate XP (deterministic, before batch) ─────────────────────────
+    // ── g. Calculate XP (deterministic — before any write) ────────────────────
     const currentXP  = typeof userData.xp === 'number' ? userData.xp : 0;
     const xpEarned   = BASE_SESSION_XP + newPRs.length * PR_XP;
     const newXP      = currentXP + xpEarned;
@@ -246,12 +226,12 @@ export function useWorkoutLogger() {
     const newDerived  = deriveLevelFromXP(newXP);
     const levelUp     = newDerived.level > prevDerived.level;
 
-    // ── h. Build the session document ─────────────────────────────────────────
+    // ── h. Session document fields ─────────────────────────────────────────────
     const sessionDoc = {
       date:            serverTimestamp(),
       dateString,
-      moodTag:         moodTag ?? 'average',
-      stomachFlag:     Boolean(stomachFlag),
+      moodTag:         session.moodTag        ?? 'average',
+      stomachFlag:     Boolean(session.stomachFlag),
       totalVolume,
       totalSets,
       durationMinutes,
@@ -271,7 +251,6 @@ export function useWorkoutLogger() {
       newDerived,
       newStreak,
       levelUp,
-      // Summary returned to caller
       summary: {
         sessionId,
         totalVolume,
@@ -282,17 +261,13 @@ export function useWorkoutLogger() {
         prNames:       newPRs.map((p) => p.name),
         xpEarned,
         levelUp,
-        newLevel:      newDerived.level,
-        newLevelName:  newDerived.levelName,
+        newLevel:     newDerived.level,
+        newLevelName: newDerived.levelName,
       },
     };
-  }, [isActive, startTime, exercises, moodTag, stomachFlag]);
+  }, []);
 
   // ── _commitBatch ────────────────────────────────────────────────────────────
-  /**
-   * Takes a pre-built payload and commits the atomic Firestore batch.
-   * Pure I/O — no local state touched here.
-   */
   const _commitBatch = useCallback(async (payload) => {
     const {
       uid, userRef, sessionId, sessionDoc, exerciseDocs,
@@ -301,31 +276,30 @@ export function useWorkoutLogger() {
 
     const batch = writeBatch(db);
 
-    // ── Op 1: Session document ─────────────────────────────────────────────────
+    // Op 1 — Session document
     const sessionRef = doc(db, 'users', uid, 'sessions', sessionId);
     batch.set(sessionRef, sessionDoc);
 
-    // ── Op 2: Exercise sub-documents ──────────────────────────────────────────
+    // Op 2 — Exercise sub-documents
     exerciseDocs.forEach((ex) => {
       const exRef = doc(db, 'users', uid, 'sessions', sessionId, 'exercises', ex.exerciseId);
       batch.set(exRef, ex);
     });
 
-    // ── Op 3: PR documents (conditional) ─────────────────────────────────────
+    // Op 3 — PR documents (only exercises with new PRs)
     newPRs.forEach((pr) => {
       const prRef = doc(db, 'users', uid, 'prs', pr.exerciseKey);
       batch.set(prRef, {
-        exerciseKey:  pr.exerciseKey,
-        exerciseId:   pr.exerciseId,
-        name:         pr.name,
-        weight:       pr.weight,
-        reps:         pr.reps,
-        date:         serverTimestamp(),
+        exerciseKey: pr.exerciseKey,
+        exerciseId:  pr.exerciseId,
+        name:        pr.name,
+        weight:      pr.weight,
+        reps:        pr.reps,
+        date:        serverTimestamp(),
       }, { merge: true });
     });
 
-    // ── Op 4: XP log entry ────────────────────────────────────────────────────
-    // writeBatch does not support addDoc; use a doc with random ID instead
+    // Op 4 — XP log entry (addDoc equivalent inside a batch)
     const xpLogRef = doc(collection(db, 'users', uid, 'xpLog'));
     batch.set(xpLogRef, {
       source:    'session_logged',
@@ -335,7 +309,7 @@ export function useWorkoutLogger() {
       timestamp: serverTimestamp(),
     });
 
-    // ── Op 5: User profile update ─────────────────────────────────────────────
+    // Op 5 — User profile update
     batch.update(userRef, {
       xp:             newXP,
       level:          newDerived.level,
@@ -344,79 +318,56 @@ export function useWorkoutLogger() {
       streakLastDate: serverTimestamp(),
     });
 
-    // Single commit — all 5 groups succeed or all roll back in Firestore
     await batch.commit();
   }, []);
 
   // ── finishSession ───────────────────────────────────────────────────────────
-  /**
-   * finishSession(uid)
-   *
-   * First call: builds payload + commits.
-   * Subsequent calls (retries): re-uses cached payload, only re-commits.
-   *
-   * @param {string} uid
-   * @returns {Promise<SessionSummary>}
-   */
   const finishSession = useCallback(async (uid) => {
     try {
-      // ── 1. Build payload (or reuse cached for retry) ───────────────────────
+      // Build payload once; reuse on retry
       let payload = pendingBatchRef.current;
-
       if (!payload) {
         payload = await _buildBatchPayload(uid);
         pendingBatchRef.current = payload;
       }
 
-      // ── 2. Optimistic local update ─────────────────────────────────────────
-      // Award XP locally so the counter animates immediately, before the
-      // network round-trip. Rolled back if commit fails.
-      awardXPLocally(payload.xpEarned);
+      // Optimistic XP update — animates immediately before network round-trip
+      useXPStore.getState().awardXP(payload.xpEarned);
 
-      // ── 3. Commit atomic batch ─────────────────────────────────────────────
+      // Atomic Firestore write
       await _commitBatch(payload);
 
-      // ── 4. SUCCESS ─────────────────────────────────────────────────────────
+      // SUCCESS — clear cache, reset session, return summary
       pendingBatchRef.current = null;
       retryCountRef.current   = 0;
-      resetSession();
+      useWorkoutStore.getState().resetSession();
 
       return payload.summary;
 
     } catch (err) {
-      // ── 5. FAILURE: roll back optimistic XP, preserve session ──────────────
       console.error('[useWorkoutLogger] finishSession failed:', err);
 
-      // Reverse the local XP we speculatively added
+      // Roll back the optimistic XP we speculatively added
       if (pendingBatchRef.current) {
-        rollbackXP(pendingBatchRef.current.xpEarned);
+        useXPStore.getState().rollbackXP(pendingBatchRef.current.xpEarned);
       }
 
       retryCountRef.current += 1;
 
-      // Session state is intentionally NOT reset — user can retry
+      // Re-throw so MobileLogger can show the retry button
       throw new Error(
         err?.message?.startsWith('[useWorkoutLogger]')
           ? err.message
-          : `[useWorkoutLogger] Failed to save session. Your workout data is preserved — please try again. (${err?.message ?? 'network error'})`
+          : `[useWorkoutLogger] Could not save session. (${err?.message ?? 'network error'})`
       );
     }
-  }, [_buildBatchPayload, _commitBatch, awardXPLocally, rollbackXP, resetSession]);
+  }, [_buildBatchPayload, _commitBatch]);
 
   return {
-    // State passthrough
-    isActive,
-    startTime,
-    moodTag,
-    stomachFlag,
-    exercises,
-
-    // Retry state
+    isActive:   !!useWorkoutStore.getState().activeSession,
+    exercises:  useWorkoutStore.getState().exercises,
     retryCount: retryCountRef.current,
-
-    // Derived / async
-    getSessionStats,
     finishSession,
-    resetSession,
+    resetSession: () => useWorkoutStore.getState().resetSession(),
   };
 }

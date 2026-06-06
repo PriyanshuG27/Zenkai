@@ -1,0 +1,346 @@
+[
+  {
+    "key": "barbell_bench_press",
+    "name": "Barbell Bench Press",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["bench press", "flat bench", "bp"]
+  },
+  {
+    "key": "incline_barbell_bench_press",
+    "name": "Incline Barbell Bench Press",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["incline bench", "incline barbell press"]
+  },
+  {
+    "key": "dumbbell_bench_press",
+    "name": "Dumbbell Bench Press",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["dumbbells", "bench"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["db bench press", "dumbbell press", "flat db press"]
+  },
+  {
+    "key": "incline_dumbbell_press",
+    "name": "Incline Dumbbell Press",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["dumbbells", "bench"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["db incline press", "incline db press"]
+  },
+  {
+    "key": "cable_chest_fly",
+    "name": "Cable Chest Fly",
+    "muscleGroup": "chest",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["cable flyes", "cable crossovers", "chest fly"]
+  },
+  {
+    "key": "push_ups",
+    "name": "Push-Ups",
+    "muscleGroup": "chest",
+    "equipmentRequired": [],
+    "medicallyRestricted": [],
+    "aliases": ["pushups", "pushup", "pressups"]
+  },
+  {
+    "key": "pull_ups",
+    "name": "Pull-Ups",
+    "muscleGroup": "back",
+    "equipmentRequired": ["pullup_bar"],
+    "medicallyRestricted": ["shoulder_impingement", "post_surgery"],
+    "aliases": ["pullups", "pullup", "overhand pull up"]
+  },
+  {
+    "key": "lat_pulldown",
+    "name": "Lat Pulldown",
+    "muscleGroup": "back",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["lat pulldowns", "lats pulldown", "pulldown", "lat pull down"]
+  },
+  {
+    "key": "seated_cable_row",
+    "name": "Seated Cable Row",
+    "muscleGroup": "back",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["cable row", "seated row", "cable seated row"]
+  },
+  {
+    "key": "barbell_bent_over_row",
+    "name": "Barbell Bent-Over Row",
+    "muscleGroup": "back",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["bent over row", "barbell row", "bb row"]
+  },
+  {
+    "key": "single_arm_dumbbell_row",
+    "name": "Single Arm Dumbbell Row",
+    "muscleGroup": "back",
+    "equipmentRequired": ["dumbbells", "bench"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["db row", "dumbbell row", "one arm row"]
+  },
+  {
+    "key": "t_bar_row",
+    "name": "T-Bar Row",
+    "muscleGroup": "back",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["tbar row", "landmine row"]
+  },
+  {
+    "key": "hyper_extensions",
+    "name": "Hyper-Extensions",
+    "muscleGroup": "back",
+    "equipmentRequired": ["bench"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["hyperextensions", "back extensions", "hypers"]
+  },
+  {
+    "key": "overhead_press",
+    "name": "Overhead Press",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["OHP", "military press", "shoulder press"]
+  },
+  {
+    "key": "dumbbell_lateral_raise",
+    "name": "Dumbbell Lateral Raise",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["dumbbells"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["lateral raise", "side raises", "db lateral raise", "deltoid raise"]
+  },
+  {
+    "key": "cable_lateral_raise",
+    "name": "Cable Lateral Raise",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["cable side raise", "lateral raise"]
+  },
+  {
+    "key": "face_pulls",
+    "name": "Face Pulls",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": [],
+    "aliases": ["facepull", "rear delt face pull"]
+  },
+  {
+    "key": "barbell_upright_row",
+    "name": "Barbell Upright Row",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["upright row", "bb upright row"]
+  },
+  {
+    "key": "reverse_pec_deck_fly",
+    "name": "Reverse Pec Deck Fly",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": [],
+    "aliases": ["rear delt fly", "reverse fly", "machine rear delt fly"]
+  },
+  {
+    "key": "front_dumbbell_raise",
+    "name": "Front Dumbbell Raise",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": ["dumbbells"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["front raise", "db front raise"]
+  },
+  {
+    "key": "barbell_curl",
+    "name": "Barbell Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": [],
+    "aliases": ["bicep curl", "bb curl", "barbell bicep curl"]
+  },
+  {
+    "key": "dumbbell_hammer_curl",
+    "name": "Dumbbell Hammer Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["dumbbells"],
+    "medicallyRestricted": [],
+    "aliases": ["hammer curl", "db hammer curl", "hammer curls"]
+  },
+  {
+    "key": "cable_bicep_curl",
+    "name": "Cable Bicep Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": [],
+    "aliases": ["cable curl", "cables bicep curl"]
+  },
+  {
+    "key": "preacher_curl",
+    "name": "Preacher Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": [],
+    "aliases": ["preacher curls", "ez bar preacher curl"]
+  },
+  {
+    "key": "concentration_curl",
+    "name": "Concentration Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["dumbbells", "bench"],
+    "medicallyRestricted": [],
+    "aliases": ["concentration curls", "db concentration curl"]
+  },
+  {
+    "key": "tricep_pushdown",
+    "name": "Tricep Pushdown",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": [],
+    "aliases": ["pushdowns", "triceps pushdown", "cable tricep extension"]
+  },
+  {
+    "key": "overhead_dumbbell_tricep_extension",
+    "name": "Overhead Dumbbell Tricep Extension",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["dumbbells"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["overhead tricep extension", "db tricep extension"]
+  },
+  {
+    "key": "skull_crushers",
+    "name": "Skull Crushers",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": [],
+    "aliases": ["skullcrusher", "lying tricep extension", "ez bar skull crushers"]
+  },
+  {
+    "key": "dips",
+    "name": "Dips",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["pullup_bar"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["parallel bar dips", "tricep dips", "chest dips"]
+  },
+  {
+    "key": "close_grip_bench_press",
+    "name": "Close-Grip Bench Press",
+    "muscleGroup": "arms",
+    "equipmentRequired": ["barbell", "bench"],
+    "medicallyRestricted": ["shoulder_impingement"],
+    "aliases": ["close grip bench", "cgbp"]
+  },
+  {
+    "key": "barbell_squat",
+    "name": "Barbell Squat",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["bad_knees", "lower_back"],
+    "aliases": ["back squat", "squats", "bb squat", "squat"]
+  },
+  {
+    "key": "leg_press",
+    "name": "Leg Press",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["leg_press"],
+    "medicallyRestricted": ["bad_knees", "lower_back"],
+    "aliases": ["machine leg press", "45 degree leg press"]
+  },
+  {
+    "key": "romanian_deadlift",
+    "name": "Romanian Deadlift",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["barbell"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["rdl", "romanian deadlifts", "barbell rdl"]
+  },
+  {
+    "key": "leg_extensions",
+    "name": "Leg Extensions",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["leg_extension"],
+    "medicallyRestricted": ["bad_knees"],
+    "aliases": ["leg extension", "quad extensions"]
+  },
+  {
+    "key": "lying_leg_curls",
+    "name": "Lying Leg Curls",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["leg_curl"],
+    "medicallyRestricted": ["bad_knees"],
+    "aliases": ["leg curls", "lying leg curl", "hamstring curls"]
+  },
+  {
+    "key": "standing_calf_raises",
+    "name": "Standing Calf Raises",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["calf_raise"],
+    "medicallyRestricted": [],
+    "aliases": ["calf raises", "standing calf raise", "calfs"]
+  },
+  {
+    "key": "lunges",
+    "name": "Lunges",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["dumbbells"],
+    "medicallyRestricted": ["bad_knees"],
+    "aliases": ["dumbbell lunges", "walking lunges", "lunge"]
+  },
+  {
+    "key": "bulgarian_split_squat",
+    "name": "Bulgarian Split Squat",
+    "muscleGroup": "legs",
+    "equipmentRequired": ["dumbbells", "bench"],
+    "medicallyRestricted": ["bad_knees"],
+    "aliases": ["split squat", "bulgarian split squats", "bss"]
+  },
+  {
+    "key": "plank",
+    "name": "Plank",
+    "muscleGroup": "core",
+    "equipmentRequired": [],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["forearm plank", "planks", "static hold"]
+  },
+  {
+    "key": "hanging_leg_raise",
+    "name": "Hanging Leg Raise",
+    "muscleGroup": "core",
+    "equipmentRequired": ["pullup_bar"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["leg raises", "hanging leg raises", "hanging knee raise"]
+  },
+  {
+    "key": "russian_twists",
+    "name": "Russian Twists",
+    "muscleGroup": "core",
+    "equipmentRequired": [],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["russian twist", "seated twists"]
+  },
+  {
+    "key": "ab_wheel_rollouts",
+    "name": "Ab Wheel Rollouts",
+    "muscleGroup": "core",
+    "equipmentRequired": ["ab_roller"],
+    "medicallyRestricted": ["lower_back"],
+    "aliases": ["ab rollout", "ab wheel rollout", "ab roller"]
+  },
+  {
+    "key": "cable_crunches",
+    "name": "Cable Crunches",
+    "muscleGroup": "core",
+    "equipmentRequired": ["cables"],
+    "medicallyRestricted": [],
+    "aliases": ["cable crunch", "kneeling cable crunch"]
+  }
+]

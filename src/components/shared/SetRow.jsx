@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Minus, Plus, Check } from 'lucide-react';
+import { Minus, Plus, Check, X } from 'lucide-react';
 
 /**
  * SetRow Component
@@ -13,7 +13,9 @@ import { Minus, Plus, Check } from 'lucide-react';
  *   onUpdate: (field: 'weight' | 'reps', value: number) => void,
  *   onDone: () => void,
  *   isPR?: boolean,
- *   exerciseIndex?: number
+ *   exerciseIndex?: number,
+ *   isBodyweight?: boolean,
+ *   onDelete?: () => void
  */
 export const SetRow = ({
   exerciseId,
@@ -24,12 +26,17 @@ export const SetRow = ({
   isPR = false,
   exerciseIndex = 0,
   isBodyweight = false,
+  onDelete = null,
 }) => {
   const shouldReduceMotion = useReducedMotion();
 
   // Local state for inputs to allow smooth typing before blur/submit
   const [localWeight, setLocalWeight] = useState(set.weight ?? 0);
   const [localReps, setLocalReps] = useState(set.reps ?? 0);
+
+  // Focus tracking for premium glowing capsule states
+  const [isWeightFocused, setIsWeightFocused] = useState(false);
+  const [isRepsFocused, setIsRepsFocused] = useState(false);
 
   // Pop animation state to trigger row scale animation when a set is completed
   const [prevDone, setPrevDone] = useState(set.done);
@@ -56,7 +63,7 @@ export const SetRow = ({
   const buttonTapProps = shouldReduceMotion
     ? {}
     : {
-        whileTap: { scale: 0.93 },
+        whileTap: { scale: 0.90 },
         transition: { type: 'spring', stiffness: 500, damping: 25 },
       };
 
@@ -173,26 +180,33 @@ export const SetRow = ({
     <motion.div
       animate={triggerPop ? { scale: [1, 1.02, 1] } : { scale: 1 }}
       onAnimationComplete={() => setTriggerPop(false)}
-      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-      className="flex items-center justify-between min-h-[44px] w-full gap-2 py-1.5 px-3 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg"
+      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
+      className="flex items-center justify-between w-full py-2 px-1 border-b border-[var(--border)]/20 last:border-none"
       style={{ minHeight: '44px' }}
     >
-      {/* Set Number */}
-      <div className="font-mono text-sm text-[var(--text-secondary)] w-8 shrink-0 select-none text-left">
+      {/* Column 1: Set Number */}
+      <div className="font-mono text-xs text-[var(--text-secondary)] w-6 shrink-0 select-none text-left font-bold">
         {setIndex + 1}
       </div>
 
-      {/* Weight Controls */}
-      <div className="flex items-center gap-1 shrink-0">
+      {/* Column 2: Weight Control Capsule */}
+      <div
+        className={`flex items-center justify-between bg-[var(--bg-input)] border rounded-lg px-1 py-0.5 w-[96px] shrink-0 transition-all duration-200 ${
+          isWeightFocused
+            ? 'border-[var(--primary)] shadow-[0_0_8px_var(--primary-glow)] bg-black/30'
+            : 'border-[var(--border)] hover:border-[var(--border-bright)]'
+        }`}
+      >
         <motion.button
           type="button"
           onClick={handleWeightDecrement}
+          onFocus={() => setIsWeightFocused(true)}
+          onBlur={() => setIsWeightFocused(false)}
           aria-label="Decrease weight by 2.5 kilograms"
-          className="w-11 h-11 flex items-center justify-center border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:border-[var(--primary)] focus:outline-none transition-colors"
-          style={{ minWidth: '44px', minHeight: '44px' }}
+          className="w-6 h-6 flex items-center justify-center rounded text-[var(--text-secondary)] hover:text-white hover:bg-white/5 focus:outline-none transition-colors shrink-0"
           {...buttonTapProps}
         >
-          <Minus size={16} />
+          <Minus size={11} strokeWidth={2.5} />
         </motion.button>
 
         <input
@@ -200,43 +214,58 @@ export const SetRow = ({
           inputMode="decimal"
           value={localWeight}
           onChange={handleWeightChange}
-          onBlur={handleWeightBlur}
+          onFocus={() => setIsWeightFocused(true)}
+          onBlur={() => {
+            handleWeightBlur();
+            setIsWeightFocused(false);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="0"
           aria-label={`Weight for set ${setIndex + 1}`}
           data-testid={`weight-${exerciseIndex}-${setIndex}`}
-          className="font-mono text-xl text-[var(--text-primary)] bg-transparent border-none focus:outline-none text-center select-all placeholder:text-text-secondary"
-          style={{ minWidth: '56px', width: '56px' }}
+          className="font-mono text-sm text-[var(--text-primary)] text-center select-all placeholder:text-[var(--text-muted)] focus:outline-none shrink-0"
+          style={{
+            minWidth: '36px',
+            width: '36px',
+            border: 'none',
+            background: 'transparent',
+            outline: 'none',
+            boxShadow: 'none',
+            padding: 0,
+          }}
         />
 
         <motion.button
           type="button"
           onClick={handleWeightIncrement}
+          onFocus={() => setIsWeightFocused(true)}
+          onBlur={() => setIsWeightFocused(false)}
           aria-label="Increase weight by 2.5 kilograms"
-          className="w-11 h-11 flex items-center justify-center border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:border-[var(--primary)] focus:outline-none transition-colors"
-          style={{ minWidth: '44px', minHeight: '44px' }}
+          className="w-6 h-6 flex items-center justify-center rounded text-[var(--text-secondary)] hover:text-white hover:bg-white/5 focus:outline-none transition-colors shrink-0"
           {...buttonTapProps}
         >
-          <Plus size={16} />
+          <Plus size={11} strokeWidth={2.5} />
         </motion.button>
       </div>
 
-      {/* kg Label */}
-      <span className="font-body text-xs text-[var(--text-secondary)] select-none shrink-0 w-5 text-center">
-        kg
-      </span>
-
-      {/* Reps Controls */}
-      <div className="flex items-center gap-1 shrink-0">
+      {/* Column 3: Reps Control Capsule */}
+      <div
+        className={`flex items-center justify-between bg-[var(--bg-input)] border rounded-lg px-1 py-0.5 w-[88px] shrink-0 transition-all duration-200 ${
+          isRepsFocused
+            ? 'border-[var(--secondary)] shadow-[0_0_8px_var(--secondary-glow)] bg-black/30'
+            : 'border-[var(--border)] hover:border-[var(--border-bright)]'
+        }`}
+      >
         <motion.button
           type="button"
           onClick={handleRepsDecrement}
+          onFocus={() => setIsRepsFocused(true)}
+          onBlur={() => setIsRepsFocused(false)}
           aria-label="Decrease reps by 1"
-          className="w-11 h-11 flex items-center justify-center border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:border-[var(--primary)] focus:outline-none transition-colors"
-          style={{ minWidth: '44px', minHeight: '44px' }}
+          className="w-6 h-6 flex items-center justify-center rounded text-[var(--text-secondary)] hover:text-white hover:bg-white/5 focus:outline-none transition-colors shrink-0"
           {...buttonTapProps}
         >
-          <Minus size={16} />
+          <Minus size={11} strokeWidth={2.5} />
         </motion.button>
 
         <input
@@ -244,71 +273,104 @@ export const SetRow = ({
           inputMode="numeric"
           value={localReps}
           onChange={handleRepsChange}
-          onBlur={handleRepsBlur}
+          onFocus={() => setIsRepsFocused(true)}
+          onBlur={() => {
+            handleRepsBlur();
+            setIsRepsFocused(false);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="0"
           aria-label={`Reps for set ${setIndex + 1}`}
           data-testid={`reps-${exerciseIndex}-${setIndex}`}
-          className="font-mono text-xl text-[var(--text-primary)] bg-transparent border-none focus:outline-none text-center select-all placeholder:text-text-secondary"
-          style={{ minWidth: '56px', width: '56px' }}
+          className="font-mono text-sm text-[var(--text-primary)] text-center select-all placeholder:text-[var(--text-muted)] focus:outline-none shrink-0"
+          style={{
+            minWidth: '32px',
+            width: '32px',
+            border: 'none',
+            background: 'transparent',
+            outline: 'none',
+            boxShadow: 'none',
+            padding: 0,
+          }}
         />
 
         <motion.button
           type="button"
           onClick={handleRepsIncrement}
+          onFocus={() => setIsRepsFocused(true)}
+          onBlur={() => setIsRepsFocused(false)}
           aria-label="Increase reps by 1"
-          className="w-11 h-11 flex items-center justify-center border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:border-[var(--primary)] focus:outline-none transition-colors"
-          style={{ minWidth: '44px', minHeight: '44px' }}
+          className="w-6 h-6 flex items-center justify-center rounded text-[var(--text-secondary)] hover:text-white hover:bg-white/5 focus:outline-none transition-colors shrink-0"
           {...buttonTapProps}
         >
-          <Plus size={16} />
+          <Plus size={11} strokeWidth={2.5} />
         </motion.button>
       </div>
 
-      {/* reps Label */}
-      <span className="font-body text-xs text-[var(--text-secondary)] select-none shrink-0 w-7 text-left">
-        reps
-      </span>
-
-      {/* Done State & PR Badge */}
-      <div className="flex items-center gap-2 shrink-0">
-        <motion.button
-          type="button"
-          onClick={onDone}
-          disabled={!isDoneActive}
-          aria-label={`Mark set ${setIndex + 1} as completed`}
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors focus:outline-none ${
-            set.done
-              ? 'bg-[var(--accent-xp)] border-none'
-              : 'bg-transparent border-2 border-[var(--border)]'
-          } ${
-            !isDoneActive
-              ? 'opacity-30 cursor-not-allowed'
-              : 'hover:border-[var(--primary)] cursor-pointer'
-          }`}
-          style={{ minWidth: '44px', minHeight: '44px' }}
-          data-testid={`set-done-${exerciseIndex}-${setIndex}`}
-          {...buttonTapProps}
-        >
-          <motion.div
-            initial={false}
-            animate={{ scale: set.done ? 1 : 0 }}
-            transition={
-              shouldReduceMotion
-                ? { duration: 0 }
-                : { type: 'spring', stiffness: 500, damping: 22 }
-            }
-            className="flex items-center justify-center text-[#000]"
+      {/* Column 4: Done & PR & Delete */}
+      <div className="w-[104px] shrink-0 flex items-center justify-between pl-2 select-none">
+        {/* Done button slot */}
+        <div className="w-8 flex justify-start">
+          <motion.button
+            type="button"
+            onClick={onDone}
+            disabled={!isDoneActive}
+            aria-label={`Mark set ${setIndex + 1} as completed`}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors focus:outline-none ${
+              set.done
+                ? 'bg-[var(--accent-xp)] border-none'
+                : 'bg-transparent border border-[var(--border)]'
+            } ${
+              !isDoneActive
+                ? 'opacity-30 cursor-not-allowed'
+                : 'hover:border-[var(--primary)] cursor-pointer hover:bg-white/5'
+            }`}
+            style={{ minWidth: '28px', minHeight: '28px' }}
+            data-testid={`set-done-${exerciseIndex}-${setIndex}`}
+            {...buttonTapProps}
           >
-            <Check size={20} strokeWidth={3} />
-          </motion.div>
-        </motion.button>
+            <motion.div
+              initial={false}
+              animate={{ scale: set.done ? 1 : 0 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 500, damping: 22 }
+              }
+              className="flex items-center justify-center text-[#000]"
+            >
+              <Check size={14} strokeWidth={3.5} />
+            </motion.div>
+          </motion.button>
+        </div>
 
-        {isPR && (
-          <span className="font-mono text-xs text-[var(--accent-xp)] border border-[var(--accent-xp)] px-1.5 py-0.5 rounded uppercase font-extrabold select-none tracking-wider shrink-0">
-            PR
-          </span>
-        )}
+        {/* PR Badge slot */}
+        <div className="w-10 flex justify-center">
+          {isPR ? (
+            <span className="font-mono text-[9px] text-[var(--accent-xp)] border border-[var(--accent-xp)]/30 bg-[var(--accent-xp)]/10 shadow-[0_0_8px_var(--accent-xp-glow)] px-1.5 py-0.5 rounded font-extrabold select-none tracking-wider shrink-0 uppercase leading-none">
+              PR
+            </span>
+          ) : (
+            <div className="w-10 shrink-0" />
+          )}
+        </div>
+
+        {/* Delete button slot */}
+        <div className="w-6 flex justify-end">
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Remove set ${setIndex + 1}`}
+              className="w-6 h-6 flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer focus:outline-none shrink-0"
+              style={{ minWidth: '24px', minHeight: '24px' }}
+            >
+              <X size={12} />
+            </button>
+          ) : (
+            <div className="w-6 shrink-0" />
+          )}
+        </div>
       </div>
     </motion.div>
   );
