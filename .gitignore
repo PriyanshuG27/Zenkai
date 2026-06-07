@@ -33,3 +33,14 @@ functions/.env
 
 # Firebase Admin — NEVER commit this
 serviceAccountKey.json
+
+# Test artifacts
+test_output*.txt
+test-results/
+playwright-report/
+scratch_*.js
+
+# Lighthouse reports (never again)
+lhreport.html
+*.lighthouse.html
+lighthouse-report.html
