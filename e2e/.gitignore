@@ -1,0 +1,4 @@
+# Playwright auth state (contains real user session tokens — never commit)
+.auth/
+playwright-report/
+test-results/
