@@ -175,7 +175,8 @@ export function useVolumeData(uid, rangeWeeks = 12) {
         const q = query(
           sessionsRef,
           where('date', '>=', cutoff),
-          orderBy('date', 'desc')
+          orderBy('date', 'desc'),
+          limit(60)
         );
 
         const sessSnap = await getDocs(q);

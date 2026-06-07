@@ -69,3 +69,5 @@ export const OnboardingGuard = ({ children }) => {
 
   return children;
 };
+
+export default OnboardingGuard;

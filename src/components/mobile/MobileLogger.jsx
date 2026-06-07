@@ -150,6 +150,22 @@ export const MobileLogger = () => {
 
   // ─── Actions ───────────────────────────────────────────────────────────────
 
+  const handleUpdateSet = useCallback((exerciseId, setIndex, field, val) => {
+    updateSet(exerciseId, setIndex, field, val);
+  }, [updateSet]);
+
+  const handleMarkSetDone = useCallback((exerciseId, setIndex) => {
+    markSetDone(exerciseId, setIndex);
+  }, [markSetDone]);
+
+  const handleRemoveSet = useCallback((exerciseIndex, setIndex) => {
+    removeSet(exerciseIndex, setIndex);
+  }, [removeSet]);
+
+  const handleAddExercise = useCallback((exercise) => {
+    addExercise(exercise);
+  }, [addExercise]);
+
   const handleStartSession = () => {
     startSession(selectedMood, stomachFlag);
   };
@@ -418,12 +434,10 @@ export const MobileLogger = () => {
                         set={s}
                         exerciseIndex={exIndex}
                         isBodyweight={isBodyweightExercise(ex.exerciseKey, ex.exerciseId)}
-                        onUpdate={(field, val) =>
-                          updateSet(ex.exerciseId, setIndex, field, val)
-                        }
-                        onDone={() => markSetDone(ex.exerciseId, setIndex)}
+                        onUpdate={handleUpdateSet}
+                        onDone={handleMarkSetDone}
                         isPR={checkIfSetIsPR(ex.exerciseId, s)}
-                        onDelete={ex.sets.length > 1 ? () => removeSet(exIndex, setIndex) : null}
+                        onDelete={ex.sets.length > 1 ? handleRemoveSet : null}
                       />
                     ))}
                   </div>
@@ -453,9 +467,7 @@ export const MobileLogger = () => {
             <ExerciseSearch
               label="Add Exercise"
               dropUp={true}
-              onSelect={(exercise) =>
-                addExercise(exercise)
-              }
+              onSelect={handleAddExercise}
             />
           </div>
 

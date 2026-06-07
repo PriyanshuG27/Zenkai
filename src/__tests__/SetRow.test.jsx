@@ -73,7 +73,7 @@ describe('SetRow Component', () => {
     const buttons = screen.getAllByRole('button');
     // button order: [0] weight−, [1] weight+, [2] reps−, [3] reps+, [4] done
     fireEvent.click(buttons[1]);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('weight', 62.5);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 62.5);
   });
 
   it('−weight button calls onUpdate("weight", weight − 2.5)', () => {
@@ -81,7 +81,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('weight', 57.5);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 57.5);
   });
 
   it('−weight at 0 does NOT call onUpdate for non-bodyweight exercise', () => {
@@ -101,7 +101,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]);
-    expect(props.onUpdate).toHaveBeenCalledWith('weight', 0);
+    expect(props.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 0);
   });
 
   // ── Reps +/− buttons ──────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[3]);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('reps', 9);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'reps', 9);
   });
 
   it('−reps button calls onUpdate("reps", reps − 1)', () => {
@@ -119,7 +119,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[2]);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('reps', 7);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'reps', 7);
   });
 
   it('−reps at 0 clamps to 0 and calls onUpdate("reps", 0)', () => {
@@ -128,7 +128,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[2]);
-    expect(props.onUpdate).toHaveBeenCalledWith('reps', 0);
+    expect(props.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'reps', 0);
   });
 
   // ── Done button disabled/enabled ────────────────────────────────────────────
@@ -151,6 +151,7 @@ describe('SetRow Component', () => {
 
     fireEvent.click(doneBtn);
     expect(defaultProps.onDone).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onDone).toHaveBeenCalledWith('test-exercise-123', 0);
   });
 
   // ── Done state renders checkmark ────────────────────────────────────────────
@@ -195,7 +196,7 @@ describe('SetRow Component', () => {
     expect(defaultProps.onUpdate).not.toHaveBeenCalled(); // change doesn't commit
 
     fireEvent.blur(weightInput);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('weight', 72.5);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 72.5);
   });
 
   it('typing in reps input and blurring commits via onUpdate', () => {
@@ -204,7 +205,7 @@ describe('SetRow Component', () => {
     const repsInput = screen.getByTestId('reps-1-0');
     fireEvent.change(repsInput, { target: { value: '12' } });
     fireEvent.blur(repsInput);
-    expect(defaultProps.onUpdate).toHaveBeenCalledWith('reps', 12);
+    expect(defaultProps.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'reps', 12);
   });
 
   it('pressing Enter on an input calls blur()', () => {
@@ -242,7 +243,7 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]); // weight−
-    expect(props.onUpdate).toHaveBeenCalledWith('weight', 'BW');
+    expect(props.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 'BW');
   });
 
   it('+weight from "BW" on BW exercise transitions to 0 via onUpdate', () => {
@@ -255,6 +256,6 @@ describe('SetRow Component', () => {
 
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[1]); // weight+
-    expect(props.onUpdate).toHaveBeenCalledWith('weight', 0);
+    expect(props.onUpdate).toHaveBeenCalledWith('test-exercise-123', 0, 'weight', 0);
   });
 });

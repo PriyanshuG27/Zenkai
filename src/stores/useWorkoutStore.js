@@ -59,17 +59,21 @@ export const useWorkoutStore = create(
       elapsedSeconds: 0,
       sessionLoading: false,
       sessionError:   null,
+      isOverdrive:    false,
+
+      setOverdrive: (val) => set({ isOverdrive: val }),
 
       startSession: (planDayOrMood, stomachFlag = false) => {
         if (typeof planDayOrMood === 'object' && planDayOrMood !== null) {
           const planDayId = planDayOrMood.id ?? planDayOrMood.day ?? 'custom';
-          set({
+          set((state) => ({
             activeSession: {
               planDayId,
               startedAt: Date.now(),
               exercises: planDayOrMood.exercises,
               moodTag: 'average',
-              stomachFlag: false
+              stomachFlag: false,
+              isOverdrive: state.isOverdrive,
             },
             exercises: planDayOrMood.exercises.map((ex) => {
               const exId = ex.id ?? ex.exerciseKey ?? ex.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
@@ -97,21 +101,22 @@ export const useWorkoutStore = create(
             }),
             elapsedSeconds: 0,
             sessionError:   null,
-          });
+          }));
         } else {
           const mood = typeof planDayOrMood === 'string' ? planDayOrMood : 'average';
-          set({
+          set((state) => ({
             activeSession: {
               planDayId: 'custom',
               startedAt: Date.now(),
               exercises: [],
               moodTag: mood,
-              stomachFlag: Boolean(stomachFlag)
+              stomachFlag: Boolean(stomachFlag),
+              isOverdrive: state.isOverdrive,
             },
             exercises: [],
             elapsedSeconds: 0,
             sessionError:   null,
-          });
+          }));
         }
       },
 
@@ -211,10 +216,10 @@ export const useWorkoutStore = create(
       setSessionError:   (sessionError)   => set({ sessionError }),
 
       clearSession: () =>
-        set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null }),
+        set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null, isOverdrive: false }),
 
       resetSession: () =>
-        set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null }),
+        set({ activeSession: null, exercises: [], elapsedSeconds: 0, sessionLoading: false, sessionError: null, isOverdrive: false }),
 
       removeExercise: (exerciseId) =>
         set((state) => ({
@@ -227,6 +232,7 @@ export const useWorkoutStore = create(
         activeSession:  state.activeSession,
         exercises:      state.exercises,
         elapsedSeconds: state.elapsedSeconds,
+        isOverdrive:    state.isOverdrive,
       }),
     }
   )

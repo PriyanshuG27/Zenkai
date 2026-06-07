@@ -42,11 +42,14 @@ import {
   collection,
   writeBatch,
   serverTimestamp,
+  setDoc,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useWorkoutStore } from '../stores/useWorkoutStore';
 import { useXPStore } from '../stores/useXPStore';
+import { useUIStore } from '../stores/useUIStore';
 import { evaluateStreak, deriveLevelFromXP } from '../lib/xpHelpers';
+import { useChallenges } from './useChallenges';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -83,6 +86,7 @@ function get1RM(weight, reps, isBW, bodyweightKg) {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useWorkoutLogger() {
+  const { updateProgress, getActiveChallenges } = useChallenges();
   // Cache built payload across retries (avoids re-calculating on retry)
   const pendingBatchRef = useRef(null);
   const retryCountRef   = useRef(0);
@@ -220,8 +224,30 @@ export function useWorkoutLogger() {
     const { newStreak } = evaluateStreak(lastDate, userData.streak ?? 0);
 
     // ── g. Calculate XP (deterministic — before any write) ────────────────────
+    const isBossFight = session.planDayId && String(session.planDayId).startsWith('boss_fight_');
+    const bossBonusXP = isBossFight ? 200 : 0;
+
+    let powerUpsUpdate = null;
+    let lootDrops = [];
+    if (isBossFight) {
+      const dropType = Math.random() < 0.5 ? 'streakShield' : 'xpBooster';
+      const powerUps = userData.powerUps || {};
+      const streakShield = powerUps.streakShield || 0;
+      const xpBooster = powerUps.xpBooster || 0;
+      powerUpsUpdate = {
+        ...powerUps,
+        streakShield: dropType === 'streakShield' ? streakShield + 1 : streakShield,
+        xpBooster: dropType === 'xpBooster' ? xpBooster + 1 : xpBooster,
+      };
+      lootDrops.push(dropType === 'streakShield' ? 'Streak Shield' : 'XP Booster');
+    }
+
+    const currentPR_XP = userData.skills?.adrenalineRush ? 12 : PR_XP;
+    const isOverdrive = session.isOverdrive || false;
+    const overdriveMultiplier = isOverdrive ? 1.5 : 1.0;
+
     const currentXP  = typeof userData.xp === 'number' ? userData.xp : 0;
-    const xpEarned   = BASE_SESSION_XP + newPRs.length * PR_XP;
+    const xpEarned   = Math.round((BASE_SESSION_XP + newPRs.length * currentPR_XP + bossBonusXP) * overdriveMultiplier);
     const newXP      = currentXP + xpEarned;
     const prevDerived = deriveLevelFromXP(currentXP);
     const newDerived  = deriveLevelFromXP(newXP);
@@ -239,6 +265,7 @@ export function useWorkoutLogger() {
       durationMinutes,
       xpEarned,
       prCount:         newPRs.length,
+      isOverdrive,
     };
 
     return {
@@ -253,6 +280,8 @@ export function useWorkoutLogger() {
       newDerived,
       newStreak,
       levelUp,
+      powerUps: powerUpsUpdate,
+      skills: userData.skills || {},
       summary: {
         sessionId,
         totalVolume,
@@ -265,6 +294,7 @@ export function useWorkoutLogger() {
         levelUp,
         newLevel:     newDerived.level,
         newLevelName: newDerived.levelName,
+        lootDrops,
       },
     };
   }, []);
@@ -274,6 +304,7 @@ export function useWorkoutLogger() {
     const {
       uid, userRef, sessionId, sessionDoc, exerciseDocs,
       newPRs, xpEarned, newXP, newDerived, newStreak,
+      powerUps,
     } = payload;
 
     const batch = writeBatch(db);
@@ -312,13 +343,17 @@ export function useWorkoutLogger() {
     });
 
     // Op 5 — User profile update
-    batch.update(userRef, {
+    const userUpdates = {
       xp:             newXP,
       level:          newDerived.level,
       levelName:      newDerived.levelName,
       streak:         newStreak,
       streakLastDate: serverTimestamp(),
-    });
+    };
+    if (powerUps) {
+      userUpdates.powerUps = powerUps;
+    }
+    batch.update(userRef, userUpdates);
 
     await batch.commit();
   }, []);
@@ -343,6 +378,44 @@ export function useWorkoutLogger() {
       pendingBatchRef.current = null;
       retryCountRef.current   = 0;
       useWorkoutStore.getState().resetSession();
+
+      // Roll chance for Flash Quest (increases to 20% if Recovery Protocol is unlocked)
+      const flashChance = payload.skills?.recoveryProtocol ? 0.2 : 0.1;
+      if (Math.random() < flashChance) {
+        try {
+          const newQuestRef = doc(collection(db, 'challenges'));
+          const questDoc = {
+            type: 'weak_point',
+            subtype: 'quest',
+            name: 'Flash Quest: Stretch Out',
+            description: 'Perform a 5-minute stretch in your next session to stay limber.',
+            creatorUid: uid,
+            participants: [uid],
+            startDate: serverTimestamp(),
+            endDate: new Date(Date.now() + 48 * 60 * 60 * 1000),
+            status: 'active',
+            goal: { targetSets: 1, muscleGroup: 'Stretching' },
+            rewardXP: 50,
+            progress: {
+              [uid]: { completedSets: 0, badgeEarned: false }
+            }
+          };
+          await setDoc(newQuestRef, questDoc);
+          useUIStore.getState().addToast('⚡ Flash Quest Unlocked: Stretch Out! (+50 XP)', 'info');
+        } catch (fqErr) {
+          console.error('[useWorkoutLogger] Failed to inject Flash Quest:', fqErr);
+        }
+      }
+
+      // Trigger challenge progress updates
+      try {
+        const activeChalls = await getActiveChallenges(uid);
+        for (const ch of activeChalls) {
+          await updateProgress(uid, ch.id, new Date());
+        }
+      } catch (chErr) {
+        console.error('[useWorkoutLogger] Failed to update challenge progress:', chErr);
+      }
 
       return payload.summary;
 

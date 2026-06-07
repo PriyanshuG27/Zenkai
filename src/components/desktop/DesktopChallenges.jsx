@@ -12,3 +12,5 @@ export const DesktopChallenges = () => {
     </div>
   );
 };
+
+export default DesktopChallenges;

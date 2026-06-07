@@ -15,3 +15,5 @@ export const DesktopApp = () => {
     </div>
   );
 };
+
+export default DesktopApp;

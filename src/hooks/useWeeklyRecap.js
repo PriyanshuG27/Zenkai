@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useXPStore } from '../stores/useXPStore';
@@ -47,7 +47,8 @@ export function useWeeklyRecap() {
       const q = query(
         sessionsRef,
         where('date', '>=', cutoff),
-        orderBy('date', 'desc')
+        orderBy('date', 'desc'),
+        limit(7)
       );
       const sessSnap = await getDocs(q);
 
@@ -71,7 +72,7 @@ export function useWeeklyRecap() {
         exSnap.docs.forEach((exDoc) => {
           const exData = exDoc.data();
           (exData.sets || []).forEach((set) => {
-            if (set.done) {
+            if (set.done || set.completed) {
               const isBW = set.weight === 'BW';
               const weightVal = isBW ? 0 : (parseFloat(set.weight) || 0);
               const repsVal = parseInt(set.reps, 10) || 0;

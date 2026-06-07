@@ -75,7 +75,7 @@ const EmptyState = ({ exerciseName }) => (
   </div>
 );
 
-export const StrengthChart = ({ data = [], exerciseName = '', loading = false }) => {
+const StrengthChartComponent = ({ data = [], exerciseName = '', loading = false }) => {
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
 
   if (loading) return <ChartSkeleton />;
@@ -126,3 +126,6 @@ export const StrengthChart = ({ data = [], exerciseName = '', loading = false })
     </div>
   );
 };
+
+export const StrengthChart = React.memo(StrengthChartComponent);
+StrengthChart.displayName = 'StrengthChart';

@@ -26,7 +26,7 @@
  *   data-testid="exercise-result-{key}" on each result row
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Search, X, Dumbbell } from 'lucide-react';
 import { useExerciseSearch } from '../../hooks/useExerciseSearch';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -295,71 +295,15 @@ export function ExerciseSearch({ onSelect, label = 'Add Exercise', dropUp = fals
             const tagColor = MUSCLE_GROUP_COLORS[exercise.muscleGroup] ?? 'var(--text-secondary)';
 
             return (
-              <li
+              <ExerciseResultItem
                 key={exercise.key}
-                id={`exercise-option-${exercise.key}`}
-                role="option"
-                aria-selected={isHighlighted}
-                data-testid={`exercise-result-${exercise.key}`}
-                onMouseDown={(e) => {
-                  // mousedown fires before blur — prevent input losing focus before select
-                  e.preventDefault();
-                  handleSelect(exercise);
-                }}
-                onMouseEnter={() => setHighlightedIdx(idx)}
-                style={{
-                  display:        'flex',
-                  alignItems:     'center',
-                  gap:            '12px',
-                  padding:        '10px 14px',
-                  cursor:         'pointer',
-                  background:     isHighlighted ? 'var(--border-bright)' : 'transparent',
-                  borderBottom:   '1px solid var(--border)',
-                  transition:     'background 80ms ease',
-                  minHeight:      '48px',
-                }}
-              >
-                {/* Icon */}
-                <Dumbbell
-                  size={15}
-                  style={{ color: tagColor, flexShrink: 0 }}
-                />
-
-                {/* Name */}
-                <span
-                  style={{
-                    flex:        1,
-                    fontFamily:  'Outfit, sans-serif',
-                    fontSize:    '14px',
-                    fontWeight:  isHighlighted ? 600 : 500,
-                    color:       'var(--text-primary)',
-                    whiteSpace:  'nowrap',
-                    overflow:    'hidden',
-                    textOverflow:'ellipsis',
-                  }}
-                >
-                  {exercise.name}
-                </span>
-
-                {/* Muscle group tag */}
-                <span
-                  style={{
-                    fontFamily:    'Outfit, sans-serif',
-                    fontSize:      '11px',
-                    fontWeight:    600,
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
-                    color:         tagColor,
-                    background:    `${tagColor}18`,   // ~10% opacity fill
-                    border:        `1px solid ${tagColor}40`,
-                    borderRadius:  '4px',
-                    padding:       '2px 7px',
-                    flexShrink:    0,
-                  }}
-                >
-                  {MUSCLE_GROUP_LABELS[exercise.muscleGroup] ?? exercise.muscleGroup}
-                </span>
-              </li>
+                exercise={exercise}
+                idx={idx}
+                isHighlighted={isHighlighted}
+                tagColor={tagColor}
+                handleSelect={handleSelect}
+                setHighlightedIdx={setHighlightedIdx}
+              />
             );
           })}
         </ul>
@@ -367,3 +311,73 @@ export function ExerciseSearch({ onSelect, label = 'Add Exercise', dropUp = fals
     </div>
   );
 }
+
+const ExerciseResultItem = React.memo(({ exercise, idx, isHighlighted, tagColor, handleSelect, setHighlightedIdx }) => {
+  return (
+    <li
+      id={`exercise-option-${exercise.key}`}
+      role="option"
+      aria-selected={isHighlighted}
+      data-testid={`exercise-result-${exercise.key}`}
+      onMouseDown={(e) => {
+        // mousedown fires before blur — prevent input losing focus before select
+        e.preventDefault();
+        handleSelect(exercise);
+      }}
+      onMouseEnter={() => setHighlightedIdx(idx)}
+      style={{
+        display:        'flex',
+        alignItems:     'center',
+        gap:            '12px',
+        padding:        '10px 14px',
+        cursor:         'pointer',
+        background:     isHighlighted ? 'var(--border-bright)' : 'transparent',
+        borderBottom:   '1px solid var(--border)',
+        transition:     'background 80ms ease',
+        minHeight:      '48px',
+      }}
+    >
+      {/* Icon */}
+      <Dumbbell
+        size={15}
+        style={{ color: tagColor, flexShrink: 0 }}
+      />
+
+      {/* Name */}
+      <span
+        style={{
+          flex:        1,
+          fontFamily:  'Outfit, sans-serif',
+          fontSize:    '14px',
+          fontWeight:  isHighlighted ? 600 : 500,
+          color:       'var(--text-primary)',
+          whiteSpace:  'nowrap',
+          overflow:    'hidden',
+          textOverflow:'ellipsis',
+        }}
+      >
+        {exercise.name}
+      </span>
+
+      {/* Muscle group tag */}
+      <span
+        style={{
+          fontFamily:    'Outfit, sans-serif',
+          fontSize:      '11px',
+          fontWeight:    600,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          color:         tagColor,
+          background:    `${tagColor}18`,   // ~10% opacity fill
+          border:        `1px solid ${tagColor}40`,
+          borderRadius:  '4px',
+          padding:       '2px 7px',
+          flexShrink:    0,
+        }}
+      >
+        {MUSCLE_GROUP_LABELS[exercise.muscleGroup] ?? exercise.muscleGroup}
+      </span>
+    </li>
+  );
+});
+ExerciseResultItem.displayName = 'ExerciseResultItem';

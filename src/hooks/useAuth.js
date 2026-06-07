@@ -1,17 +1,5 @@
-import { useCallback }                                         from 'react';
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  updateProfile,
-  sendEmailVerification,
-  signOut,
-  deleteUser,
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db }                     from '../lib/firebase';
-import { useAuthStore }                 from '../stores/authStore';
+import { useCallback } from 'react';
+import { useAuthStore } from '../stores/authStore';
 
 // ─── Error code → human-readable message ─────────────────────────────────────
 const ERROR_MESSAGES = {
@@ -47,6 +35,8 @@ export function useAuth() {
   const login = useCallback(async (email, password) => {
     clearError();
     try {
+      const { auth } = await import('../lib/firebase');
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
       await signInWithEmailAndPassword(auth, email, password);
       // onAuthStateChanged (in App.jsx) will call setUser automatically
     } catch (err) {
@@ -59,6 +49,10 @@ export function useAuth() {
   const loginWithGoogle = useCallback(async () => {
     clearError();
     try {
+      const { auth, db } = await import('../lib/firebase');
+      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+      const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
       const firebaseUser = cred.user;
@@ -105,6 +99,10 @@ export function useAuth() {
     clearError();
     let newUser = null;
     try {
+      const { auth, db } = await import('../lib/firebase');
+      const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import('firebase/auth');
+      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
       // 1. Create Firebase Auth account
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       newUser = cred.user;
@@ -161,7 +159,10 @@ export function useAuth() {
       // If Firestore write failed AFTER auth account was created,
       // delete the orphaned Auth account (no zombie accounts)
       if (newUser && err?.code !== 'auth/email-already-in-use') {
-        try { await deleteUser(newUser); } catch { /* best-effort cleanup */ }
+        try {
+          const { deleteUser } = await import('firebase/auth');
+          await deleteUser(newUser);
+        } catch { /* best-effort cleanup */ }
       }
       const msg = mapError(err);
       setError(msg);
@@ -176,6 +177,8 @@ export function useAuth() {
   const logout = useCallback(async () => {
     clearError();
     try {
+      const { auth } = await import('../lib/firebase');
+      const { signOut } = await import('firebase/auth');
       await signOut(auth);
       setUser(null);           // immediate local reset
       setLoading(false);

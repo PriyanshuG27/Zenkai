@@ -12,3 +12,5 @@ export const DesktopProfile = () => {
     </div>
   );
 };
+
+export default DesktopProfile;

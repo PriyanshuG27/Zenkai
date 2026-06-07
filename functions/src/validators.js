@@ -23,7 +23,7 @@ const UID_MAX_LEN = 128;
 
 // The only keys allowed in a generatePlan request body.
 // UID is NOT accepted from the client body — auth context only.
-const ALLOWED_PLAN_KEYS = new Set(['weekId']);
+const ALLOWED_PLAN_KEYS = new Set(['weekId', 'personalRequirements']);
 
 // Valid medical flag values stored in Firestore (normalised at onboarding)
 const VALID_MEDICAL_FLAGS = new Set([

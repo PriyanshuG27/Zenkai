@@ -6,6 +6,8 @@ import { useWorkoutStore } from '../../stores/useWorkoutStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useXPEngine } from '../../hooks/useXPEngine';
 import { useUIStore } from '../../stores/useUIStore';
+import { useWeeklyPlan } from '../../hooks/useWeeklyPlan';
+import { usePlanStore } from '../../stores/usePlanStore';
 
 export const WeeklyPlanView = ({ planDays = [], weekId = '' }) => {
   const navigate = useNavigate();
@@ -14,6 +16,10 @@ export const WeeklyPlanView = ({ planDays = [], weekId = '' }) => {
   const { awardXP } = useXPEngine();
   const { addToast } = useUIStore();
   const containerRef = useRef(null);
+
+  const [requirements, setRequirements] = useState('');
+  const { generatePlan } = useWeeklyPlan();
+  const planLoading = usePlanStore((state) => state.planLoading);
 
   // Get current day index: Monday = 1, Tuesday = 2, ..., Sunday = 7
   const jsDay = new Date().getDay();
@@ -271,6 +277,34 @@ export const WeeklyPlanView = ({ planDays = [], weekId = '' }) => {
             }`}
           />
         ))}
+      </div>
+
+      {/* Custom Regeneration Box */}
+      <div className="mt-4 border-2 border-[var(--border-bright)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+        <h3 className="font-display text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide mb-2 flex items-center gap-2">
+          <Sparkles size={16} className="text-[var(--primary)]" />
+          <span>Want a different plan?</span>
+        </h3>
+        <textarea
+          value={requirements}
+          onChange={(e) => setRequirements(e.target.value)}
+          placeholder="e.g. Include more core exercises, I only have 30 mins today, make it entirely bodyweight..."
+          className="w-full bg-[var(--bg-base)] text-[var(--text-primary)] text-xs font-sans p-3 rounded border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] resize-none h-20 mb-3"
+        />
+        <motion.button
+          onClick={() => {
+            if (!planLoading) generatePlan(requirements);
+          }}
+          disabled={planLoading}
+          className="w-full py-2.5 bg-[var(--primary)] text-black font-display font-extrabold tracking-widest text-xs uppercase rounded border-2 border-black shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          whileTap={{ scale: 0.97 }}
+        >
+          {planLoading ? (
+            <span>Regenerating...</span>
+          ) : (
+            <span>Regenerate with instructions</span>
+          )}
+        </motion.button>
       </div>
     </div>
   );

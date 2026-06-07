@@ -192,3 +192,5 @@ export const MobileProfile = () => {
     </div>
   );
 };
+
+export default MobileProfile;

@@ -2,68 +2,183 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ─── Helper Functions ─────────────────────────────────────────────────────
+
+    // Is the request from a signed-in user?
     function isAuth() {
       return request.auth != null;
     }
 
+    // Does the signed-in user own this uid subtree?
     function isOwner(uid) {
       return isAuth() && request.auth.uid == uid;
     }
 
-    // User top-level document
-    match /users/{uid} {
-      allow read, write: if isOwner(uid);
+    // Is the signed-in user a participant in this challenge document?
+    function isParticipant() {
+      return isAuth() && request.auth.uid in resource.data.participants;
+    }
 
-      // sessions subcollection
+    // ── Field-level validation helpers for users/{uid} ────────────────────────
+
+    // Whitelist of every field written across all phases.
+    // Phase 1 (Auth/Onboarding): uid, name, email, userType, onboardingComplete, emailVerified,
+    //                             age, gender, heightCm, weightKg, goal, workoutFrequency,
+    //                             sessionDuration, dietType, currentSupplements, equipmentList,
+    //                             medicalFlags, createdAt
+    // Phase 2 (XP/Streak):       xp, level, levelName, streak, streakLastDate, powerUps, badges
+    // Phase 5 (Gamification):    cooldowns, skills
+    function isValidUserData() {
+      return request.resource.data.keys().hasOnly([
+        // Identity
+        'uid', 'name', 'email', 'emailVerified',
+        // Onboarding
+        'userType', 'onboardingComplete',
+        // Body profile
+        'age', 'gender', 'heightCm', 'weightKg',
+        // Goals & schedule
+        'goal', 'workoutFrequency', 'sessionDuration',
+        // Lifestyle
+        'dietType', 'currentSupplements',
+        // Equipment & health
+        'equipmentList', 'medicalFlags',
+        // Gamification — Phase 2
+        'xp', 'level', 'levelName',
+        'streak', 'streakLastDate',
+        'powerUps', 'badges',
+        // Gamification — Phase 5
+        'cooldowns', 'skills',
+        // Metadata
+        'createdAt'
+      ]);
+    }
+
+    // xp must be a non-negative number (prevents XP injection)
+    function isValidXP() {
+      return !('xp' in request.resource.data) ||
+        (request.resource.data.xp is number && request.resource.data.xp >= 0);
+    }
+
+    // level must be an integer >= 1
+    function isValidLevel() {
+      return !('level' in request.resource.data) ||
+        (request.resource.data.level is int && request.resource.data.level >= 1);
+    }
+
+    // equipmentList max 20 items (schema: max 10 distinct values but allow headroom)
+    function isValidEquipmentList() {
+      return !('equipmentList' in request.resource.data) ||
+        (request.resource.data.equipmentList is list &&
+         request.resource.data.equipmentList.size() <= 20);
+    }
+
+    // ─── users/{uid} ─────────────────────────────────────────────────────────
+
+    match /users/{uid} {
+      // Owner reads their own profile
+      allow read: if isOwner(uid);
+
+      // Owner creates their own profile (signup — Phase 1)
+      allow create: if isOwner(uid);
+
+      // Owner updates — only whitelisted fields with numeric guards
+      // (prevents XP/level injection via browser console)
+      allow update: if isOwner(uid)
+        && isValidUserData()
+        && isValidXP()
+        && isValidLevel()
+        && isValidEquipmentList();
+
+      // Profiles are never deleted from client
+      allow delete: if false;
+
+      // ── sessions/{sessionId} — Phase 2 ──────────────────────────────────
+      // Written atomically in a writeBatch by useWorkoutLogger.
+      // Fields: date, dateString, moodTag, stomachFlag, totalVolume,
+      //         totalSets, durationMinutes, xpEarned, prCount,
+      //         planDayId (Phase 5 plan day reference),
+      //         isOverdrive (Phase 5 Overdrive Hour flag)
       match /sessions/{sessionId} {
         allow read, write: if isOwner(uid);
-        
-        // exercises nested under sessions
+
+        // exercises/{exerciseId} — nested sub-collection
+        // Fields: exerciseId, name, exerciseKey, muscleGroup, sets[], volume
         match /exercises/{exerciseId} {
           allow read, write: if isOwner(uid);
         }
       }
 
-      // prs subcollection
+      // ── prs/{exerciseKey} — Phase 2 ─────────────────────────────────────
+      // One document per exercise — stores all-time PR.
+      // exerciseKey format validated server-side in firestoreUtils.js.
       match /prs/{exerciseKey} {
         allow read, write: if isOwner(uid);
       }
 
-      // xpLog subcollection
-      match /xpLog/{logId} {
-        allow read, write: if isOwner(uid);
+      // ── weeklyPlans/{weekId} — Phase 3 ──────────────────────────────────
+      // Written ONLY by the generatePlan Cloud Function via Admin SDK.
+      // Client read is allowed so the plan UI can display the plan.
+      // weekId format: "YYYY-WNN" — validated in generatePlan.js before write.
+      match /weeklyPlans/{weekId} {
+        allow read:  if isOwner(uid);
+        allow write: if false;           // Admin SDK bypasses rules by design
       }
 
-      // challengeProgress subcollection
+      // ── xpLog/{entryId} — Phase 2 ───────────────────────────────────────
+      // Append-only audit log.
+      // update and delete are NEVER permitted — tamper-proof XP history.
+      // Written by useXPEngine.js (client addDoc) and _commitBatch (batch.set).
+      match /xpLog/{entryId} {
+        allow read:   if isOwner(uid);
+        allow create: if isOwner(uid);
+        // update → implicitly DENIED
+        // delete → implicitly DENIED
+      }
+
+      // ── challengeProgress/{challengeId} — Phase 5 ───────────────────────
+      // Local mirror of challenge progress stored under the user's subtree.
       match /challengeProgress/{challengeId} {
         allow read, write: if isOwner(uid);
       }
 
-      // weeklyPlans subcollection (read-only for client)
-      match /weeklyPlans/{weekId} {
-        allow read: if isOwner(uid);
-        allow write: if false;
+      // ── personalTemplates/{templateId} — Phase 5 ────────────────────────
+      // Generated by generateChallenge Cloud Function; consumed and deleted
+      // by useChallenges.joinChallenge() when user starts a challenge.
+      match /personalTemplates/{templateId} {
+        allow read, write: if isOwner(uid);
       }
     }
 
-    // Challenges: readable by participants, writable by creator or participant
+    // ─── challenges/{challengeId} — Phase 5 ──────────────────────────────────
+    //
+    // Types: "comeback" | "streak" | "weak_point"
+    // Subtypes: "campaign" | "quest" | "wager"
+    //
+    // Create: any authenticated user (they create as sole initial participant)
+    // Read:   only participants (privacy — other users cannot see your challenges)
+    // Update: only participants (progress updates, status: 'abandoned')
+    // Delete: DENIED from client — leaveChallenge() uses update status:'abandoned'
+    //         The existing fallback in useChallenges.leaveChallenge()
+    //         (try deleteDoc → catch → setDoc status:'abandoned') is compatible:
+    //         deleteDoc will fail → fallback update succeeds.
     match /challenges/{challengeId} {
-      allow read: if isAuth() &&
-        request.auth.uid in resource.data.participants;
-      
+      allow read:   if isParticipant();
       allow create: if isAuth();
-      
-      allow update: if isAuth() && (
-        request.auth.uid == resource.data.creatorUid ||
-        request.auth.uid in resource.data.participants
-      );
-      
+      allow update: if isParticipant();
       allow delete: if false;
     }
 
-    // Rate limits (Cloud Function only)
-    match /rateLimits/{docId} {
+    // ─── rateLimit/{uid} — Phase 3 ───────────────────────────────────────────
+    // Written exclusively by the generatePlan Cloud Function via Admin SDK.
+    // Collection path MUST match rateLimiter.js: db.doc(`rateLimit/${uid}`)
+    // All client access is blocked.
+    match /rateLimit/{uid} {
       allow read, write: if false;
     }
+
+    // ─── Implicit default deny ────────────────────────────────────────────────
+    // Any path not matched above is denied by Firestore's default behaviour.
+    // No wildcard catch-all needed — absence of a rule = deny.
+
   }
 }

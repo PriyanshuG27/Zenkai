@@ -31,52 +31,32 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <main className="relative z-10 flex-1 flex flex-col justify-center items-center px-6 py-12 text-center max-w-4xl mx-auto">
         {/* Level Up / Active Badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-bright text-xs font-mono text-accent-xp uppercase tracking-wider mb-8 shadow-inner"
-        >
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-bright text-xs font-mono text-accent-xp uppercase tracking-wider mb-8 shadow-inner">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-xp opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-xp"></span>
           </span>
           V1.0.0 Comeback Release
-        </motion.div>
+        </div>
 
         {/* Barlow Condensed Headline */}
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="font-display text-5xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-text-primary mb-6 max-w-3xl"
-        >
+        <h1 className="font-display text-5xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-text-primary mb-6 max-w-3xl">
           Train Smarter.<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-accent-xp">
             Comeback Stronger.
           </span>
-        </motion.h1>
+        </h1>
 
         {/* Subhead */}
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-base md:text-xl text-text-secondary font-body max-w-2xl leading-relaxed mb-10"
-        >
+        <p className="text-base md:text-xl text-text-secondary font-body max-w-2xl leading-relaxed mb-10">
           AI-powered gym tracking and custom recovery routines for Indian athletes. Plan around your equipment, constraints, and progress with gamified XP rewards.
-        </motion.p>
+        </p>
 
         {/* Action Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mb-16"
-        >
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mb-16">
           <Link 
             to="/signup" 
-            className="group inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold py-4 px-8 rounded-xl hover:brightness-110 active:brightness-95 transition-all shadow-[0_0_30px_var(--primary-glow)] hover:shadow-[0_0_40px_rgba(255,92,0,0.4)]"
+            className="group inline-flex items-center justify-center gap-2 bg-primary text-bg-base font-semibold py-4 px-8 rounded-xl hover:brightness-110 active:brightness-95 transition-all shadow-[0_0_30px_var(--primary-glow)] hover:shadow-[0_0_40px_rgba(255,92,0,0.4)]"
           >
             Get Started
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -87,21 +67,16 @@ export const LandingPage = () => {
           >
             Log In
           </Link>
-        </motion.div>
+        </div>
 
         {/* Features Pills */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl border-t border-border-base/40 pt-10 text-left"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl border-t border-border-base/40 pt-10 text-left">
           <div className="flex gap-3 bg-bg-surface/50 border border-border-base p-4 rounded-xl">
             <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
               <Zap size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-text-primary text-sm">Comeback Mode</h3>
+              <h2 className="font-semibold text-text-primary text-sm">Comeback Mode</h2>
               <p className="text-xs text-text-secondary mt-1">Start at safe capacity and ramp up gradually based on biometric feedback.</p>
             </div>
           </div>
@@ -111,7 +86,7 @@ export const LandingPage = () => {
               <Dumbbell size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-text-primary text-sm">Equipment-Aware Plans</h3>
+              <h2 className="font-semibold text-text-primary text-sm">Equipment-Aware Plans</h2>
               <p className="text-xs text-text-secondary mt-1">AI generates routines using only the gear in your gym. No compromises.</p>
             </div>
           </div>
@@ -121,11 +96,11 @@ export const LandingPage = () => {
               <Target size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-text-primary text-sm">XP + Challenges</h3>
+              <h2 className="font-semibold text-text-primary text-sm">XP + Challenges</h2>
               <p className="text-xs text-text-secondary mt-1">Earn level milestones and streak multipliers for completing workouts.</p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
 
       {/* Footer */}

@@ -17,7 +17,7 @@ import { Minus, Plus, Check, X } from 'lucide-react';
  *   isBodyweight?: boolean,
  *   onDelete?: () => void
  */
-export const SetRow = ({
+const SetRowComponent = ({
   exerciseId,
   setIndex,
   set,
@@ -81,7 +81,7 @@ export const SetRow = ({
     const trimmed = typeof localWeight === 'string' ? localWeight.trim() : String(localWeight);
     if (isBodyweight && /^bw$/i.test(trimmed)) {
       setLocalWeight('BW');
-      onUpdate('weight', 'BW');
+      onUpdate(exerciseId, setIndex, 'weight', 'BW');
       return;
     }
     let parsed = parseFloat(localWeight);
@@ -91,10 +91,10 @@ export const SetRow = ({
     
     if (isBodyweight && parsed === 0) {
       setLocalWeight('BW');
-      onUpdate('weight', 'BW');
+      onUpdate(exerciseId, setIndex, 'weight', 'BW');
     } else {
       setLocalWeight(parsed);
-      onUpdate('weight', parsed);
+      onUpdate(exerciseId, setIndex, 'weight', parsed);
     }
   };
 
@@ -110,7 +110,7 @@ export const SetRow = ({
     let parsed = parseInt(localReps, 10);
     if (isNaN(parsed) || parsed < 0) parsed = 0;
     setLocalReps(parsed);
-    onUpdate('reps', parsed);
+    onUpdate(exerciseId, setIndex, 'reps', parsed);
   };
 
   const handleKeyDown = (e) => {
@@ -127,17 +127,17 @@ export const SetRow = ({
     if (current === 0) {
       if (isBodyweight) {
         setLocalWeight('BW');
-        onUpdate('weight', 'BW');
+        onUpdate(exerciseId, setIndex, 'weight', 'BW');
       }
     } else {
       const nextVal = Math.max(0, current - 2.5);
       const rounded = parseFloat(nextVal.toFixed(2));
       if (isBodyweight && rounded === 0) {
         setLocalWeight('BW');
-        onUpdate('weight', 'BW');
+        onUpdate(exerciseId, setIndex, 'weight', 'BW');
       } else {
         setLocalWeight(rounded);
-        onUpdate('weight', rounded);
+        onUpdate(exerciseId, setIndex, 'weight', rounded);
       }
     }
   };
@@ -145,13 +145,13 @@ export const SetRow = ({
   const handleWeightIncrement = () => {
     if (localWeight === 'BW') {
       setLocalWeight(0);
-      onUpdate('weight', 0);
+      onUpdate(exerciseId, setIndex, 'weight', 0);
     } else {
       const current = parseFloat(localWeight) || 0;
       const nextVal = current + 2.5;
       const rounded = parseFloat(nextVal.toFixed(2));
       setLocalWeight(rounded);
-      onUpdate('weight', rounded);
+      onUpdate(exerciseId, setIndex, 'weight', rounded);
     }
   };
 
@@ -159,14 +159,14 @@ export const SetRow = ({
     const current = parseInt(localReps, 10) || 0;
     const nextVal = Math.max(0, current - 1);
     setLocalReps(nextVal);
-    onUpdate('reps', nextVal);
+    onUpdate(exerciseId, setIndex, 'reps', nextVal);
   };
 
   const handleRepsIncrement = () => {
     const current = parseInt(localReps, 10) || 0;
     const nextVal = current + 1;
     setLocalReps(nextVal);
-    onUpdate('reps', nextVal);
+    onUpdate(exerciseId, setIndex, 'reps', nextVal);
   };
 
   // ─── Verification ──────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@ export const SetRow = ({
         <div className="w-8 flex justify-start">
           <motion.button
             type="button"
-            onClick={onDone}
+            onClick={() => onDone(exerciseId, setIndex)}
             disabled={!isDoneActive}
             aria-label={`Mark set ${setIndex + 1} as completed`}
             className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors focus:outline-none ${
@@ -360,7 +360,7 @@ export const SetRow = ({
           {onDelete ? (
             <button
               type="button"
-              onClick={onDelete}
+              onClick={() => onDelete(exerciseIndex, setIndex)}
               aria-label={`Remove set ${setIndex + 1}`}
               className="w-6 h-6 flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer focus:outline-none shrink-0"
               style={{ minWidth: '24px', minHeight: '24px' }}
@@ -375,3 +375,6 @@ export const SetRow = ({
     </motion.div>
   );
 };
+
+export const SetRow = React.memo(SetRowComponent);
+SetRow.displayName = 'SetRow';

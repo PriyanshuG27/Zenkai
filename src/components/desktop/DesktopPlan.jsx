@@ -12,3 +12,5 @@ export const DesktopPlan = () => {
     </div>
   );
 };
+
+export default DesktopPlan;

@@ -118,6 +118,7 @@ STRICT RULES:
    - Round all targetWeight values to the nearest 2.5 kg increment (e.g. 60 kg, 62.5 kg, 65 kg; 0 for bodyweight).
 8. If the user experience level is 'Comeback', ignore progression and dial target weights back to 70-80% of their recent logs to ease them in safely.
 
+${request.data?.personalRequirements ? `USER'S PERSONAL REQUIREMENTS FOR THIS WEEK:\n"${request.data.personalRequirements}"\nYou MUST incorporate these requirements into the plan.\n` : ''}
 OUTPUT FORMAT:
 Respond ONLY with valid, minified JSON. Absolutely NO markdown, NO text outside the JSON, NO explanation.
 JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Rest"), "exercises": [{ "name": string, "sets": number, "reps": string (e.g. "8-10"), "targetWeight": number (0 for bodyweight) }] }] }`;

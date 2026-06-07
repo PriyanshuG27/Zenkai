@@ -656,3 +656,5 @@ export const OnboardingPage = () => {
     </OnboardingLayout>
   );
 };
+
+export default OnboardingPage;

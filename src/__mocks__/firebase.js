@@ -33,6 +33,7 @@ export const mockUpdateDoc = vi.fn();
 export const mockAddDoc = vi.fn();
 export const mockServerTimestamp = vi.fn(() => ({ _type: 'serverTimestamp' }));
 export const mockRunTransaction = vi.fn();
+export const mockDeleteDoc = vi.fn();
 
 // ─── Singleton stubs (src/lib/firebase.js) ───────────────────────────────────
 const mockAuth = { currentUser: null };
@@ -71,6 +72,7 @@ vi.mock('firebase/firestore', () => ({
   setDoc: mockSetDoc,
   getDoc: mockGetDoc,
   updateDoc: mockUpdateDoc,
+  deleteDoc: mockDeleteDoc,
   addDoc: mockAddDoc,
   getDocs: mockGetDocs,
   collection: mockCollection,

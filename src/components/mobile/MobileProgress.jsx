@@ -703,3 +703,5 @@ export const MobileProgress = () => {
     </div>
   );
 };
+
+export default MobileProgress;

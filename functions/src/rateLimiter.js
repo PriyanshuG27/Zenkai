@@ -24,7 +24,7 @@
 const { HttpsError } = require('firebase-functions/v2/https');
 
 const WINDOW_MS  = 60 * 60 * 1000; // 1 hour
-const MAX_CALLS  = 5;               // calls per window
+const MAX_CALLS  = 3;               // calls per window
 
 /**
  * Checks and increments the rate-limit counter for the given uid.

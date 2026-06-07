@@ -226,14 +226,14 @@ describe('checkRateLimit', () => {
     expect(db._written.value.count).toBe(1);
   });
 
-  it('allows 5th call (count=4 in window)', async () => {
-    const db = makeDb({ exists: true, count: 4, windowStart: Date.now() });
+  it('allows 3rd call (count=2 in window)', async () => {
+    const db = makeDb({ exists: true, count: 2, windowStart: Date.now() });
     await expect(checkRateLimit(db, 'uid-002')).resolves.not.toThrow();
-    expect(db._written.value.count).toBe(5);
+    expect(db._written.value.count).toBe(3);
   });
 
-  it('throws resource-exhausted on 6th call (count=5 in window)', async () => {
-    const db = makeDb({ exists: true, count: 5, windowStart: Date.now() });
+  it('throws resource-exhausted on 4th call (count=3 in window)', async () => {
+    const db = makeDb({ exists: true, count: 3, windowStart: Date.now() });
     await expect(checkRateLimit(db, 'uid-003')).rejects.toThrow();
     try {
       await checkRateLimit(db, 'uid-003');
@@ -245,9 +245,9 @@ describe('checkRateLimit', () => {
 
   it('resets count when window has expired (windowStart older than 1 hour)', async () => {
     const oneHourAndOneMinuteAgo = Date.now() - (61 * 60 * 1000);
-    const db = makeDb({ exists: true, count: 5, windowStart: oneHourAndOneMinuteAgo });
+    const db = makeDb({ exists: true, count: 3, windowStart: oneHourAndOneMinuteAgo });
 
-    // Should NOT throw even though count was 5, because window has expired
+    // Should NOT throw even though count was 3, because window has expired
     await expect(checkRateLimit(db, 'uid-004')).resolves.not.toThrow();
 
     // After reset, count should be 1 (fresh start)
@@ -256,8 +256,8 @@ describe('checkRateLimit', () => {
 
   it('does not reset count when window has not expired', async () => {
     const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
-    const db = makeDb({ exists: true, count: 3, windowStart: thirtyMinutesAgo });
+    const db = makeDb({ exists: true, count: 1, windowStart: thirtyMinutesAgo });
     await expect(checkRateLimit(db, 'uid-005')).resolves.not.toThrow();
-    expect(db._written.value.count).toBe(4); // incremented, not reset
+    expect(db._written.value.count).toBe(2); // incremented, not reset
   });
 });

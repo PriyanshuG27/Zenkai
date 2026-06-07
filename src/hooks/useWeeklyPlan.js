@@ -49,14 +49,18 @@ export function useWeeklyPlan() {
     }
   }, [user?.uid, currentPlan, getCurrentPlan]);
 
-  const generatePlan = useCallback(async () => {
+  const generatePlan = useCallback(async (personalRequirements = '') => {
     if (!user) return;
     setPlanLoading(true);
     setPlanError(null);
 
     try {
       const fn = httpsCallable(functions, 'generatePlan');
-      const res = await fn({ weekId });
+      const payload = { weekId };
+      if (personalRequirements) {
+        payload.personalRequirements = personalRequirements;
+      }
+      const res = await fn(payload);
       
       // Upon successful generation, fetch the newly generated plan from Firestore.
       if (res.data?.success) {

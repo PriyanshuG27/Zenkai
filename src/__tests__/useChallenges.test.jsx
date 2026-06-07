@@ -210,9 +210,16 @@ describe('useChallenges Hook', () => {
         await result.current.updateProgress('user-123', 'valid_challenge_123', new Date());
       });
 
-      expect(mockTx1.update).toHaveBeenCalledTimes(1);
-      // It should complete (36 sessions) and set badgeEarned = true
-      const updatePayload1 = mockTx1.update.mock.calls[0][1];
+      expect(mockTx1.update).toHaveBeenCalledTimes(2);
+      
+      // User update is first (power-ups)
+      const userUpdatePayload = mockTx1.update.mock.calls[0][1];
+      expect(userUpdatePayload.powerUps).toBeDefined();
+      expect(userUpdatePayload.powerUps.streakShield).toBe(1);
+      expect(userUpdatePayload.powerUps.xpBooster).toBe(1);
+
+      // Challenge update is second
+      const updatePayload1 = mockTx1.update.mock.calls[1][1];
       expect(updatePayload1['progress.user-123'].completedSessions).toBe(36);
       expect(updatePayload1['progress.user-123'].badgeEarned).toBe(true);
       expect(updatePayload1.status).toBe('completed');
@@ -282,8 +289,15 @@ describe('useChallenges Hook', () => {
         await result.current.updateProgress('user-123', 'valid_challenge_456', new Date());
       });
 
-      expect(mockTx1.update).toHaveBeenCalledTimes(1);
-      const updatePayload1 = mockTx1.update.mock.calls[0][1];
+      expect(mockTx1.update).toHaveBeenCalledTimes(2);
+
+      // User update is first (power-ups)
+      const userUpdatePayload = mockTx1.update.mock.calls[0][1];
+      expect(userUpdatePayload.powerUps).toBeDefined();
+      expect(userUpdatePayload.powerUps.xpBooster).toBe(1);
+
+      // Challenge update is second
+      const updatePayload1 = mockTx1.update.mock.calls[1][1];
       expect(updatePayload1['progress.user-123'].weeklyCount).toEqual([3, 3, 3, 3, 3, 3, 3, 3]);
       expect(updatePayload1['progress.user-123'].badgeEarned).toBe(true);
       expect(updatePayload1.status).toBe('completed');

@@ -68,7 +68,7 @@ const EmptyState = () => (
   </div>
 );
 
-export const VolumeChart = ({ data = [], loading = false }) => {
+const VolumeChartComponent = ({ data = [], loading = false }) => {
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
 
   if (loading) return <ChartSkeleton />;
@@ -114,3 +114,6 @@ export const VolumeChart = ({ data = [], loading = false }) => {
     </div>
   );
 };
+
+export const VolumeChart = React.memo(VolumeChartComponent);
+VolumeChart.displayName = 'VolumeChart';

@@ -12,3 +12,5 @@ export const MobilePlan = () => {
     </div>
   );
 };
+
+export default MobilePlan;

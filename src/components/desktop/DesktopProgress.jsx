@@ -12,3 +12,5 @@ export const DesktopProgress = () => {
     </div>
   );
 };
+
+export default DesktopProgress;
