@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { House, Activity, LayoutGrid, Sparkles, Trophy, User, LogOut, Flame } from 'lucide-react';
+import { House, Activity, LayoutGrid, Sparkles, Trophy, User, LogOut, Flame, TrendingUp, Newspaper } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const DesktopSidebar = () => {
@@ -17,8 +17,9 @@ export const DesktopSidebar = () => {
     { path: '/home', label: 'Dashboard', Icon: House },
     { path: '/challenges', label: 'Fantasy Squads', Icon: Trophy },
     { path: '/recap', label: 'Recap Cinema', Icon: Activity },
-    { path: '/plan', label: 'Overload Sandbox', Icon: LayoutGrid },
     { path: '/poster', label: 'Poster Studio', Icon: Sparkles },
+    { path: '/aura-forecaster', label: 'Aura & Beast Mode', Icon: Flame },
+    { path: '/magazine', label: 'Sunday Magazine', Icon: Newspaper },
     { path: '/profile', label: 'Profile & Settings', Icon: User },
   ];
 

@@ -5,6 +5,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { validateUID } = require('./validators');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 exports.generateSquadChallenge = onCall({ region: 'asia-south2', timeoutSeconds: 60 }, async (request) => {
   const uid = request.auth?.uid;
@@ -35,60 +36,92 @@ exports.generateSquadChallenge = onCall({ region: 'asia-south2', timeoutSeconds:
       throw new HttpsError('permission-denied', 'You are not a member of this squad');
     }
 
-    // 2. Fetch all members profiles in parallel to aggregate stats/goals
-    const memberSnaps = await Promise.all(
-      memberUids.map(mUid => adminDb.doc(`users/${mUid}`).get())
+    const memberCount = Math.max(1, memberUids.length);
+
+    // Calculate win streak and progressive overload multiplier
+    let winStreak = squadData.winStreak || 0;
+    const prevChall = squadData.activeChallenge;
+    if (prevChall) {
+      if (prevChall.status === 'completed') {
+        winStreak += 1;
+      } else {
+        winStreak = 0; // reset streak on failure
+      }
+    }
+
+    const alpha = Math.min(1.25, 1.05 + winStreak * 0.05);
+
+    // 2. Fetch past 21-day volume history for all members in parallel
+    const twentyOneDaysAgo = new Date();
+    twentyOneDaysAgo.setDate(twentyOneDaysAgo.getDate() - 21);
+    twentyOneDaysAgo.setHours(0, 0, 0, 0);
+
+    let sumOfAvgWeeklyVolumes = 0;
+
+    await Promise.all(
+      memberUids.map(async (mUid) => {
+        // Query mobile sessions
+        const mobileSnap = await adminDb
+          .collection(`users/${mUid}/sessions`)
+          .where('date', '>=', twentyOneDaysAgo)
+          .get();
+
+        // Query desktop sessions
+        const desktopSnap = await adminDb
+          .collection(`users/${mUid}/executed_sessions`)
+          .where('date', '>=', twentyOneDaysAgo)
+          .get();
+
+        let memberTotalVolume = 0;
+        mobileSnap.docs.forEach(d => memberTotalVolume += d.data().totalVolume || 0);
+        desktopSnap.docs.forEach(d => memberTotalVolume += d.data().totalVolume || 0);
+
+        // Average weekly volume (past 21 days = 3 weeks)
+        let avgWeeklyVolume = memberTotalVolume / 3;
+
+        // Clinical minimum baseline per user of 5,000kg to safeguard against inactivity
+        if (avgWeeklyVolume < 5000) {
+          avgWeeklyVolume = 5000;
+        }
+
+        sumOfAvgWeeklyVolumes += avgWeeklyVolume;
+      })
     );
 
-    const goals = [];
-    const userTypes = [];
-    memberSnaps.forEach(snap => {
-      if (snap.exists) {
-        const data = snap.data();
-        if (data.goal) goals.push(data.goal);
-        if (data.userType) userTypes.push(data.userType);
-      }
-    });
+    // 3. Compute target Titan HP
+    const calculatedTitanHP = Math.round(sumOfAvgWeeklyVolumes * alpha);
 
-    const primaryGoal = goals.length > 0 ? goals[0] : 'General Fitness';
-    const primaryLevel = userTypes.length > 0 ? userTypes[0] : 'Beginner';
+    // 4. Randomly select weakness muscle group
+    const weaknesses = ['CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'ARMS'];
+    const weakness = weaknesses[Math.floor(Math.random() * weaknesses.length)];
 
-    // Randomly select a muscle group for the squad synergy challenge
-    const muscleGroups = ['Chest', 'Back', 'Legs', 'Core', 'Shoulders', 'Arms'];
-    const selectedMuscle = muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
+    // Default values in case AI call fails
+    let titanName = "The Iron Sentinel";
+    let lore = "An ancient mechanical titan fueled by the kinetic energy of heavy compounds. Only collective squad volume can shut down its power core.";
+    let rewards = ["1.2x XP Multiplier", "Sattu Synthesizer Badge"];
 
-    // Target sets: roughly 20-30 sets per member in the squad
-    const memberCount = memberUids.length;
-    const targetSets = Math.max(30, memberCount * 20);
+    const prompt = `
+  You are an elite fitness AI generating a weekly PvE "Titan Raid" for a ${memberCount}-person lifting squad.
+  The squad must collectively lift ${calculatedTitanHP} kg of volume this week to defeat the Titan.
 
-    const durationDays = 14; // 2 weeks for squad challenges
-    const rewardType = Math.random() < 0.5 ? 'bossFightKey' : 'squadBadge';
-    const rewardName = rewardType === 'bossFightKey' ? 'Boss Fight Key' : 'Synergy Champion Trophy';
+  Assign ${weakness} as the Titan's "Weakness". Volume lifted targeting this muscle group will deal 1.5x damage.
 
-    // Fallback values
-    let challengeTitle = `${selectedMuscle} Alliance`;
-    let challengeDesc = `Work collectively as a squad to complete ${targetSets} working sets of ${selectedMuscle} within 14 days.`;
-
-    // 3. Prompt Groq / Gemini for catchy copy
-    let copywriteJSON = null;
-    const prompt = `You are an elite fitness gamification designer. Generate a collaborative fitness challenge for a squad of ${memberCount} gym buddies whose primary training goal is '${primaryGoal}':
-Challenge: Work collectively to complete ${targetSets} working sets of ${selectedMuscle} over ${durationDays} days.
-Reward: A '${rewardName}' premium reward.
-
-Generate a JSON object containing a 'squad_challenge' with a catchy 'title' (max 4 words, e.g. 'Leg Day Syndicate', 'Chest Day Alliance', 'Core Brotherhood') and a 'description' (max 15 words explaining the target).
-Return ONLY valid JSON.
-JSON format:
-{
-  "squad_challenge": {
-    "title": "...",
-    "description": "..."
+  RESPONSE FORMAT: Strictly return valid JSON. Do not wrap in markdown code blocks.
+  {
+    "titanName": "String (e.g., The Iron Sentinel)",
+    "lore": "String (2 sentences of aggressive, sci-fi/fantasy fitness lore)",
+    "totalHP": Number (exact value: ${calculatedTitanHP}),
+    "weakness": "String (must be exactly: ${weakness})",
+    "rewards": ["String", "String"]
   }
-}`;
+`;
+
+    let copywriteJSON = null;
 
     // Model 1: Groq Llama 3.3 70B (Primary)
     if (GROQ_API_KEY) {
       try {
-        console.log('[generateSquadChallenge] Attempting Model 1: Groq Llama 3.3 70B...');
+        console.log(`[generateSquadChallenge] Generating Titan Raid for ${squadCode} via Groq...`);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -106,8 +139,14 @@ JSON format:
         if (response.ok) {
           const resData = await response.json();
           const contentText = resData.choices?.[0]?.message?.content || '{}';
-          copywriteJSON = JSON.parse(contentText);
-          console.log('[generateSquadChallenge] Groq Llama 3.3 70B succeeded.');
+          
+          let cleanText = contentText.trim();
+          if (cleanText.includes('```')) {
+            cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+          }
+
+          copywriteJSON = JSON.parse(cleanText);
+          console.log(`[generateSquadChallenge] Groq succeeded for ${squadCode}`);
         } else {
           const errText = await response.text();
           console.warn(`[generateSquadChallenge] Groq API returned status ${response.status}: ${errText}`);
@@ -118,10 +157,9 @@ JSON format:
     }
 
     // Model 2: Gemini 1.5 Flash (Fallback)
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        console.log('[generateSquadChallenge] Attempting Model 2: Gemini Flash...');
+        console.log(`[generateSquadChallenge] Generating Titan Raid for ${squadCode} via Gemini...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
@@ -135,43 +173,56 @@ JSON format:
           contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
         const text = result.response.text().trim();
-        copywriteJSON = JSON.parse(text);
-        console.log('[generateSquadChallenge] Gemini Flash succeeded.');
+        
+        let cleanText = text;
+        if (cleanText.includes('```')) {
+          cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+        }
+
+        copywriteJSON = JSON.parse(cleanText);
+        console.log(`[generateSquadChallenge] Gemini succeeded for ${squadCode}`);
       } catch (geminiErr) {
         console.error('[generateSquadChallenge] Gemini Flash fallback failed:', geminiErr.message);
       }
     }
 
-    if (copywriteJSON && copywriteJSON.squad_challenge && copywriteJSON.squad_challenge.title && copywriteJSON.squad_challenge.description) {
-      challengeTitle = copywriteJSON.squad_challenge.title.trim();
-      challengeDesc = copywriteJSON.squad_challenge.description.trim();
-    } else {
-      console.log('[generateSquadChallenge] Both APIs failed or returned bad format. Using default copy.');
+    if (copywriteJSON) {
+      if (copywriteJSON.titanName) titanName = copywriteJSON.titanName.trim();
+      if (copywriteJSON.lore) lore = copywriteJSON.lore.trim();
+      if (copywriteJSON.rewards) rewards = copywriteJSON.rewards;
     }
 
-    // 4. Initialize initial progress map
+    // Initialize progress map
     const progressMap = {};
     memberUids.forEach(mUid => {
       progressMap[mUid] = 0;
     });
 
     const activeChallenge = {
-      title: challengeTitle,
-      description: challengeDesc,
-      muscleGroup: selectedMuscle,
-      targetSets,
+      title: titanName,
+      description: lore,
+      muscleGroup: weakness,
+      isTitanRaid: true,
+      weakness: weakness,
+      totalHP: calculatedTitanHP,
+      currentHP: calculatedTitanHP,
+      damageDealt: 0,
       progress: progressMap,
-      totalCompletedSets: 0,
-      rewardType,
-      rewardName,
+      rewardType: 'bossFightKey',
+      rewardName: rewards.join(', '),
       startDate: Date.now(),
-      endDate: Date.now() + durationDays * 24 * 60 * 60 * 1000,
+      endDate: Date.now() + 7 * 24 * 60 * 60 * 1000, // Weekly
       status: 'active',
       claimedBy: {}
     };
 
-    // 5. Save the challenge under activeChallenge field in the squad document
-    await squadRef.set({ activeChallenge }, { merge: true });
+    // Save challenge and update win streak states on the squad document
+    await squadRef.set({
+      activeChallenge,
+      winStreak,
+      hasRegeneratedThisWeek: false,
+      regenerationVotes: []
+    }, { merge: true });
 
     return { success: true, activeChallenge };
 

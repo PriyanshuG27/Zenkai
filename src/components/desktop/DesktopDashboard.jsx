@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Activity, Trophy, ShieldAlert, Sparkles, Search, Dumbbell, LayoutGrid, Users, History, ChevronRight, MessageSquareCode } from 'lucide-react';
+import { Activity, Trophy, ShieldAlert, Sparkles, Search, Dumbbell, LayoutGrid, Users, History, ChevronRight, MessageSquareCode, Flame, Newspaper } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { db } from '../../lib/firebase';
 import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { MuscleMap, MuscleDetailPanel } from '../shared/MuscleMap';
 import { CommandPalette } from '../shared/CommandPalette';
 import { NeubrutalistCalendar } from '../shared/NeubrutalistCalendar';
+import { PrehabDaemon } from './PrehabDaemon';
 import exerciseData from '../../data/exercises.json';
 
 export const DesktopDashboard = () => {
@@ -180,13 +181,22 @@ export const DesktopDashboard = () => {
       bgGlow: 'hover:shadow-[0_0_15px_var(--primary-glow)]'
     },
     {
-      title: 'Overload Sandbox',
-      desc: 'Map progressive overload recursion paths and simulate Linear vs. Undulating templates.',
-      badge: 'Progression Deck',
-      link: '/plan',
-      icon: LayoutGrid,
-      color: 'hover:border-[var(--secondary)]',
-      bgGlow: 'hover:shadow-[0_0_15px_rgba(0,212,255,0.25)]'
+      title: 'Aura & Beast Mode',
+      desc: 'Analyze your rolling 30-day telemetry, trace your Aura statements feed, and check PR probabilities.',
+      badge: 'Performance Forecaster',
+      link: '/aura-forecaster',
+      icon: Flame,
+      color: 'hover:border-[var(--accent-xp)]',
+      bgGlow: 'hover:shadow-[0_0_15px_rgba(181,255,45,0.25)]'
+    },
+    {
+      title: 'Sunday Magazine',
+      desc: 'Read your weekly AI-generated fitness magazine, featuring coaching roasts and cue vault overlays.',
+      badge: 'Ruthless AI Coach',
+      link: '/magazine',
+      icon: Newspaper,
+      color: 'hover:border-blue-400',
+      bgGlow: 'hover:shadow-[0_0_15px_rgba(96,165,250,0.25)]'
     },
     {
       title: 'Poster Studio',
@@ -405,6 +415,9 @@ export const DesktopDashboard = () => {
         {/* RIGHT COLUMN: Cleaned-up Telemetry sidebar & Catalog (col-span-4) */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           
+          {/* Prehab Stretch Daemon Widget */}
+          <PrehabDaemon sessions={sessions} />
+
           {/* Workout History Calendar */}
           <NeubrutalistCalendar sessions={sessions} />
 

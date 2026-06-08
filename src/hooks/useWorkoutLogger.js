@@ -45,6 +45,7 @@ import {
   setDoc,
   query,
   where,
+  increment,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useWorkoutStore } from '../stores/useWorkoutStore';
@@ -352,42 +353,79 @@ export function useWorkoutLogger() {
       const activeChall = squadData.activeChallenge;
       
       if (activeChall && activeChall.status === 'active' && Date.now() <= activeChall.endDate) {
-        let matchingSets = 0;
-        exerciseDocs.forEach((ex) => {
-          const exGroup = (ex.muscleGroup || '').toLowerCase();
-          const challGroup = (activeChall.muscleGroup || '').toLowerCase();
-          let mappedExGroup = exGroup;
-          if (exGroup === 'legs' || exGroup === 'quads' || exGroup === 'hamstrings' || exGroup === 'calves' || exGroup === 'glutes') {
-            mappedExGroup = 'legs';
-          }
-          if (mappedExGroup === challGroup) {
-            matchingSets += ex.sets?.length || 0;
-          }
-        });
-        
-        if (matchingSets > 0) {
-          const progressMap = { ...(activeChall.progress || {}) };
-          progressMap[uid] = (progressMap[uid] || 0) + matchingSets;
-          
-          let totalCompletedSets = 0;
-          Object.keys(progressMap).forEach((memberUid) => {
-            totalCompletedSets += progressMap[memberUid] || 0;
+        // Double Lock: check if already completed to prevent duplicate rewards
+        if (activeChall.status === 'completed' || (activeChall.currentHP !== undefined && activeChall.currentHP <= 0)) {
+          return;
+        }
+
+        if (activeChall.isTitanRaid) {
+          // 1. Titan Raid Damage Calculation
+          let sessionDamage = 0;
+          exerciseDocs.forEach((ex) => {
+            let exGroup = (ex.muscleGroup || '').toUpperCase();
+            if (exGroup === 'QUADS' || exGroup === 'HAMSTRINGS' || exGroup === 'GLUTES' || exGroup === 'CALVES') {
+              exGroup = 'LEGS';
+            }
+            const weakness = (activeChall.weakness || '').toUpperCase();
+            const isWeakness = exGroup === weakness;
+            
+            let exVol = 0;
+            ex.sets?.forEach((s) => {
+              const w = s.weight === 'BW' ? 0 : (parseFloat(s.weight) || 0);
+              exVol += w * (parseInt(s.reps, 10) || 0);
+            });
+            
+            sessionDamage += exVol * (isWeakness ? 1.5 : 1.0);
           });
           
-          let status = activeChall.status || 'active';
-          if (totalCompletedSets >= activeChall.targetSets) {
-            status = 'completed';
+          if (sessionDamage > 0) {
+            const currentHP = activeChall.currentHP !== undefined ? activeChall.currentHP : activeChall.totalHP;
+            const updates = {
+              "activeChallenge.currentHP": increment(-sessionDamage),
+              [`activeChallenge.progress.${uid}`]: increment(sessionDamage)
+            };
+            
+            if (currentHP - sessionDamage <= 0) {
+              updates["activeChallenge.status"] = "completed";
+              updates["activeChallenge.currentHP"] = 0; // clamp at 0
+            }
+            
+            squadChallengeUpdates.push({
+              squadCode: squadDoc.id,
+              updates
+            });
           }
-          
-          squadChallengeUpdates.push({
-            squadCode: squadDoc.id,
-            activeChallenge: {
-              ...activeChall,
-              progress: progressMap,
-              totalCompletedSets,
-              status
+        } else {
+          // 2. Standard sets-based challenge
+          let matchingSets = 0;
+          exerciseDocs.forEach((ex) => {
+            const exGroup = (ex.muscleGroup || '').toLowerCase();
+            const challGroup = (activeChall.muscleGroup || '').toLowerCase();
+            let mappedExGroup = exGroup;
+            if (exGroup === 'legs' || exGroup === 'quads' || exGroup === 'hamstrings' || exGroup === 'calves' || exGroup === 'glutes') {
+              mappedExGroup = 'legs';
+            }
+            if (mappedExGroup === challGroup) {
+              matchingSets += ex.sets?.length || 0;
             }
           });
+          
+          if (matchingSets > 0) {
+            const currentSets = activeChall.totalCompletedSets || 0;
+            const updates = {
+              "activeChallenge.totalCompletedSets": increment(matchingSets),
+              [`activeChallenge.progress.${uid}`]: increment(matchingSets)
+            };
+            
+            if (currentSets + matchingSets >= activeChall.targetSets) {
+              updates["activeChallenge.status"] = "completed";
+            }
+            
+            squadChallengeUpdates.push({
+              squadCode: squadDoc.id,
+              updates
+            });
+          }
         }
       }
     });
@@ -514,11 +552,11 @@ export function useWorkoutLogger() {
       }, { merge: true });
     }
 
-    // Op 7 — Update squad challenges if any matching sets were performed
+    // Op 7 — Update squad challenges atomically via increments to avoid race conditions
     if (squadChallengeUpdates && squadChallengeUpdates.length > 0) {
       squadChallengeUpdates.forEach((upd) => {
         const squadRef = doc(db, 'shared_squads', upd.squadCode);
-        batch.set(squadRef, { activeChallenge: upd.activeChallenge }, { merge: true });
+        batch.update(squadRef, upd.updates);
       });
     }
 

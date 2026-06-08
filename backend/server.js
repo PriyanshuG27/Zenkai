@@ -21,6 +21,7 @@ app.post('/api/generatePlan', require('./routes/generatePlan'));
 app.post('/api/generateChallenge', require('./routes/generateChallenge'));
 app.post('/api/getPRStats', require('./routes/getPRStats'));
 app.post('/api/generateSquadChallenge', require('./routes/generateSquadChallenge'));
+app.post('/api/generateWeeklyMagazine', require('./routes/generateWeeklyMagazine'));
 
 // Initialize automated weekly challenge background scheduler
 const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');

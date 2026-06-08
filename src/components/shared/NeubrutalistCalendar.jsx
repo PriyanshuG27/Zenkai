@@ -9,6 +9,12 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
   const { uid } = useAuthStore();
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletedSessionIds, setDeletedSessionIds] = useState(new Set());
+
+  // Filter out deleted session IDs locally to guarantee instant UI removal
+  const activeSessions = useMemo(() => {
+    return sessions.filter((s) => s?.id && !deletedSessionIds.has(s.id));
+  }, [sessions, deletedSessionIds]);
 
   const proceedDeleteSession = async (sessId, source) => {
     if (!uid) return;
@@ -20,7 +26,11 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
       const docRef = doc(db, ...docPath);
       await deleteDoc(docRef);
       setConfirmDeleteId(null);
-      setSelectedCell(null);
+      setDeletedSessionIds((prev) => {
+        const next = new Set(prev);
+        next.add(sessId);
+        return next;
+      });
     } catch (err) {
       console.error('[Calendar] Failed to delete session:', err);
       alert('Failed to delete workout session.');
@@ -41,7 +51,7 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
   // Group sessions by local YYYY-MM-DD string
   const sessionsByDate = useMemo(() => {
     const map = {};
-    sessions.forEach((sess) => {
+    activeSessions.forEach((sess) => {
       if (!sess.date) return;
       const dateObj = sess.date instanceof Date ? sess.date : new Date(sess.date);
       if (isNaN(dateObj.getTime())) return;
@@ -50,7 +60,7 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
       map[key].push(sess);
     });
     return map;
-  }, [sessions]);
+  }, [activeSessions]);
 
   // Calendar calculations
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -91,15 +101,20 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
     return grid;
   }, [year, month, daysInMonth, adjustedFirstDayIndex, sessionsByDate]);
 
-  // Selected date details
-  const [selectedCell, setSelectedCell] = useState(null);
+  // Selected date key tracking (to dynamically compute details panel based on activeSessions)
+  const [selectedDateKey, setSelectedDateKey] = useState(null);
+
+  const selectedCell = useMemo(() => {
+    if (!selectedDateKey) return null;
+    return daysGrid.find(cell => cell.dateKey === selectedDateKey && !cell.isFiller) || null;
+  }, [daysGrid, selectedDateKey]);
 
   const handleCellClick = (cell) => {
     if (cell.isFiller || !cell.sessionsList.length) {
-      setSelectedCell(null);
+      setSelectedDateKey(null);
       return;
     }
-    setSelectedCell(cell);
+    setSelectedDateKey(cell.dateKey);
   };
 
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -175,14 +190,14 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
       </div>
 
       {/* Selected Session Details Panel */}
-      {selectedCell && (
+      {selectedCell && selectedCell.sessionsList.length > 0 && (
         <div className="border-4 border-black bg-[#151515] p-4 rounded-2xl flex flex-col gap-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] animate-fadeIn">
           <div className="flex justify-between items-center border-b-2 border-black pb-2">
             <span className="text-[10px] uppercase font-bold text-white tracking-wider">
               Logged Workouts: {selectedCell.dayNumber} {monthNames[month].substring(0, 3)}
             </span>
             <button
-              onClick={() => setSelectedCell(null)}
+              onClick={() => setSelectedDateKey(null)}
               className="text-[9px] uppercase font-bold text-[var(--primary)] hover:text-white border-2 border-black bg-black px-2 py-0.5 rounded shadow-[1.5px_1.5px_0px_black]"
             >
               Close
@@ -286,7 +301,7 @@ export const NeubrutalistCalendar = ({ sessions = [], onSelectSession = null, is
                         {!isMobile && (
                           <button
                             onClick={() => {
-                              setSelectedCell(null);
+                              setSelectedDateKey(null);
                               navigate(`/recap?sessionId=${sess.id}&source=${sess.source}`);
                             }}
                             className="flex-1 py-1.5 bg-[var(--secondary)] text-black font-body font-bold text-[10px] uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_black] active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-1.5"

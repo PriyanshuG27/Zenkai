@@ -36,10 +36,11 @@ const MobileProfile = React.lazy(() => import('./components/mobile/MobileProfile
 // Desktop Screens
 import { DesktopDashboard }  from './components/desktop/DesktopDashboard';
 
-const RoutineSandbox = React.lazy(() => import('./components/desktop/RoutineSandbox').then(m => ({ default: m.RoutineSandbox })));
 const SquadMatchmaker = React.lazy(() => import('./components/desktop/SquadMatchmaker').then(m => ({ default: m.SquadMatchmaker })));
 const DesktopLogEditor = React.lazy(() => import('./components/desktop/DesktopLogEditor').then(m => ({ default: m.DesktopLogEditor })));
 const PosterStudio = React.lazy(() => import('./components/desktop/PosterStudio').then(m => ({ default: m.PosterStudio })));
+const AuraForecaster = React.lazy(() => import('./components/desktop/AuraForecaster').then(m => ({ default: m.AuraForecaster })));
+const SundayMagazine = React.lazy(() => import('./components/desktop/SundayMagazine').then(m => ({ default: m.SundayMagazine })));
 const DesktopProfile = React.lazy(() => import('./components/desktop/DesktopProfile'));
 
 // ─── Inner router tree — reads layout from parent ────────────────────────────
@@ -57,7 +58,7 @@ function AppRoutes({ layout }) {
   const WorkoutScreen     = isMobile ? MobileLogger      : () => <Navigate to="/home" replace />;
   const CompleteScreen    = isMobile ? MobileSessionComplete : DesktopDashboard;
   const ProgressScreen    = MobileProgress;
-  const PlanScreen        = isMobile ? MobilePlan        : RoutineSandbox;
+  const PlanScreen        = isMobile ? MobilePlan        : () => <Navigate to="/home" replace />;
   const ChallengesScreen  = isMobile ? MobileChallenges  : SquadMatchmaker;
   const ProfileScreen     = isMobile ? MobileProfile     : DesktopProfile;
 
@@ -103,6 +104,8 @@ function AppRoutes({ layout }) {
             <>
               <Route path="/recap"          element={<DesktopLogEditor />} />
               <Route path="/poster"         element={<PosterStudio />} />
+              <Route path="/aura-forecaster" element={<AuraForecaster />} />
+              <Route path="/magazine"       element={<SundayMagazine />} />
             </>
           )}
         </Route>
