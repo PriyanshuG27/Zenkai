@@ -20,8 +20,14 @@ app.post('/api/verifyGymImage', require('./routes/verifyGymImage'));
 app.post('/api/generatePlan', require('./routes/generatePlan'));
 app.post('/api/generateChallenge', require('./routes/generateChallenge'));
 app.post('/api/getPRStats', require('./routes/getPRStats'));
+app.post('/api/generateSquadChallenge', require('./routes/generateSquadChallenge'));
+
+// Initialize automated weekly challenge background scheduler
+const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');
+initWeeklyChallengeScheduler();
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`FitDesi Engine operational on port ${PORT}`));
+
 
 

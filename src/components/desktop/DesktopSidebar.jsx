@@ -35,20 +35,6 @@ export const DesktopSidebar = () => {
           </span>
         </div>
 
-        {/* Start Workout Button Section */}
-        <div className="p-4 border-b border-[var(--border)]">
-          <Link
-            to="/workout"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold tracking-wide text-white bg-[var(--primary)] hover:brightness-110 active:scale-[0.98] transition-all"
-            style={{
-              boxShadow: '0 0 16px var(--primary-glow)',
-            }}
-          >
-            <Flame size={18} className="fill-white" />
-            <span>START WORKOUT</span>
-          </Link>
-        </div>
-
         {/* Navigation Links */}
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {

@@ -19,6 +19,7 @@ import {
   FastForward
 } from 'lucide-react';
 import { callFitDesiAPI } from '../../lib/apiClient';
+import { SquadMatchmaker } from '../desktop/SquadMatchmaker';
 import { useChallenges } from '../../hooks/useChallenges';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/useUIStore';
@@ -59,6 +60,7 @@ export const MobileChallenges = () => {
   const { challenges, loading, error, joinChallenge, createWager, avgWorkoutHour, leaveChallenge, useChallengeSkip } = useChallenges();
   const [joiningId, setJoiningId] = useState(null);
   const [challengeToDelete, setChallengeToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('quests'); // 'quests' or 'squads'
 
   const { setMobileTab, addToast } = useUIStore();
   const startSession = useWorkoutStore((state) => state.startSession);
@@ -312,7 +314,33 @@ export const MobileChallenges = () => {
         </div>
       ) : (
         <>
-          {/* ─── OVERDRIVE & WAGER WIDGETS ──────────────────────────────────── */}
+          {/* ─── TAB SELECTOR ────────────────────────────────────────────────── */}
+          <div className="flex border-2 border-black rounded-xl overflow-hidden shadow-[3px_3px_0px_black] z-10 shrink-0">
+            <button
+              onClick={() => setActiveTab('quests')}
+              className={`flex-1 py-2.5 text-xs font-mono font-bold uppercase transition-all tracking-wider ${
+                activeTab === 'quests'
+                  ? 'bg-[var(--primary)] text-white font-black'
+                  : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              Solo Quests & Perks
+            </button>
+            <button
+              onClick={() => setActiveTab('squads')}
+              className={`flex-1 py-2.5 text-xs font-mono font-bold uppercase transition-all tracking-wider ${
+                activeTab === 'squads'
+                  ? 'bg-[var(--primary)] text-white font-black'
+                  : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              Fantasy Squads
+            </button>
+          </div>
+
+          {activeTab === 'quests' ? (
+            <div className="flex flex-col gap-6">
+              {/* ─── OVERDRIVE & WAGER WIDGETS ──────────────────────────────────── */}
           <div className="flex flex-col gap-6">
             {/* Overdrive Hour Card */}
             <div className={`border-2 border-black rounded-lg p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] relative overflow-hidden transition-all duration-300 ${
@@ -961,7 +989,11 @@ export const MobileChallenges = () => {
               </div>
             </div>
           )}
-          {/* ─── CUSTOM CONFIRMATION DIALOG ──────────────────────────────────── */}
+          </div>
+        ) : (
+          <SquadMatchmaker />
+        )}
+        {/* ─── CUSTOM CONFIRMATION DIALOG ──────────────────────────────────── */}
           {challengeToDelete && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
               <motion.div

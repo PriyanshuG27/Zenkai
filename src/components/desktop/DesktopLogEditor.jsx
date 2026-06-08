@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Sparkles, Save, CheckCircle, Activity, Brain } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, query, orderBy, limit, getDocs, doc, writeBatch } from 'firebase/firestore';
 import { useAuthStore } from '../../stores/useAuthStore';
 
 export const DesktopLogEditor = () => {
+  const [searchParams] = useSearchParams();
+  const targetSessionId = searchParams.get('sessionId');
+
   const { uid } = useAuthStore();
   const [session, setSession] = useState(null);
   const [exercises, setExercises] = useState([]);
-  const [rpe, setRpe] = useState(7);
-  const [mmc, setMmc] = useState(7);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [recentSessions, setRecentSessions] = useState([]);
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+
   useEffect(() => {
     if (!uid) return;
-    const fetchLatestSession = async () => {
-      let latestMobile = null;
+    const fetchRecentSessions = async () => {
+      let mobileList = [];
       try {
         const sessionsRef = collection(db, 'users', uid, 'sessions');
-        const qMobile = query(sessionsRef, orderBy('date', 'desc'), limit(1));
+        const qMobile = query(sessionsRef, orderBy('date', 'desc'), limit(15));
         const snapMobile = await getDocs(qMobile);
-        if (!snapMobile.empty) {
-          const sessDoc = snapMobile.docs[0];
-          const sessData = sessDoc.data();
-          const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', sessDoc.id, 'exercises'));
-          const exercises = exSnap.docs.map(exDoc => ({ id: exDoc.id, ...exDoc.data() }));
+        for (const docSnap of snapMobile.docs) {
+          const sessData = docSnap.data();
+          const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
+          const exercisesList = exSnap.docs.map(exDoc => ({ id: exDoc.id, ...exDoc.data() }));
 
           const rawDate = sessData.date;
           let resolvedDate = new Date();
@@ -36,26 +40,25 @@ export const DesktopLogEditor = () => {
             else resolvedDate = new Date(rawDate);
           }
 
-          latestMobile = {
-            id: sessDoc.id,
+          mobileList.push({
+            id: docSnap.id,
             source: 'mobile',
             ...sessData,
             date: resolvedDate,
-            exercises
-          };
+            exercises: exercisesList
+          });
         }
       } catch (err) {
         console.error('[LogEditor] Error fetching mobile session:', err);
       }
 
-      let latestDesktop = null;
+      let desktopList = [];
       try {
         const execRef = collection(db, 'users', uid, 'executed_sessions');
-        const qDesktop = query(execRef, orderBy('date', 'desc'), limit(1));
+        const qDesktop = query(execRef, orderBy('date', 'desc'), limit(15));
         const snapDesktop = await getDocs(qDesktop);
-        if (!snapDesktop.empty) {
-          const sessDoc = snapDesktop.docs[0];
-          const sessData = sessDoc.data();
+        for (const docSnap of snapDesktop.docs) {
+          const sessData = docSnap.data();
 
           const rawDate = sessData.date;
           let resolvedDate = new Date();
@@ -65,35 +68,64 @@ export const DesktopLogEditor = () => {
             else resolvedDate = new Date(rawDate);
           }
 
-          latestDesktop = {
-            id: sessDoc.id,
+          desktopList.push({
+            id: docSnap.id,
             source: 'desktop',
             ...sessData,
             date: resolvedDate,
             exercises: sessData.exercises || []
-          };
+          });
         }
       } catch (err) {
         console.error('[LogEditor] Error fetching desktop session:', err);
       }
 
-      let latest = null;
-      if (latestMobile && latestDesktop) {
-        latest = latestMobile.date > latestDesktop.date ? latestMobile : latestDesktop;
-      } else {
-        latest = latestMobile || latestDesktop;
+      const merged = [...mobileList, ...desktopList].sort((a, b) => b.date - a.date);
+      setRecentSessions(merged);
+
+      let activeSess = null;
+      if (targetSessionId) {
+        activeSess = merged.find(s => s.id === targetSessionId);
+      }
+      if (!activeSess && merged.length > 0) {
+        activeSess = merged[0];
       }
 
-      if (latest) {
-        setSession(latest);
-        setExercises(latest.exercises || []);
-        setRpe(latest.rpeScore || 7);
-        setMmc(latest.mmcScore || 7);
-        setNotes(latest.notes || '');
+      if (activeSess) {
+        setSelectedSessionId(activeSess.id);
+        setSession(activeSess);
+        const resolvedExercises = (activeSess.exercises || []).map(ex => ({
+          ...ex,
+          sets: (ex.sets || []).map(set => ({
+            ...set,
+            rpe: set.rpe !== undefined ? set.rpe : (activeSess.rpeScore || 7),
+            mmc: set.mmc !== undefined ? set.mmc : (activeSess.mmcScore || 7),
+          }))
+        }));
+        setExercises(resolvedExercises);
+        setNotes(activeSess.notes || '');
       }
     };
-    fetchLatestSession();
-  }, [uid]);
+    fetchRecentSessions();
+  }, [uid, targetSessionId]);
+
+  const handleSessionChange = (sessionId) => {
+    const selected = recentSessions.find(s => s.id === sessionId);
+    if (selected) {
+      setSelectedSessionId(sessionId);
+      setSession(selected);
+      const resolvedExercises = (selected.exercises || []).map(ex => ({
+        ...ex,
+        sets: (ex.sets || []).map(set => ({
+          ...set,
+          rpe: set.rpe !== undefined ? set.rpe : (selected.rpeScore || 7),
+          mmc: set.mmc !== undefined ? set.mmc : (selected.mmcScore || 7),
+        }))
+      }));
+      setExercises(resolvedExercises);
+      setNotes(selected.notes || '');
+    }
+  };
 
   const handleUpdateExerciseLog = (exIndex, setIndex, field, value) => {
     const updated = [...exercises];
@@ -107,6 +139,26 @@ export const DesktopLogEditor = () => {
     setExercises(updated);
   };
 
+  const getAverageScores = () => {
+    let totalRpe = 0;
+    let totalMmc = 0;
+    let setCount = 0;
+
+    exercises.forEach((ex) => {
+      ex.sets?.forEach((set) => {
+        totalRpe += set.rpe !== undefined ? parseInt(set.rpe) : 7;
+        totalMmc += set.mmc !== undefined ? parseInt(set.mmc) : 7;
+        setCount++;
+      });
+    });
+
+    if (setCount === 0) return { avgRpe: 7, avgMmc: 7 };
+    return {
+      avgRpe: Math.round(totalRpe / setCount),
+      avgMmc: Math.round(totalMmc / setCount)
+    };
+  };
+
   const handleSaveLogs = async () => {
     if (!uid || !session) return;
     setSaving(true);
@@ -115,11 +167,13 @@ export const DesktopLogEditor = () => {
     try {
       const batch = writeBatch(db);
 
+      const { avgRpe, avgMmc } = getAverageScores();
+
       if (session.source === 'mobile') {
         const sessRef = doc(db, 'users', uid, 'sessions', session.id);
         batch.set(sessRef, {
-          rpeScore: rpe,
-          mmcScore: mmc,
+          rpeScore: avgRpe,
+          mmcScore: avgMmc,
           notes,
           editedAt: new Date()
         }, { merge: true });
@@ -138,8 +192,8 @@ export const DesktopLogEditor = () => {
         const sessRef = doc(db, 'users', uid, 'executed_sessions', session.id);
         batch.set(sessRef, {
           exercises,
-          rpeScore: rpe,
-          mmcScore: mmc,
+          rpeScore: avgRpe,
+          mmcScore: avgMmc,
           notes,
           editedAt: new Date()
         }, { merge: true });
@@ -187,46 +241,58 @@ export const DesktopLogEditor = () => {
         </button>
       </div>
 
-      {/* Sliders */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* RPE Slider */}
-        <div className="border border-[var(--border)] bg-[var(--bg-elevated)] p-4 rounded-xl flex flex-col gap-2 shadow-[2px_2px_0px_black]">
-          <div className="flex justify-between items-center font-mono text-xs uppercase font-bold">
-            <span className="text-[var(--text-secondary)]">Exertion Index (RPE)</span>
-            <span className="text-[var(--primary)] text-sm">{rpe}/10</span>
+      {/* Session Selector */}
+      {recentSessions.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b-2 border-black pb-4">
+          <div className="flex flex-col text-left font-mono">
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold">Select Session to Edit</span>
+            <span className="text-[9px] text-[var(--text-muted)] mt-0.5 font-sans">Choose from your last 30 workouts</span>
           </div>
-          <input
-            type="range"
-            min="1"
-            max="10"
-            value={rpe}
-            onChange={(e) => setRpe(parseInt(e.target.value))}
-            className="w-full accent-[var(--primary)]"
-          />
-          <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-sans mt-1">
-            RPE measures structural exhaustion. 10 is failure, 7 is 3 reps left.
-          </p>
+          <select
+            value={selectedSessionId}
+            onChange={(e) => handleSessionChange(e.target.value)}
+            className="w-full sm:w-72 bg-black border-2 border-black text-white px-3 py-2 rounded-lg focus:outline-none focus:border-[var(--primary)] font-mono text-xs shadow-[3px_3px_0px_black] cursor-pointer"
+          >
+            {recentSessions.map((sess) => (
+              <option key={sess.id} value={sess.id}>
+                {sess.date.toLocaleDateString('en-IN', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })} - {sess.source === 'desktop' ? '🖥️ Desktop' : '📱 Mobile'}
+              </option>
+            ))}
+          </select>
         </div>
+      )}
 
-        {/* MMC Slider */}
-        <div className="border border-[var(--border)] bg-[var(--bg-elevated)] p-4 rounded-xl flex flex-col gap-2 shadow-[2px_2px_0px_black]">
-          <div className="flex justify-between items-center font-mono text-xs uppercase font-bold">
-            <span className="text-[var(--text-secondary)]">Mind-Muscle Connection</span>
-            <span className="text-[var(--secondary)] text-sm">{mmc}/10</span>
+      {/* Session Average Telemetry Summary */}
+      {(() => {
+        const { avgRpe, avgMmc } = getAverageScores();
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-2 border-black bg-[var(--bg-elevated)] p-4 rounded-xl flex justify-between items-center shadow-[3px_3px_0px_black]">
+              <div className="flex flex-col text-left font-mono">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold">Average Exertion (RPE)</span>
+                <span className="text-[9px] text-[var(--text-muted)] font-sans mt-0.5">Overall intensity across all logged sets</span>
+              </div>
+              <span className="text-xl font-display font-black text-[var(--primary)] bg-black px-3 py-1 border-2 border-black rounded shadow-[1.5px_1.5px_0px_black]">
+                {avgRpe}/10
+              </span>
+            </div>
+            <div className="border-2 border-black bg-[var(--bg-elevated)] p-4 rounded-xl flex justify-between items-center shadow-[3px_3px_0px_black]">
+              <div className="flex flex-col text-left font-mono">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold">Average Connection (MMC)</span>
+                <span className="text-[9px] text-[var(--text-muted)] font-sans mt-0.5">Overall cognitive activation across sets</span>
+              </div>
+              <span className="text-xl font-display font-black text-[var(--secondary)] bg-black px-3 py-1 border-2 border-black rounded shadow-[1.5px_1.5px_0px_black]">
+                {avgMmc}/10
+              </span>
+            </div>
           </div>
-          <input
-            type="range"
-            min="1"
-            max="10"
-            value={mmc}
-            onChange={(e) => setMmc(parseInt(e.target.value))}
-            className="w-full accent-[var(--secondary)]"
-          />
-          <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-sans mt-1">
-            MMC measures cognitive motor recruiting. Higher value signals optimal form.
-          </p>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Log Details */}
       <div className="flex flex-col gap-4">
@@ -248,25 +314,57 @@ export const DesktopLogEditor = () => {
               </div>
 
               {/* Set Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex flex-col gap-2">
                 {ex.sets?.map((set, setIndex) => (
-                  <div key={setIndex} className="border border-black bg-black/40 p-2 rounded-lg flex items-center justify-between text-xs font-mono">
-                    <span className="text-[var(--text-secondary)]">Set {setIndex + 1}</span>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        value={set.weight}
-                        onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'weight', e.target.value)}
-                        className="w-12 bg-black border border-[#333] text-center text-white py-0.5 rounded focus:outline-none focus:border-[var(--primary)]"
-                      />
-                      <span className="text-[#555]">kg</span>
-                      <input
-                        type="number"
-                        value={set.reps}
-                        onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'reps', e.target.value)}
-                        className="w-10 bg-black border border-[#333] text-center text-white py-0.5 rounded focus:outline-none focus:border-[var(--primary)]"
-                      />
-                      <span className="text-[#555]">reps</span>
+                  <div key={setIndex} className="border border-black bg-black/40 p-3 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                    <span className="text-white font-bold">Set {setIndex + 1}</span>
+                    
+                    <div className="flex flex-wrap items-center gap-4">
+                      {/* Weight and Reps */}
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          value={set.weight}
+                          onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'weight', e.target.value)}
+                          className="w-14 bg-black border border-[#333] text-center text-white py-1 rounded focus:outline-none focus:border-[var(--primary)]"
+                        />
+                        <span className="text-[var(--text-secondary)]">kg</span>
+                        <input
+                          type="number"
+                          value={set.reps}
+                          onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'reps', e.target.value)}
+                          className="w-12 bg-black border border-[#333] text-center text-white py-1 rounded focus:outline-none focus:border-[var(--primary)]"
+                        />
+                        <span className="text-[var(--text-secondary)]">reps</span>
+                      </div>
+
+                      {/* RPE Selector */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[var(--text-secondary)] font-semibold">RPE:</span>
+                        <select
+                          value={set.rpe ?? 7}
+                          onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'rpe', e.target.value)}
+                          className="bg-black border border-[#333] text-white px-2 py-1 rounded focus:outline-none focus:border-[var(--primary)] font-bold text-xs"
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                            <option key={val} value={val}>{val}/10</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* MMC Selector */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[var(--text-secondary)] font-semibold">MMC:</span>
+                        <select
+                          value={set.mmc ?? 7}
+                          onChange={(e) => handleUpdateExerciseLog(exIndex, setIndex, 'mmc', e.target.value)}
+                          className="bg-black border border-[#333] text-white px-2 py-1 rounded focus:outline-none focus:border-[var(--primary)] font-bold text-xs"
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                            <option key={val} value={val}>{val}/10</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 ))}

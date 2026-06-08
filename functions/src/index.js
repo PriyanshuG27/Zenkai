@@ -9,9 +9,11 @@ initializeApp();
 const { generatePlan } = require('./generatePlan');
 const { generateChallenge } = require('./generateChallenge');
 const { verifyGymImage } = require('./verifyGymImage');
+const { generateSquadChallenge } = require('./generateSquadChallenge');
 
 // Export under both names for frontend compatibility (if any frontend still uses generateWeeklyPlan)
 exports.generatePlan = generatePlan;
 exports.generateWeeklyPlan = generatePlan;
 exports.generateChallenge = generateChallenge;
 exports.verifyGymImage = verifyGymImage;
+exports.generateSquadChallenge = generateSquadChallenge;

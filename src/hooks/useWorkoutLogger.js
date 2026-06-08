@@ -43,6 +43,8 @@ import {
   writeBatch,
   serverTimestamp,
   setDoc,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useWorkoutStore } from '../stores/useWorkoutStore';
@@ -105,13 +107,28 @@ export function useWorkoutLogger() {
       throw new Error('[useWorkoutLogger] No active session found.');
     }
 
-    // ── c. Fetch user profile + existing PRs ──────────────────────────────────
+    // ── c. Fetch user profile + PRs + weekly sessions + joined squads ────────
     const userRef   = doc(db, 'users', uid);
     const prsColRef = collection(db, 'users', uid, 'prs');
 
-    const [userSnap, prsSnap] = await Promise.all([
+    const today = new Date();
+    const currentDay = today.getDay();
+    const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - daysToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const sessionsRef = collection(db, 'users', uid, 'sessions');
+    const weeklySessionsQuery = query(sessionsRef, where('date', '>=', startOfWeek));
+
+    const squadsColRef = collection(db, 'shared_squads');
+    const squadsQuery = query(squadsColRef, where('memberUids', 'array-contains', uid));
+
+    const [userSnap, prsSnap, weeklySessionsSnap, squadsSnap] = await Promise.all([
       getDoc(userRef),
       getDocs(prsColRef),
+      getDocs(weeklySessionsQuery),
+      getDocs(squadsQuery),
     ]);
 
     if (!userSnap.exists()) {
@@ -322,6 +339,59 @@ export function useWorkoutLogger() {
       ...activeRestTimes
     };
 
+    let weeklyVolume = 0;
+    weeklySessionsSnap.forEach((docSnap) => {
+      weeklyVolume += docSnap.data().totalVolume || 0;
+    });
+    weeklyVolume += totalVolume;
+
+    // ── Evaluate active squad synergy challenges ────────────────────────────
+    const squadChallengeUpdates = [];
+    squadsSnap.docs.forEach((squadDoc) => {
+      const squadData = squadDoc.data();
+      const activeChall = squadData.activeChallenge;
+      
+      if (activeChall && activeChall.status === 'active' && Date.now() <= activeChall.endDate) {
+        let matchingSets = 0;
+        exerciseDocs.forEach((ex) => {
+          const exGroup = (ex.muscleGroup || '').toLowerCase();
+          const challGroup = (activeChall.muscleGroup || '').toLowerCase();
+          let mappedExGroup = exGroup;
+          if (exGroup === 'legs' || exGroup === 'quads' || exGroup === 'hamstrings' || exGroup === 'calves' || exGroup === 'glutes') {
+            mappedExGroup = 'legs';
+          }
+          if (mappedExGroup === challGroup) {
+            matchingSets += ex.sets?.length || 0;
+          }
+        });
+        
+        if (matchingSets > 0) {
+          const progressMap = { ...(activeChall.progress || {}) };
+          progressMap[uid] = (progressMap[uid] || 0) + matchingSets;
+          
+          let totalCompletedSets = 0;
+          Object.keys(progressMap).forEach((memberUid) => {
+            totalCompletedSets += progressMap[memberUid] || 0;
+          });
+          
+          let status = activeChall.status || 'active';
+          if (totalCompletedSets >= activeChall.targetSets) {
+            status = 'completed';
+          }
+          
+          squadChallengeUpdates.push({
+            squadCode: squadDoc.id,
+            activeChallenge: {
+              ...activeChall,
+              progress: progressMap,
+              totalCompletedSets,
+              status
+            }
+          });
+        }
+      }
+    });
+
     return {
       uid,
       userRef,
@@ -338,6 +408,10 @@ export function useWorkoutLogger() {
       latestLiftsMap,
       latestRestTimesMap,
       skills: userData.skills || {},
+      squadCode: userData.squadCode || null,
+      userName: userData.name || 'Anonymous Bro',
+      weeklyVolume,
+      squadChallengeUpdates,
       summary: {
         sessionId,
         totalVolume,
@@ -372,6 +446,7 @@ export function useWorkoutLogger() {
       uid, userRef, sessionId, sessionDoc, exerciseDocs,
       newPRs, xpEarned, newXP, newDerived, newStreak,
       powerUps, latestLiftsMap, latestRestTimesMap,
+      squadCode, userName, weeklyVolume, squadChallengeUpdates
     } = payload;
 
     const batch = writeBatch(db);
@@ -423,6 +498,29 @@ export function useWorkoutLogger() {
       userUpdates.powerUps = powerUps;
     }
     batch.update(userRef, userUpdates);
+
+    // Op 6 — Update public squad_codes if user has a squadCode
+    if (squadCode) {
+      const codeRef = doc(db, 'squad_codes', squadCode);
+      batch.set(codeRef, {
+        uid,
+        name: userName,
+        xp: newXP,
+        level: newDerived.level,
+        streak: newStreak,
+        volume: weeklyVolume,
+        squadCode: squadCode,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+
+    // Op 7 — Update squad challenges if any matching sets were performed
+    if (squadChallengeUpdates && squadChallengeUpdates.length > 0) {
+      squadChallengeUpdates.forEach((upd) => {
+        const squadRef = doc(db, 'shared_squads', upd.squadCode);
+        batch.set(squadRef, { activeChallenge: upd.activeChallenge }, { merge: true });
+      });
+    }
 
     await batch.commit();
   }, []);

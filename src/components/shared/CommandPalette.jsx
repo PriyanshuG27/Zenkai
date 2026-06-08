@@ -3,11 +3,12 @@ import { Terminal, X, CornerDownLeft } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, addDoc, updateDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { useAuthStore } from '../../stores/useAuthStore';
+import exerciseData from '../../data/exercises.json';
 
 export const CommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [command, setCommand] = useState('');
-  const [status, setStatus] = useState({ type: 'info', text: 'Enter shorthand command (e.g. > log bench 80 3x5)' });
+  const [status, setStatus] = useState({ type: 'info', text: 'Enter shorthand command (e.g. log bench 80 3x5)' });
   const { uid } = useAuthStore();
   const inputRef = useRef(null);
 
@@ -29,7 +30,7 @@ export const CommandPalette = () => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
       setCommand('');
-      setStatus({ type: 'info', text: 'Enter shorthand command (e.g. > log bench 80 3x5)' });
+      setStatus({ type: 'info', text: 'Enter shorthand command (e.g. log bench 80 3x5)' });
     }
   }, [isOpen]);
 
@@ -37,9 +38,9 @@ export const CommandPalette = () => {
     e.preventDefault();
     if (!command.trim() || !uid) return;
 
-    const logRegex = /^>\s*log\s+([a-zA-Z\s]+)\s+(\d+(?:\.\d+)?)\s*k?g?\s+(\d+)\s*[x*]\s*(\d+)/i;
-    const planRegex = /^>\s*plan\s+([a-zA-Z\s]+)\s+tomorrow/i;
-    const painRegex = /^>\s*pain\s+([a-zA-Z\s]+)\s+(\d+)/i;
+    const logRegex = /^>?\s*log\s+([a-zA-Z\s]+)\s+(\d+(?:\.\d+)?)\s*k?g?\s+(\d+)\s*[x*]\s*(\d+)/i;
+    const planRegex = /^>?\s*plan\s+([a-zA-Z\s]+)\s+tomorrow/i;
+    const painRegex = /^>?\s*pain\s+([a-zA-Z\s]+)\s+(\d+)/i;
 
     setStatus({ type: 'info', text: 'Executing telemetry instruction...' });
 
@@ -47,6 +48,20 @@ export const CommandPalette = () => {
       if (logRegex.test(command)) {
         const [, exercise, weight, sets, reps] = command.match(logRegex);
         
+        const enteredName = exercise.trim().toLowerCase();
+        const foundExercise = exerciseData.find(ex => 
+          ex.name.toLowerCase() === enteredName || 
+          (ex.aliases && ex.aliases.some(alias => alias.toLowerCase() === enteredName))
+        );
+
+        const resolvedName = foundExercise ? foundExercise.name : exercise.trim();
+        const resolvedMuscle = foundExercise ? foundExercise.muscleGroup : 'other';
+
+        const totalSets = parseInt(sets);
+        const totalReps = parseInt(reps);
+        const parseFloatWeight = parseFloat(weight);
+        const volume = totalSets * totalReps * parseFloatWeight;
+
         // Push offline append logs into executed_sessions
         const sessionRef = collection(db, 'users', uid, 'executed_sessions');
         await addDoc(sessionRef, {
@@ -55,17 +70,21 @@ export const CommandPalette = () => {
           moodTag: 'average',
           rpeScore: 7,
           mmcScore: 7,
+          totalVolume: volume,
           exercises: [{
-            name: exercise.trim(),
-            sets: Array.from({ length: parseInt(sets) }, () => ({
-              reps: parseInt(reps),
-              weight: parseFloat(weight),
+            name: resolvedName,
+            muscleGroup: resolvedMuscle,
+            sets: Array.from({ length: totalSets }, () => ({
+              reps: totalReps,
+              weight: parseFloatWeight,
+              rpe: 7,
+              mmc: 7,
               done: true
             }))
           }]
         });
 
-        setStatus({ type: 'success', text: `Successfully appended log: ${exercise.trim()} ${weight}kg ${sets}x${reps}` });
+        setStatus({ type: 'success', text: `Successfully appended log: ${resolvedName} ${weight}kg ${sets}x${reps}` });
         setTimeout(() => setIsOpen(false), 1200);
       } else if (planRegex.test(command)) {
         const [, focus] = command.match(planRegex);
@@ -143,7 +162,7 @@ export const CommandPalette = () => {
               type="text"
               value={command}
               onChange={(e) => setCommand(e.target.value)}
-              placeholder="e.g. > log Bench Press 80 3x5"
+              placeholder="e.g. log Bench Press 80 3x5"
               className="w-full border-2 border-black bg-black px-4 py-3.5 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-[var(--primary)] placeholder-[#444]"
             />
             <div className="absolute right-3 top-3.5 flex items-center gap-1 font-mono text-[9px] text-[#444] border border-[#222] bg-[#111] px-1.5 py-0.5 rounded">
@@ -167,15 +186,15 @@ export const CommandPalette = () => {
             </span>
             <ul className="flex flex-col gap-2 font-mono text-[11px] text-[var(--text-secondary)] mt-1.5">
               <li className="flex justify-between">
-                <span><code>&gt; log [exercise] [weight] [sets]x[reps]</code></span>
+                <span><code>log [exercise] [weight] [sets]x[reps]</code></span>
                 <span className="text-white">Appends executed logs</span>
               </li>
               <li className="flex justify-between">
-                <span><code>&gt; plan [focus] tomorrow</code></span>
+                <span><code>plan [focus] tomorrow</code></span>
                 <span className="text-white">Schedules tomorrow's target</span>
               </li>
               <li className="flex justify-between">
-                <span><code>&gt; pain [muscle] [1-10]</code></span>
+                <span><code>pain [muscle] [1-10]</code></span>
                 <span className="text-white">Logs joint pain warning</span>
               </li>
             </ul>

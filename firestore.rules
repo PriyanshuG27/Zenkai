@@ -195,6 +195,13 @@ service cloud.firestore {
     // ─── shared_squads/{squadCode} ───────────────────────────────────────────
     match /shared_squads/{squadCode} {
       allow read, write: if isAuth();
+
+      match /presence/{uid} {
+        allow read, write: if isAuth();
+      }
+      match /polls/{pollId} {
+        allow read, write: if isAuth();
+      }
     }
 
     // ─── challenges/{challengeId} — Phase 5 ──────────────────────────────────

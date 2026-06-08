@@ -35,7 +35,6 @@ const MobileProfile = React.lazy(() => import('./components/mobile/MobileProfile
 
 // Desktop Screens
 import { DesktopDashboard }  from './components/desktop/DesktopDashboard';
-import { DesktopLoggerPanel } from './components/desktop/DesktopLoggerPanel';
 
 const RoutineSandbox = React.lazy(() => import('./components/desktop/RoutineSandbox').then(m => ({ default: m.RoutineSandbox })));
 const SquadMatchmaker = React.lazy(() => import('./components/desktop/SquadMatchmaker').then(m => ({ default: m.SquadMatchmaker })));
@@ -55,7 +54,7 @@ function AppRoutes({ layout }) {
   // Onboarding component picks based on layout
   const OnboardingScreen  = OnboardingPage;
   const HomeScreen        = isMobile ? MobileHome        : DesktopDashboard;
-  const WorkoutScreen     = isMobile ? MobileLogger      : DesktopLoggerPanel;
+  const WorkoutScreen     = isMobile ? MobileLogger      : () => <Navigate to="/home" replace />;
   const CompleteScreen    = isMobile ? MobileSessionComplete : DesktopDashboard;
   const ProgressScreen    = MobileProgress;
   const PlanScreen        = isMobile ? MobilePlan        : RoutineSandbox;
