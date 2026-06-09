@@ -4734,5 +4734,121 @@
     "aliases": [
       "kneeling hip stretch"
     ]
+  },
+  {
+    "key": "bayesian_curl",
+    "name": "Bayesian Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": [
+      "cables"
+    ],
+    "medicallyRestricted": [],
+    "aliases": [
+      "bayesian curls",
+      "cable bayesian curl",
+      "behind the back cable curl"
+    ]
+  },
+  {
+    "key": "lu_raise",
+    "name": "Lu Raise",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": [
+      "dumbbells"
+    ],
+    "medicallyRestricted": [
+      "shoulder_impingement"
+    ],
+    "aliases": [
+      "lu raises",
+      "overhead lateral raise"
+    ]
+  },
+  {
+    "key": "reverse_cable_fly",
+    "name": "Reverse Cable Fly",
+    "muscleGroup": "shoulders",
+    "equipmentRequired": [
+      "cables"
+    ],
+    "medicallyRestricted": [],
+    "aliases": [
+      "cable rear delt fly",
+      "crossover reverse fly",
+      "reverse cable flyes"
+    ]
+  },
+  {
+    "key": "sissy_squat",
+    "name": "Sissy Squat",
+    "muscleGroup": "legs",
+    "equipmentRequired": [],
+    "medicallyRestricted": [
+      "bad_knees"
+    ],
+    "aliases": [
+      "bodyweight sissy squat",
+      "sissy squats"
+    ]
+  },
+  {
+    "key": "dumbbell_spider_curl",
+    "name": "Dumbbell Spider Curl",
+    "muscleGroup": "arms",
+    "equipmentRequired": [
+      "dumbbells",
+      "bench"
+    ],
+    "medicallyRestricted": [],
+    "aliases": [
+      "db spider curl",
+      "spider curl db",
+      "dumbbell spider curls"
+    ]
+  },
+  {
+    "key": "cable_skull_crushers",
+    "name": "Cable Skull Crushers",
+    "muscleGroup": "arms",
+    "equipmentRequired": [
+      "cables",
+      "bench"
+    ],
+    "medicallyRestricted": [],
+    "aliases": [
+      "cable lying tricep extension",
+      "cable skullcrusher",
+      "cable skull crushers"
+    ]
+  },
+  {
+    "key": "dumbbell_calf_raises",
+    "name": "Dumbbell Calf Raises",
+    "muscleGroup": "legs",
+    "equipmentRequired": [
+      "dumbbells"
+    ],
+    "medicallyRestricted": [],
+    "aliases": [
+      "db calf raise",
+      "dumbbell calf raise",
+      "db calf raises"
+    ]
+  },
+  {
+    "key": "machine_t_bar_row",
+    "name": "Machine T-Bar Row",
+    "muscleGroup": "back",
+    "equipmentRequired": [
+      "barbell"
+    ],
+    "medicallyRestricted": [
+      "lower_back"
+    ],
+    "aliases": [
+      "chest supported t bar row",
+      "t bar row machine",
+      "machine tbar row"
+    ]
   }
 ]
