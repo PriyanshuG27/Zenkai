@@ -208,7 +208,7 @@ JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Re
           setTimeout(() => {
             abortController.abort();
             reject(new Error('deadline-exceeded'));
-          }, 30000); // 30 second timeout for Gemini Flash
+          }, 90000); // 90 second timeout for Gemini Flash
         });
 
         const geminiPromise = model.generateContent({
@@ -239,7 +239,7 @@ JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Re
           setTimeout(() => {
             abortController.abort();
             reject(new Error('deadline-exceeded'));
-          }, 25000); // 25 second timeout for Groq
+          }, 50000); // 50 second timeout for Groq
         });
 
         const groqPromise = (async () => {
@@ -252,7 +252,8 @@ JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Re
             body: JSON.stringify({
               model: 'llama-3.3-70b-versatile',
               messages: [{ role: 'user', content: prompt }],
-              temperature: 0.2
+              temperature: 0.2,
+              response_format: { type: 'json_object' }
             }),
             signal: abortController.signal
           });
