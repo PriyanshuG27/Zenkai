@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { callZenkaiAPI, executeColdStartPing } from '../lib/apiClient';
+import { callZenkaiAPI } from '../lib/apiClient';
 import { auth } from '../lib/firebase';
 
 vi.mock('../lib/firebase', () => ({
@@ -114,29 +114,5 @@ describe('apiClient', () => {
     });
   });
 
-  describe('executeColdStartPing', () => {
-    it('logs confirmation on success', async () => {
-      fetchSpy.mockResolvedValueOnce({
-        json: async () => ({ status: 'ok' })
-      });
 
-      executeColdStartPing();
-
-      // Wait for promises to resolve
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/ping'));
-      expect(consoleLogSpy).toHaveBeenCalledWith('Render node confirmed awake.');
-    });
-
-    it('warns on failure', async () => {
-      fetchSpy.mockRejectedValueOnce(new Error('Connection failed'));
-
-      executeColdStartPing();
-
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Render engine instance cold start wake-up chain initiated.');
-    });
-  });
 });

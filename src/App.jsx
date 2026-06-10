@@ -4,7 +4,7 @@ import { useAuthStore } from './stores/authStore';
 import { useXPStore } from './stores/useXPStore';
 import { useDeviceLayout } from './hooks/useDeviceLayout';
 import { useUIStore } from './stores/useUIStore';
-import { executeColdStartPing } from './lib/apiClient';
+
 
 // ─── Global Error Boundary ────────────────────────────────────────────────────
 // Catches any unhandled React render error and shows a recovery screen
@@ -209,10 +209,7 @@ function App() {
     };
   }, [setPwaDeferredPrompt, setIsStandalone, setIsIOS]);
 
-  // Proactively ping Render server to wake it from cold start on mount
-  useEffect(() => {
-    executeColdStartPing();
-  }, []);
+
 
   // Single onAuthStateChanged — source of truth for session persistence.
   // Firebase IndexedDB keeps the session across refreshes (no logout on F5).

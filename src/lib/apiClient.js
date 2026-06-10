@@ -55,13 +55,4 @@ export const callZenkaiAPI = async (endpointName, payload = {}, timeoutMs = 3000
   }
 };
 
-/**
- * Quietly pings the health gateway of your Render host on application mount.
- * Triggers instance wake-up phases before the user initiates explicit actions.
- */
-export const executeColdStartPing = () => {
-  fetch(`${API_BASE_URL}/ping`)
-    .then(res => res.json())
-    .then(() => console.log("Render node confirmed awake."))
-    .catch(() => console.warn("Render engine instance cold start wake-up chain initiated."));
-};
+
