@@ -61,6 +61,7 @@ const MEDICAL_CATEGORIES = [
 
 export const MobileProfile = () => {
   const { profile } = useAuthStore();
+  const uid = auth.currentUser?.uid;
   const { totalXP, level, levelName, streak } = useXPStore();
   const { isStandalone, openModal, addToast } = useUIStore();
 
