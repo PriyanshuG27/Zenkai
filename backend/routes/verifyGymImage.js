@@ -69,6 +69,11 @@ module.exports = [authGuard, async (req, res) => {
           verified = true;
         }
         modelUsed = VISION.PRIMARY;
+        if (verified) {
+          await adminDb.doc(`users/${uid}`).update({
+            overdriveVerifiedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+        }
         return res.status(200).json({ success: true, verified, modelUsed });
       } catch (err) {
         console.error(`[verifyGymImage] Gemini (${VISION.PRIMARY}) failed, falling back:`, err.message);
@@ -120,6 +125,11 @@ module.exports = [authGuard, async (req, res) => {
             verified = true;
           }
           modelUsed = VISION.FALLBACK;
+          if (verified) {
+            await adminDb.doc(`users/${uid}`).update({
+              overdriveVerifiedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+          }
           return res.status(200).json({ success: true, verified, modelUsed });
         } else {
           const errText = await response.text();
@@ -133,11 +143,15 @@ module.exports = [authGuard, async (req, res) => {
       errors.push({ model: VISION.FALLBACK, error: 'GROQ_API_KEY missing' });
     }
 
-    // If all models failed
+    // If all models failed, rollback the attempt count
+    const { rollbackGymCheckinRateLimit } = require('../middleware/rateLimiter');
+    await rollbackGymCheckinRateLimit(adminDb, uid).catch(() => {});
     return res.status(500).json({ error: `Failed to analyze the image. All models failed: ${JSON.stringify(errors)}` });
 
   } catch (error) {
     console.error('[verifyGymImage] Error:', error.message);
+    const { rollbackGymCheckinRateLimit } = require('../middleware/rateLimiter');
+    await rollbackGymCheckinRateLimit(adminDb, uid).catch(() => {});
     return res.status(500).json({ error: error.message || 'Failed to analyze the image.' });
   }
 }];

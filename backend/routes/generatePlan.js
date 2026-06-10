@@ -286,6 +286,9 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     }
 
     if (!rawText) {
+      const { rollbackRateLimit } = require('../middleware/rateLimiter');
+      await rollbackRateLimit(adminDb, uid, req.body?.usePowerUp === true).catch(() => {});
+
       const isTimeout = errors.some(e => e.error === 'deadline-exceeded');
       if (isTimeout) {
         return res.status(504).json({ error: 'Plan generation timed out. Please try again.' });
@@ -314,6 +317,9 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     console.error('[generatePlan] error:', error.message);
     const status = error.status || 500;
     
+    const { rollbackRateLimit } = require('../middleware/rateLimiter');
+    await rollbackRateLimit(adminDb, uid, req.body?.usePowerUp === true).catch(() => {});
+
     if (error.message === 'plan_parse_failed') {
       return res.status(status).json({ error: 'Plan generation failed. Please try again.' });
     }

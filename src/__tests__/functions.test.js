@@ -21,7 +21,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { validateUID, validatePlanRequest, validatePlan, HttpsError } = await import(
   '../../backend/lib/validators.js'
 );
-const { checkRateLimit, checkGymCheckinRateLimit } = await import('../../backend/middleware/rateLimiter.js');
+const { checkRateLimit, checkGymCheckinRateLimit, rollbackRateLimit, rollbackGymCheckinRateLimit } = await import('../../backend/middleware/rateLimiter.js');
 
 // ═════════════════════════════════════════════
 // validateUID
@@ -368,5 +368,58 @@ describe('checkGymCheckinRateLimit', () => {
     await expect(checkGymCheckinRateLimit(db, 'uid-005')).resolves.not.toThrow();
     // The 4 old entries should be filtered out, leaving the 6-min-ago entry + the new one = 2 entries
     expect(db._updated.value.recentGymVerifyTimes.length).toBe(2);
+  });
+});
+
+// ═════════════════════════════════════════════
+// rollbackRateLimit and rollbackGymCheckinRateLimit
+// ═════════════════════════════════════════════
+
+describe('rate limit rollbacks', () => {
+  function makeDb({ exists = true, planRefresh = 0, dailyRegenCount = 0, recentRegenTimes = [], recentGymVerifyTimes = [] } = {}) {
+    const snap = {
+      exists,
+      data: () => (exists ? {
+        powerUps: { planRefresh },
+        dailyRegenCount,
+        recentRegenTimes,
+        recentGymVerifyTimes
+      } : undefined),
+    };
+    const updated = { value: null };
+    const tx = {
+      get: vi.fn().mockResolvedValue(snap),
+      update: vi.fn((ref, data) => { updated.value = data; }),
+    };
+    const db = {
+      doc: vi.fn(() => 'mock-ref'),
+      runTransaction: vi.fn(async (fn) => { await fn(tx); }),
+      _updated: updated,
+      _tx: tx,
+    };
+    return db;
+  }
+
+  it('rollbackRateLimit refunds free daily generation and removes last timestamp', async () => {
+    const now = Date.now();
+    const db = makeDb({ dailyRegenCount: 3, recentRegenTimes: [now - 1000, now] });
+    await expect(rollbackRateLimit(db, 'uid-100', false)).resolves.not.toThrow();
+    expect(db._updated.value.dailyRegenCount).toBe(2);
+    expect(db._updated.value.recentRegenTimes.length).toBe(1);
+  });
+
+  it('rollbackRateLimit refunds power-up generation and removes last timestamp', async () => {
+    const now = Date.now();
+    const db = makeDb({ planRefresh: 1, recentRegenTimes: [now - 1000, now] });
+    await expect(rollbackRateLimit(db, 'uid-101', true)).resolves.not.toThrow();
+    expect(db._updated.value['powerUps.planRefresh']).toBe(2);
+    expect(db._updated.value.recentRegenTimes.length).toBe(1);
+  });
+
+  it('rollbackGymCheckinRateLimit removes last check-in timestamp', async () => {
+    const now = Date.now();
+    const db = makeDb({ recentGymVerifyTimes: [now - 1000, now] });
+    await expect(rollbackGymCheckinRateLimit(db, 'uid-102')).resolves.not.toThrow();
+    expect(db._updated.value.recentGymVerifyTimes.length).toBe(1);
   });
 });

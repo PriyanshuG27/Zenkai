@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -105,10 +105,57 @@ export const MobileChallenges = () => {
   const [wagerLoading, setWagerLoading] = useState(false);
 
   // Overdrive Camera Verification State
-  const [cameraVerified, setCameraVerified] = useState(false);
+  const [localVerified, setLocalVerified] = useState(false);
+  const [overdriveRemainingMs, setOverdriveRemainingMs] = useState(0);
   const [cameraImage, setCameraImage] = useState(null);
   const [verifyingImage, setVerifyingImage] = useState(false);
   const [verificationAttempts, setVerificationAttempts] = useState(0);
+
+  // Overdrive Timer logic to read from user profile (syncs with Firestore)
+  useEffect(() => {
+    const updateTimer = () => {
+      if (!profile?.overdriveVerifiedAt) {
+        setOverdriveRemainingMs(0);
+        return;
+      }
+      
+      const verifiedTime = profile.overdriveVerifiedAt.toDate
+        ? profile.overdriveVerifiedAt.toDate().getTime()
+        : new Date(profile.overdriveVerifiedAt).getTime();
+        
+      const elapsed = Date.now() - verifiedTime;
+      const limit = 2.5 * 60 * 60 * 1000; // 2.5 hours
+      setOverdriveRemainingMs(Math.max(0, limit - elapsed));
+    };
+
+    updateTimer();
+    const intervalId = setInterval(updateTimer, 1000);
+    return () => clearInterval(intervalId);
+  }, [profile?.overdriveVerifiedAt]);
+
+  const isOverdriveVerified = localVerified || overdriveRemainingMs > 0;
+
+  // Reset localVerified when window expires
+  useEffect(() => {
+    if (overdriveRemainingMs <= 0) {
+      setLocalVerified(false);
+    }
+  }, [overdriveRemainingMs]);
+
+  const formatOverdriveCountdown = (ms) => {
+    if (ms <= 0) return '';
+    const totalSecs = Math.ceil(ms / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+    parts.push(`${seconds}s`);
+    
+    return `${parts.join(' ')} remaining`;
+  };
 
   // Overdrive Hour Calculation
   const currentHour = new Date().getHours();
@@ -173,11 +220,11 @@ export const MobileChallenges = () => {
       const res = await callZenkaiAPI('verifyGymImage', { image: cleanBase64Payload });
       
       if (res.data?.success && res.data?.verified) {
-        setCameraVerified(true);
+        setLocalVerified(true);
         setVerificationAttempts(0);
         addToast('Gym equipment verified! Overdrive Hour active. ⚡', 'success');
       } else {
-        setCameraVerified(false);
+        setLocalVerified(false);
         setCameraImage(null);
         const nextAttempts = verificationAttempts + 1;
         setVerificationAttempts(nextAttempts);
@@ -189,22 +236,17 @@ export const MobileChallenges = () => {
       }
     } catch (err) {
       console.error('[MobileChallenges] Gym verification error:', err);
-      setCameraVerified(false);
+      setLocalVerified(false);
       setCameraImage(null);
-      const nextAttempts = verificationAttempts + 1;
-      setVerificationAttempts(nextAttempts);
-      if (nextAttempts >= 2) {
-        addToast('Verification failed. Try taking a clear close-up of a gym item like a dumbbell or barbell! 🏋️‍♂️', 'error');
-      } else {
-        addToast(err.message || 'Failed to verify gym presence. Please try again.', 'error');
-      }
+      // Display the actual rate-limit/server error message directly
+      addToast(err.message || 'Failed to verify gym presence. Please try again.', 'error');
     } finally {
       setVerifyingImage(false);
     }
   };
 
   const handleStartOverdriveSession = () => {
-    if (!cameraVerified) {
+    if (!isOverdriveVerified) {
       addToast('Please verify gym status first.', 'warning');
       return;
     }
@@ -373,7 +415,7 @@ export const MobileChallenges = () => {
               <div className="mt-4 flex flex-col gap-3 relative z-10">
                 {isOverdriveWindow ? (
                   <>
-                    {!cameraVerified ? (
+                    {!isOverdriveVerified ? (
                       <div>
                         {verifyingImage ? (
                           <div className="w-full py-2 border-2 border-black bg-indigo-950 text-indigo-400 font-display font-extrabold text-xs uppercase tracking-wider text-center flex justify-center items-center gap-2 cursor-not-allowed opacity-75">
@@ -402,9 +444,14 @@ export const MobileChallenges = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 px-3 py-2 border-2 border-emerald-500 bg-emerald-950/20 text-emerald-400 text-xs font-mono font-bold uppercase rounded">
-                          <CheckCircle2 size={16} />
-                          <span>GYM STATUS VERIFIED ✅</span>
+                        <div className="flex flex-col gap-1 px-3 py-2 border-2 border-emerald-500 bg-emerald-950/20 text-emerald-400 rounded">
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase">
+                            <CheckCircle2 size={16} />
+                            <span>GYM STATUS VERIFIED ✅</span>
+                          </div>
+                          <div className="text-[10px] font-mono text-emerald-300 uppercase tracking-wide">
+                            Window Remaining: {formatOverdriveCountdown(overdriveRemainingMs)}
+                          </div>
                         </div>
                         {cameraImage && (
                           <div className="w-full h-24 border-2 border-black rounded overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)]">

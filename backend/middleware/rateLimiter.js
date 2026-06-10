@@ -114,4 +114,71 @@ async function checkGymCheckinRateLimit(db, uid) {
   });
 }
 
-module.exports = { checkRateLimit, checkGymCheckinRateLimit };
+/**
+ * Rolls back the rate limit consumption for plan generation if the generation fails.
+ */
+async function rollbackRateLimit(db, uid, usePowerUp = false) {
+  const userRef = db.doc(`users/${uid}`);
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) return;
+
+      const userData = userSnap.data();
+      const updates = {};
+
+      // Revert the hourly timestamp
+      let recentRegens = userData.recentRegenTimes || [];
+      if (recentRegens.length > 0) {
+        recentRegens.pop(); // Remove the last added timestamp
+        updates.recentRegenTimes = recentRegens;
+      }
+
+      if (usePowerUp) {
+        const powerUps = userData.powerUps || {};
+        const planRefreshCount = powerUps.planRefresh || 0;
+        updates['powerUps.planRefresh'] = planRefreshCount + 1;
+      } else {
+        let dailyRegenCount = userData.dailyRegenCount || 0;
+        if (dailyRegenCount > 0) {
+          updates.dailyRegenCount = dailyRegenCount - 1;
+        }
+      }
+
+      tx.update(userRef, updates);
+    });
+    console.log(`[rateLimiter] Successfully rolled back plan generation rate limit for user ${uid}`);
+  } catch (rollbackErr) {
+    console.error(`[rateLimiter] Failed to rollback plan generation rate limit for user ${uid}:`, rollbackErr.message);
+  }
+}
+
+/**
+ * Rolls back a gym verification attempt timestamp if the request fails due to a server error.
+ */
+async function rollbackGymCheckinRateLimit(db, uid) {
+  const userRef = db.doc(`users/${uid}`);
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) return;
+
+      const userData = userSnap.data();
+      let recentGymVerifications = userData.recentGymVerifyTimes || [];
+      
+      if (recentGymVerifications.length > 0) {
+        recentGymVerifications.pop(); // Remove the last added timestamp
+        tx.update(userRef, {
+          recentGymVerifyTimes: recentGymVerifications
+        });
+      }
+    });
+    console.log(`[rateLimiter] Successfully rolled back gym check-in rate limit for user ${uid}`);
+  } catch (rollbackErr) {
+    console.error(`[rateLimiter] Failed to rollback gym check-in rate limit for user ${uid}:`, rollbackErr.message);
+  }
+}
+
+module.exports = { checkRateLimit, checkGymCheckinRateLimit, rollbackRateLimit, rollbackGymCheckinRateLimit };

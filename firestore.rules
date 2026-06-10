@@ -54,6 +54,8 @@ service cloud.firestore {
         'examDeloadActive', 'examStartDate', 'examEndDate', 'lastPrehabDate',
         // Plan regeneration limits
         'dailyRegenCount', 'lastRegenDate', 'recentRegenTimes', 'recentGymVerifyTimes',
+        // Overdrive Hour verification
+        'overdriveVerifiedAt',
         // Metadata
         'createdAt', 'updatedAt'
       ]);
