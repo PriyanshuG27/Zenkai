@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, Flame, RefreshCw, Award, Target, HelpCircle, Activity, Sparkles, BookOpen, Quote } from 'lucide-react';
+import { Newspaper, Flame, RefreshCw, Award, Target, HelpCircle, Activity, Sparkles, BookOpen, Quote, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { callZenkaiAPI } from '../../lib/apiClient';
 import { motion } from 'framer-motion';

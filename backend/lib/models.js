@@ -7,8 +7,8 @@
 module.exports = {
   // Weekly Magazine generation
   WEEKLY_MAGAZINE: {
-    PRIMARY: 'gemma-4-31b-it',
-    FALLBACK_GROQ: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    PRIMARY: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    FALLBACK_GROQ: 'llama-3.1-8b-instant',
     FALLBACK_GEMINI: 'gemini-3.1-flash-lite'
   },
 

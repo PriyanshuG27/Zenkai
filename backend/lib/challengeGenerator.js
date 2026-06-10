@@ -102,7 +102,7 @@ async function generateChallengeForSquad(squadCode) {
 
   let copywriteJSON = null;
 
-  // Model 1: Groq (Primary)
+  // Model 1: Groq (Primary — using Llama 3.3 70B)
   if (GROQ_API_KEY) {
     try {
       console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Groq (${SQUAD_CHALLENGE.PRIMARY})...`);
@@ -124,10 +124,13 @@ async function generateChallengeForSquad(squadCode) {
         const resData = await response.json();
         const contentText = resData.choices?.[0]?.message?.content || '{}';
         
-        // Regex cleanup patch to strip markdown wrappers
         let cleanText = contentText.trim();
         if (cleanText.includes('```')) {
           cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+        }
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanText = jsonMatch[0];
         }
 
         copywriteJSON = JSON.parse(cleanText);
@@ -141,7 +144,7 @@ async function generateChallengeForSquad(squadCode) {
     }
   }
 
-  // Model 2: Gemini (Fallback)
+  // Model 2: Gemini (Fallback — using Gemini 3.1 Flash / gemini-flash-latest)
   if (!copywriteJSON && GEMINI_API_KEY) {
     try {
       console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini (${SQUAD_CHALLENGE.FALLBACK})...`);
@@ -162,6 +165,10 @@ async function generateChallengeForSquad(squadCode) {
       let cleanText = text;
       if (cleanText.includes('```')) {
         cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+      }
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanText = jsonMatch[0];
       }
 
       copywriteJSON = JSON.parse(cleanText);

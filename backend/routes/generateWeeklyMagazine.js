@@ -249,34 +249,49 @@ JSON structure:
     const prompt = `Here is the compressed weekly telemetry for the user:
 ${JSON.stringify(compressedTelemetry, null, 2)}`;
 
-    // Model 1: Gemma 4 31B via Gemini API (Primary — unlimited TPM, 1,500 RPD)
-    if (GEMINI_API_KEY) {
+    // Model 1: Groq API (Primary)
+    if (GROQ_API_KEY) {
       try {
-        console.log(`[generateWeeklyMagazine] Calling Gemini (${WEEKLY_MAGAZINE.PRIMARY}) for ${uid}...`);
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-          model: WEEKLY_MAGAZINE.PRIMARY,
-          systemInstruction: systemPrompt,
-          generationConfig: { temperature: 0.8, responseMimeType: 'application/json' },
+        console.log(`[generateWeeklyMagazine] Calling Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) for ${uid}...`);
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: WEEKLY_MAGAZINE.PRIMARY,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.8
+          })
         });
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
-        });
-        const rawContent = result.response.text().trim();
-
-        let cleanContent = rawContent;
-        if (cleanContent.startsWith('```')) {
-          cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
+        if (response.ok) {
+          const resData = await response.json();
+          const rawContent = (resData.choices?.[0]?.message?.content || '{}').trim();
+          let cleanContent = rawContent;
+          if (cleanContent.startsWith('```')) {
+            cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
+          }
+          const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanContent = jsonMatch[0];
+          }
+          copywriteJSON = JSON.parse(cleanContent);
+          console.log(`[generateWeeklyMagazine] Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) succeeded.`);
+        } else {
+          const errText = await response.text();
+          console.warn(`[generateWeeklyMagazine] Groq Primary error ${response.status}: ${errText}`);
         }
-        copywriteJSON = JSON.parse(cleanContent);
-        console.log(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.PRIMARY}) succeeded.`);
-      } catch (geminiErr) {
-        console.error(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.PRIMARY}) failed:`, geminiErr.message);
+      } catch (groqErr) {
+        console.error(`[generateWeeklyMagazine] Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) failed:`, groqErr.message);
       }
     }
 
-    // Model 2: Llama 4 Scout via Groq (Fallback)
+    // Model 2: Groq API (Fallback)
     if (!copywriteJSON && GROQ_API_KEY) {
       try {
         console.log(`[generateWeeklyMagazine] Falling back to Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) for ${uid}...`);
@@ -303,18 +318,22 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
           if (cleanContent.startsWith('```')) {
             cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
           }
+          const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanContent = jsonMatch[0];
+          }
           copywriteJSON = JSON.parse(cleanContent);
-          console.log(`[generateWeeklyMagazine] Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) fallback succeeded.`);
+          console.log(`[generateWeeklyMagazine] Groq Fallback (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) succeeded.`);
         } else {
           const errText = await response.text();
-          console.warn(`[generateWeeklyMagazine] Groq fallback error ${response.status}: ${errText}`);
+          console.warn(`[generateWeeklyMagazine] Groq Fallback error ${response.status}: ${errText}`);
         }
       } catch (groqErr) {
-        console.error(`[generateWeeklyMagazine] Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) fallback failed:`, groqErr.message);
+        console.error(`[generateWeeklyMagazine] Groq Fallback (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) failed:`, groqErr.message);
       }
     }
 
-    // Model 3: Gemini Flash (Last Resort)
+    // Model 3: Gemini API (Last Resort)
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
         console.log(`[generateWeeklyMagazine] Calling Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort for ${uid}...`);
@@ -337,7 +356,10 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
         if (cleanContent.startsWith('```')) {
           cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
         }
-
+        const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanContent = jsonMatch[0];
+        }
         copywriteJSON = JSON.parse(cleanContent);
         console.log(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort succeeded.`);
       } catch (geminiErr) {

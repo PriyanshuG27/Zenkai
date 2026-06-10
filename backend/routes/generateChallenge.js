@@ -123,7 +123,7 @@ JSON format:
   }
 }`;
 
-    // Model 1: Groq (Primary — 14.4K RPD, fast)
+    // Model 1: Groq (Primary — using Llama 3.1 8B)
     if (GROQ_API_KEY) {
       try {
         console.log(`[generateChallenge] Attempting Model 1: Groq (${PERSONAL_CHALLENGE.PRIMARY})...`);
@@ -144,7 +144,15 @@ JSON format:
         if (response.ok) {
           const resData = await response.json();
           const contentText = resData.choices?.[0]?.message?.content || '{}';
-          copywriteJSON = JSON.parse(contentText);
+          let cleanText = contentText.trim();
+          if (cleanText.includes('```')) {
+            cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+          }
+          const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanText = jsonMatch[0];
+          }
+          copywriteJSON = JSON.parse(cleanText);
           console.log(`[generateChallenge] Groq (${PERSONAL_CHALLENGE.PRIMARY}) succeeded.`);
         } else {
           const errText = await response.text();
@@ -155,11 +163,11 @@ JSON format:
       }
     }
 
-    // Model 2: Gemini (Fallback)
+    // Model 2: Gemini (Fallback — using Gemini 3.1 Flash Lite)
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        console.log(`[generateChallenge] Attempting Model 2: Gemini (${PERSONAL_CHALLENGE.FALLBACK})...`);
+        console.log(`[generateChallenge] Attempting Model 2: Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
@@ -173,8 +181,16 @@ JSON format:
           contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
         const text = result.response.text().trim();
-        copywriteJSON = JSON.parse(text);
-        console.log(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) succeeded.`);
+        let cleanText = text;
+        if (cleanText.includes('```')) {
+          cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
+        }
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanText = jsonMatch[0];
+        }
+        copywriteJSON = JSON.parse(cleanText);
+        console.log(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback succeeded.`);
       } catch (geminiErr) {
         console.error(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback failed:`, geminiErr.message);
       }
