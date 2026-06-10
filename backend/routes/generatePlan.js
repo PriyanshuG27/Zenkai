@@ -83,6 +83,7 @@ module.exports = [authGuard, async (req, res) => {
           .get();
         return {
           date: sessionData.date,
+          safeMode: Boolean(sessionData.safeMode || sessionData.deload), // safeMode deload tag
           exercises: exercisesSnap.docs.map((ex) => {
             const exData = ex.data();
             const exKey = exData.exerciseKey || ex.id;
@@ -90,7 +91,7 @@ module.exports = [authGuard, async (req, res) => {
               exerciseNamesMap[exKey] = exData.name;
             }
             return {
-              name: exData.exerciseKey || exData.name,
+              name: exData.name || exData.exerciseKey,
               sets: (exData.sets || []).filter(s => s.done).map(s => ({
                 weight: s.weight || 0,
                 reps: s.reps || 0
@@ -174,7 +175,7 @@ STRICT RULES:
 3. NEVER prescribe exercises that violate the Medical Restrictions.
 4. Adapt the rep-ranges and sets based on the Primary Goal (e.g., Muscle Gain = 8-12 reps, Strength = 3-6 reps, Fat Loss = higher pace/reps).
 5. Ensure workouts fit within the Max Session Duration.
-6. If the RECENT SESSION LOGS are empty, prescribe conservative starter weights matching experience level, age, and gender.
+6. If the RECENT SESSION LOGS are empty (or this is a fresh plan), prescribe a high-quality, well-structured starter routine. For each active workout day, prescribe exactly 4 to 6 exercises: starting with primary compound lifts (e.g. Squat, Bench Press, or Push-Ups/Pull-Ups for bodyweight) followed by accessory and isolation movements. Use conservative starter weights matching the experience level, age, and gender.
 7. If RECENT SESSION LOGS exist:
    - Identify the maximum weight and reps completed for each exercise.
    - Calculate their Estimated 1RM using the Epley formula: 1RM = Weight * (1 + Reps / 30).
@@ -182,7 +183,8 @@ STRICT RULES:
    - Apply a precise 2.5% to 5.0% progressive overload weight increase on top of their recent maximum weight lifted for identical exercises.
    - Round all targetWeight values to the nearest 2.5 kg increment (e.g. 60 kg, 62.5 kg, 65 kg; 0 for bodyweight).
 8. If the user experience level is 'Comeback', ignore progression and dial target weights back to 70-80% of their recent logs to ease them in safely.
-9. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order). Non-workout/rest days must be explicitly included with "focus": "Rest" and "exercises": [].
+9. CRITICAL AI CONTAMINATION FILTER: Ignore any session in RECENT SESSION LOGS where "safeMode": true is present. Treat flagged sessions as sick/recovery days. Do NOT use their weights/reps to calculate overload targets. Instead, progressive overload must be computed relative to the most recent healthy (unflagged) session for each exercise.
+10. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order). Non-workout/rest days must be explicitly included with "focus": "Rest" and "exercises": [].
 
 ${req.body?.personalRequirements ? `USER'S PERSONAL REQUIREMENTS FOR THIS WEEK:\n"${req.body.personalRequirements}"\nYou MUST incorporate these requirements into the plan.\n` : ''}
 OUTPUT FORMAT:
