@@ -24,7 +24,6 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
-functions/.env
 backend/.env
 backend/.env.local
 

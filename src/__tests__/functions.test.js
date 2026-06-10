@@ -1,12 +1,12 @@
 /**
  * functions.test.js
  *
- * Unit tests for Cloud Functions security helpers:
+ * Unit tests for backend security helpers:
  *   - validators.js  (validateUID, validatePlanRequest, validatePlan)
  *   - rateLimiter.js (checkRateLimit)
  *
  * These tests run in Node environment (no Firebase emulator needed) by mocking
- * Firestore and firebase-functions/v2/https.
+ * Firestore.
  *
  * Run: npx vitest run src/__tests__/functions.test.js
  */
@@ -18,13 +18,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Import modules under test (after mocks)
 // ─────────────────────────────────────────────
 
-const { validateUID, validatePlanRequest, validatePlan } = await import(
-  '../../functions/src/validators.js'
+const { validateUID, validatePlanRequest, validatePlan, HttpsError } = await import(
+  '../../backend/lib/validators.js'
 );
-const { checkRateLimit } = await import('../../functions/src/rateLimiter.js');
-
-// Grab the mocked HttpsError class for instanceof checks
-const { HttpsError } = await import('firebase-functions/v2/https');
+const { checkRateLimit } = await import('../../backend/middleware/rateLimiter.js');
 
 // ═════════════════════════════════════════════
 // validateUID
