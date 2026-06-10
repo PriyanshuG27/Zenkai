@@ -33,23 +33,37 @@ if (isEmulator) {
       console.log('[firebaseAdmin] Initialized Live Database using local serviceAccountKey.json');
     } else {
       // Fallback for Render.com or Google Cloud Application Default Credentials (ADC)
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY 
-        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') 
-        : undefined;
-      
-      if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey) {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: privateKey,
-          }),
-        });
-        console.log('[firebaseAdmin] Initialized Live Database using environment variables');
-      } else {
-        // Zero-config initialization (e.g. Google Cloud Run, Functions, App Engine)
-        admin.initializeApp();
-        console.log('[firebaseAdmin] Initialized Live Database using Application Default Credentials (ADC)');
+      if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        try {
+          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+          });
+          console.log('[firebaseAdmin] Initialized Live Database using FIREBASE_SERVICE_ACCOUNT_JSON');
+        } catch (err) {
+          console.error('[firebaseAdmin] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', err);
+        }
+      }
+
+      if (!admin.apps.length) {
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY 
+          ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') 
+          : undefined;
+        
+        if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey) {
+          admin.initializeApp({
+            credential: admin.credential.cert({
+              projectId: process.env.FIREBASE_PROJECT_ID,
+              clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+              privateKey: privateKey,
+            }),
+          });
+          console.log('[firebaseAdmin] Initialized Live Database using environment variables');
+        } else {
+          // Zero-config initialization (e.g. Google Cloud Run, Functions, App Engine)
+          admin.initializeApp();
+          console.log('[firebaseAdmin] Initialized Live Database using Application Default Credentials (ADC)');
+        }
       }
     }
   }
