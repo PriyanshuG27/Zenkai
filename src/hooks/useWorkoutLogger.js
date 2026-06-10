@@ -676,6 +676,7 @@ export function useWorkoutLogger() {
 
     } catch (err) {
       console.error('[useWorkoutLogger] finishSession failed:', err);
+      console.error('[useWorkoutLogger] error code:', err?.code ?? 'n/a');
 
       // Roll back the optimistic XP we speculatively added
       if (pendingBatchRef.current && xpAwardedRef.current) {
@@ -686,10 +687,11 @@ export function useWorkoutLogger() {
       retryCountRef.current += 1;
 
       // Re-throw so MobileLogger can show the retry button
+      const errorCode = err?.code ? ` [${err.code}]` : '';
       throw new Error(
         err?.message?.startsWith('[useWorkoutLogger]')
           ? err.message
-          : `[useWorkoutLogger] Could not save session. (${err?.message ?? 'network error'})`
+          : `[useWorkoutLogger] Could not save session.${errorCode} (${err?.message ?? 'network error'})`
       );
     }
   }, [_buildBatchPayload, _commitBatch]);
