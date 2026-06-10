@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "firebase": "^12.14.0",
     "framer-motion": "^11.3.8",
     "html2canvas": "^1.4.1",

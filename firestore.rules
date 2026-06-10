@@ -50,8 +50,12 @@ service cloud.firestore {
         'cooldowns', 'skills',
         // New Profile Fields
         'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad',
+        // Academic Buffer & Prehab
+        'examDeloadActive', 'examStartDate', 'examEndDate', 'lastPrehabDate',
+        // Plan regeneration limits
+        'dailyRegenCount', 'lastRegenDate',
         // Metadata
-        'createdAt'
+        'createdAt', 'updatedAt'
       ]);
     }
 
@@ -150,12 +154,10 @@ service cloud.firestore {
       }
 
       // ── weeklyPlans/{weekId} — Phase 3 ──────────────────────────────────
-      // Written ONLY by the generatePlan Cloud Function via Admin SDK.
-      // Client read is allowed so the plan UI can display the plan.
-      // weekId format: "YYYY-WNN" — validated in generatePlan.js before write.
+      // Client read and write allowed for the owner (needed for Academic Buffer deload toggles).
+      // weekId format: "YYYY-WNN"
       match /weeklyPlans/{weekId} {
-        allow read:  if isOwner(uid);
-        allow write: if false;           // Admin SDK bypasses rules by design
+        allow read, write: if isOwner(uid);
       }
 
       // ── xpLog/{entryId} — Phase 2 ────────────────────────────────────────────
@@ -232,24 +234,41 @@ service cloud.firestore {
 
     // ─── shared_squads/{squadCode} ────────────────────────────────────────────────────
     // Read: any auth'd user (to see squad data).
-    // Write: only the squad root doc owner (creator).
+    // Write: only the squad root doc owner (creator) or members updating progress/membership.
     // Presence sub-docs: each user only writes their own presence (uid-scoped).
-    // Polls: any squad participant (relaxed — tighten if abuse occurs).
+    // Polls: any squad participant.
     match /shared_squads/{squadCode} {
       allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.creatorUid == request.auth.uid;
-      allow update, delete: if isAuth() && resource.data.creatorUid == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.creatorUid == request.auth.uid ||
+        (
+          (request.auth.uid in resource.data.memberUids || request.auth.uid in request.resource.data.memberUids) &&
+          request.resource.data.creatorUid == resource.data.creatorUid &&
+          request.resource.data.squadName == resource.data.squadName &&
+          request.resource.data.memberLimit == resource.data.memberLimit
+        )
+      );
+      allow delete: if isAuth() && resource.data.creatorUid == request.auth.uid;
 
       // Each user only writes their own presence document
       match /presence/{uid} {
         allow read:  if isAuth();
         allow write: if isOwner(uid);
       }
-      // Polls: any auth'd user can read/vote; creator can write
+      // Polls: any squad participant can vote; creator can update/delete
       match /polls/{pollId} {
         allow read:   if isAuth();
-        allow create: if isAuth();
-        allow update: if isAuth() && resource.data.creatorUid == request.auth.uid;
+        allow create: if isAuth() && request.auth.uid in get(/databases/$(database)/documents/shared_squads/$(squadCode)).data.memberUids;
+        allow update: if isAuth() && (
+          resource.data.creatorUid == request.auth.uid ||
+          (
+            request.auth.uid in get(/databases/$(database)/documents/shared_squads/$(squadCode)).data.memberUids &&
+            request.resource.data.question == resource.data.question &&
+            request.resource.data.options == resource.data.options &&
+            request.resource.data.creatorUid == resource.data.creatorUid
+          )
+        );
         allow delete: if isAuth() && resource.data.creatorUid == request.auth.uid;
       }
     }
