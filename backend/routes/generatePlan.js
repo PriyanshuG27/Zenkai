@@ -197,13 +197,14 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     let successModel = '';
     const errors = [];
 
-    // Model 1: Gemini 1.5 Flash (Primary)
+    // Model 1: Gemini (Primary)
     if (GEMINI_API_KEY) {
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
       try {
-        console.log('[generatePlan] Attempting Model 1: Gemini Flash...');
+        console.log(`[generatePlan] Attempting Model 1: Gemini (${GEMINI_MODEL})...`);
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: 'gemini-flash-latest',
+          model: GEMINI_MODEL,
           generationConfig: {
             temperature: 0.2,
           },
@@ -214,7 +215,7 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
           setTimeout(() => {
             abortController.abort();
             reject(new Error('deadline-exceeded'));
-          }, 90000); // 90 second timeout for Gemini Flash
+          }, 90000); // 90 second timeout for Gemini
         });
 
         const geminiPromise = model.generateContent({
@@ -226,13 +227,14 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
         const geminiResult = await Promise.race([geminiPromise, timeoutPromise]);
         rawText = geminiResult.response.text();
         successModel = 'gemini';
-        console.log('[generatePlan] Gemini successfully generated plan.');
+        console.log(`[generatePlan] Gemini (${GEMINI_MODEL}) successfully generated plan.`);
       } catch (err) {
-        console.error('[generatePlan] Gemini Flash failed:', err.message);
-        errors.push({ model: 'gemini-flash-latest', error: err.message });
+        console.error(`[generatePlan] Gemini (${GEMINI_MODEL}) failed:`, err.message);
+        errors.push({ model: GEMINI_MODEL, error: err.message });
       }
     } else {
-      errors.push({ model: 'gemini-flash-latest', error: 'GEMINI_API_KEY missing' });
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+      errors.push({ model: GEMINI_MODEL, error: 'GEMINI_API_KEY missing' });
     }
 
     // Model 2: Groq Llama 3.3 70B (Fallback)

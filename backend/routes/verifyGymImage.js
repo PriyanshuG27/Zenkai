@@ -30,14 +30,15 @@ module.exports = [authGuard, async (req, res) => {
     let modelUsed = '';
     const errors = [];
 
-    // Model 1: Gemini 1.5 Flash (Primary)
+    // Model 1: Gemini (Primary)
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (GEMINI_API_KEY) {
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
       try {
-        console.log('[verifyGymImage] Attempting Model 1: gemini-flash-latest');
+        console.log(`[verifyGymImage] Attempting Model 1: Gemini (${GEMINI_MODEL})`);
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: 'gemini-flash-latest',
+          model: GEMINI_MODEL,
           generationConfig: {
             temperature: 0.1,
           },
@@ -54,18 +55,19 @@ module.exports = [authGuard, async (req, res) => {
         ]);
 
         const responseText = result.response.text().trim().toLowerCase();
-        console.log('[verifyGymImage] Gemini response:', responseText);
+        console.log(`[verifyGymImage] Gemini (${GEMINI_MODEL}) response:`, responseText);
         if (responseText.includes('yes')) {
           verified = true;
         }
-        modelUsed = 'gemini-flash-latest';
+        modelUsed = GEMINI_MODEL;
         return res.status(200).json({ success: true, verified, modelUsed });
       } catch (err) {
-        console.error('[verifyGymImage] Gemini Flash failed, falling back:', err.message);
-        errors.push({ model: 'gemini-flash-latest', error: err.message });
+        console.error(`[verifyGymImage] Gemini (${GEMINI_MODEL}) failed, falling back:`, err.message);
+        errors.push({ model: GEMINI_MODEL, error: err.message });
       }
     } else {
-      errors.push({ model: 'gemini-flash-latest', error: 'GEMINI_API_KEY missing' });
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+      errors.push({ model: GEMINI_MODEL, error: 'GEMINI_API_KEY missing' });
     }
 
     // Model 2: Groq Llama 3.2 Vision (Fallback)

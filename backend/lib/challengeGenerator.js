@@ -140,14 +140,15 @@ async function generateChallengeForSquad(squadCode) {
     }
   }
 
-  // Model 2: Gemini 1.5 Flash (Fallback)
+  // Model 2: Gemini (Fallback)
   if (!copywriteJSON && GEMINI_API_KEY) {
     try {
-      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini...`);
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini (${GEMINI_MODEL})...`);
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({
-        model: 'gemini-flash-latest',
+        model: GEMINI_MODEL,
         generationConfig: {
           temperature: 0.7,
           responseMimeType: 'application/json'
@@ -164,9 +165,10 @@ async function generateChallengeForSquad(squadCode) {
       }
 
       copywriteJSON = JSON.parse(cleanText);
-      console.log(`[challengeGenerator] Gemini succeeded for ${squadCode}`);
+      console.log(`[challengeGenerator] Gemini (${GEMINI_MODEL}) succeeded for ${squadCode}`);
     } catch (geminiErr) {
-      console.error('[challengeGenerator] Gemini Flash fallback failed:', geminiErr.message);
+      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+      console.error(`[challengeGenerator] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
     }
   }
 

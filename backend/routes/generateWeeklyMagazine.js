@@ -290,14 +290,15 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
       }
     }
 
-    // Model 2: Gemini 1.5 Flash (Fallback)
+    // Model 2: Gemini (Fallback)
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        console.log(`[generateWeeklyMagazine] Calling Gemini Flash fallback for ${uid}...`);
+        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+        console.log(`[generateWeeklyMagazine] Calling Gemini (${GEMINI_MODEL}) fallback for ${uid}...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: 'gemini-flash-latest',
+          model: GEMINI_MODEL,
           systemInstruction: systemPrompt,
           generationConfig: {
             temperature: 0.8,
@@ -315,9 +316,10 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
         }
 
         copywriteJSON = JSON.parse(cleanContent);
-        console.log('[generateWeeklyMagazine] Gemini fallback succeeded.');
+        console.log(`[generateWeeklyMagazine] Gemini (${GEMINI_MODEL}) fallback succeeded.`);
       } catch (geminiErr) {
-        console.error('[generateWeeklyMagazine] Gemini fallback failed:', geminiErr.message);
+        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+        console.error(`[generateWeeklyMagazine] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
       }
     }
 

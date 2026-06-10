@@ -154,15 +154,16 @@ JSON format:
       }
     }
 
-    // Model 2: Gemini 1.5 Flash (Fallback)
+    // Model 2: Gemini (Fallback)
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        console.log('[generateChallenge] Attempting Model 2: Gemini Flash...');
+        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+        console.log(`[generateChallenge] Attempting Model 2: Gemini (${GEMINI_MODEL})...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: 'gemini-flash-latest',
+          model: GEMINI_MODEL,
           generationConfig: {
             temperature: 0.7,
             responseMimeType: 'application/json'
@@ -173,9 +174,10 @@ JSON format:
         });
         const text = result.response.text().trim();
         copywriteJSON = JSON.parse(text);
-        console.log('[generateChallenge] Gemini Flash succeeded.');
+        console.log(`[generateChallenge] Gemini (${GEMINI_MODEL}) succeeded.`);
       } catch (geminiErr) {
-        console.error('[generateChallenge] Gemini Flash fallback failed:', geminiErr.message);
+        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+        console.error(`[generateChallenge] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
       }
     }
 
