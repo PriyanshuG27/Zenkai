@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useXPStore } from '../../stores/useXPStore';
 import { useUIStore } from '../../stores/useUIStore';
