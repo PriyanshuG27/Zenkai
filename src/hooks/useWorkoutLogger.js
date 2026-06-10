@@ -578,8 +578,8 @@ export function useWorkoutLogger() {
     }
     batch.update(userRef, userUpdates);
 
-    // Op 6 — Update public squad_codes if user has a squadCode
-    if (squadCode) {
+    // Op 6 — Update public squad_codes if user has a personal squadCode (starts with FIT-)
+    if (squadCode && squadCode.startsWith('FIT-')) {
       const codeRef = doc(db, 'squad_codes', squadCode);
       batch.set(codeRef, {
         uid,
