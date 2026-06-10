@@ -5,7 +5,7 @@ import { useWeeklyRecap } from '../hooks/useWeeklyRecap';
 import { WeeklyRecapScreen } from '../components/shared/WeeklyRecapScreen';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useXPStore } from '../stores/useXPStore';
-import html2canvas from 'html2canvas';
+import { generateWeeklyStatsCardImage } from '../components/shared/weeklyRecapCardGenerator';
 
 vi.mock('../stores/useAuthStore', () => ({
   useAuthStore: vi.fn(),
@@ -15,10 +15,8 @@ vi.mock('../stores/useXPStore', () => ({
   useXPStore: vi.fn(),
 }));
 
-vi.mock('html2canvas', () => ({
-  default: vi.fn().mockResolvedValue({
-    toBlob: (cb) => cb(new Blob(['mock-blob'], { type: 'image/png' }))
-  })
+vi.mock('../components/shared/weeklyRecapCardGenerator', () => ({
+  generateWeeklyStatsCardImage: vi.fn().mockResolvedValue('data:image/png;base64,ZHVtbXktaW1hZ2U='),
 }));
 
 describe('Weekly Recap System TDD', () => {
@@ -102,7 +100,7 @@ describe('Weekly Recap System TDD', () => {
     fireEvent.click(shareBtn);
 
     await waitFor(() => {
-      expect(html2canvas).toHaveBeenCalled();
+      expect(generateWeeklyStatsCardImage).toHaveBeenCalled();
       expect(global.navigator.share).toHaveBeenCalled();
     });
   });
@@ -122,7 +120,7 @@ describe('Weekly Recap System TDD', () => {
     fireEvent.click(shareBtn);
 
     await waitFor(() => {
-      expect(html2canvas).toHaveBeenCalled();
+      expect(generateWeeklyStatsCardImage).toHaveBeenCalled();
       expect(appendSpy).toHaveBeenCalled();
       expect(removeSpy).toHaveBeenCalled();
     });

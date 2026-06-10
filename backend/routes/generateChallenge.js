@@ -5,6 +5,7 @@ const { adminDb } = require('../lib/firebaseAdmin');
 const { validateUID } = require('../lib/validators');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const { PERSONAL_CHALLENGE } = require('../lib/models');
 
 module.exports = [authGuard, async (req, res) => {
   const uid = req.user.uid;
@@ -122,10 +123,10 @@ JSON format:
   }
 }`;
 
-    // Model 1: Groq Llama 3.3 70B (Primary)
+    // Model 1: Groq (Primary — 14.4K RPD, fast)
     if (GROQ_API_KEY) {
       try {
-        console.log('[generateChallenge] Attempting Model 1: Groq Llama 3.3 70B...');
+        console.log(`[generateChallenge] Attempting Model 1: Groq (${PERSONAL_CHALLENGE.PRIMARY})...`);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -133,7 +134,7 @@ JSON format:
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: PERSONAL_CHALLENGE.PRIMARY,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
             temperature: 0.7
@@ -144,13 +145,13 @@ JSON format:
           const resData = await response.json();
           const contentText = resData.choices?.[0]?.message?.content || '{}';
           copywriteJSON = JSON.parse(contentText);
-          console.log('[generateChallenge] Groq Llama 3.3 70B succeeded.');
+          console.log(`[generateChallenge] Groq (${PERSONAL_CHALLENGE.PRIMARY}) succeeded.`);
         } else {
           const errText = await response.text();
           console.warn(`[generateChallenge] Groq API returned status ${response.status}: ${errText}`);
         }
       } catch (groqErr) {
-        console.error('[generateChallenge] Groq API call failed, trying fallback:', groqErr.message);
+        console.error(`[generateChallenge] Groq (${PERSONAL_CHALLENGE.PRIMARY}) failed, trying fallback:`, groqErr.message);
       }
     }
 
@@ -158,12 +159,11 @@ JSON format:
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-        console.log(`[generateChallenge] Attempting Model 2: Gemini (${GEMINI_MODEL})...`);
+        console.log(`[generateChallenge] Attempting Model 2: Gemini (${PERSONAL_CHALLENGE.FALLBACK})...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: GEMINI_MODEL,
+          model: PERSONAL_CHALLENGE.FALLBACK,
           generationConfig: {
             temperature: 0.7,
             responseMimeType: 'application/json'
@@ -174,10 +174,9 @@ JSON format:
         });
         const text = result.response.text().trim();
         copywriteJSON = JSON.parse(text);
-        console.log(`[generateChallenge] Gemini (${GEMINI_MODEL}) succeeded.`);
+        console.log(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) succeeded.`);
       } catch (geminiErr) {
-        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-        console.error(`[generateChallenge] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
+        console.error(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback failed:`, geminiErr.message);
       }
     }
 

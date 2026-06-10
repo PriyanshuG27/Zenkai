@@ -21,7 +21,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { validateUID, validatePlanRequest, validatePlan, HttpsError } = await import(
   '../../backend/lib/validators.js'
 );
-const { checkRateLimit } = await import('../../backend/middleware/rateLimiter.js');
+const { checkRateLimit, checkGymCheckinRateLimit } = await import('../../backend/middleware/rateLimiter.js');
 
 // ═════════════════════════════════════════════
 // validateUID
@@ -275,5 +275,98 @@ describe('checkRateLimit', () => {
       expect(e.code).toBe('resource-exhausted');
       expect(e.message).toMatch(/No Plan Refresh power-up available/);
     }
+  });
+});
+
+// ═════════════════════════════════════════════
+// checkGymCheckinRateLimit
+// ═════════════════════════════════════════════
+
+describe('checkGymCheckinRateLimit', () => {
+  function makeGymDb({ exists = true, recentGymVerifyTimes = [] } = {}) {
+    const snap = {
+      exists,
+      data: () => (exists ? {
+        recentGymVerifyTimes
+      } : undefined),
+    };
+    const updated = { value: null };
+    const tx = {
+      get: vi.fn().mockResolvedValue(snap),
+      update: vi.fn((ref, data) => { updated.value = data; }),
+    };
+    const db = {
+      doc: vi.fn(() => 'mock-ref'),
+      runTransaction: vi.fn(async (fn) => { await fn(tx); }),
+      _updated: updated,
+      _tx: tx,
+    };
+    return db;
+  }
+
+  it('throws not-found when user profile does not exist', async () => {
+    const db = makeGymDb({ exists: false });
+    await expect(checkGymCheckinRateLimit(db, 'uid-001')).rejects.toThrow();
+    try {
+      await checkGymCheckinRateLimit(db, 'uid-001');
+    } catch (e) {
+      expect(e.code).toBe('not-found');
+    }
+  });
+
+  it('allows verification attempt when within limits and updates array', async () => {
+    const db = makeGymDb({ recentGymVerifyTimes: [] });
+    await expect(checkGymCheckinRateLimit(db, 'uid-002')).resolves.not.toThrow();
+    expect(db._updated.value.recentGymVerifyTimes.length).toBe(1);
+  });
+
+  it('throws resource-exhausted when user attempts > 2 check-ins within 5 minutes', async () => {
+    const now = Date.now();
+    const db = makeGymDb({ recentGymVerifyTimes: [now - 1000, now - 2000] });
+    await expect(checkGymCheckinRateLimit(db, 'uid-003')).rejects.toThrow();
+    try {
+      await checkGymCheckinRateLimit(db, 'uid-003');
+    } catch (e) {
+      expect(e.code).toBe('resource-exhausted');
+      expect(e.message).toMatch(/Too many verification attempts/);
+    }
+  });
+
+  it('throws resource-exhausted when user attempts > 5 check-ins within 24 hours', async () => {
+    const now = Date.now();
+    // 5 attempts spread out over the last 10 hours (not within 5 minutes, but within 24 hours)
+    const db = makeGymDb({
+      recentGymVerifyTimes: [
+        now - 1 * 60 * 60 * 1000,
+        now - 2 * 60 * 60 * 1000,
+        now - 3 * 60 * 60 * 1000,
+        now - 4 * 60 * 60 * 1000,
+        now - 5 * 60 * 60 * 1000
+      ]
+    });
+    await expect(checkGymCheckinRateLimit(db, 'uid-004')).rejects.toThrow();
+    try {
+      await checkGymCheckinRateLimit(db, 'uid-004');
+    } catch (e) {
+      expect(e.code).toBe('resource-exhausted');
+      expect(e.message).toMatch(/Daily gym verification limit/);
+    }
+  });
+
+  it('allows attempts that are outside the 5 minute and 24 hour windows', async () => {
+    const now = Date.now();
+    // 1 attempt 6 minutes ago, 4 attempts more than 25 hours ago (which will be filtered out)
+    const db = makeGymDb({
+      recentGymVerifyTimes: [
+        now - 6 * 60 * 1000,
+        now - 26 * 60 * 60 * 1000,
+        now - 27 * 60 * 60 * 1000,
+        now - 28 * 60 * 60 * 1000,
+        now - 29 * 60 * 60 * 1000
+      ]
+    });
+    await expect(checkGymCheckinRateLimit(db, 'uid-005')).resolves.not.toThrow();
+    // The 4 old entries should be filtered out, leaving the 6-min-ago entry + the new one = 2 entries
+    expect(db._updated.value.recentGymVerifyTimes.length).toBe(2);
   });
 });

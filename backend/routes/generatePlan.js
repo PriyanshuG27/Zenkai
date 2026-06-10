@@ -5,6 +5,7 @@ const { admin, adminDb } = require('../lib/firebaseAdmin');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { validateUID, validatePlanRequest, validatePlan, HttpsError } = require('../lib/validators');
 const { checkRateLimit } = require('../middleware/rateLimiter');
+const { WORKOUT_PLAN } = require('../lib/models');
 
 const FieldValue = admin.firestore.FieldValue;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -197,14 +198,62 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     let successModel = '';
     const errors = [];
 
-    // Model 1: Gemini (Primary)
-    if (GEMINI_API_KEY) {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+    // Model 1: Groq (Primary)
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    if (GROQ_API_KEY) {
       try {
-        console.log(`[generatePlan] Attempting Model 1: Gemini (${GEMINI_MODEL})...`);
+        console.log(`[generatePlan] Attempting Model 1: Groq (${WORKOUT_PLAN.PRIMARY})...`);
+        const abortController = new AbortController();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => {
+            abortController.abort();
+            reject(new Error('deadline-exceeded'));
+          }, 50000); // 50 second timeout for Groq
+        });
+
+        const groqPromise = (async () => {
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: WORKOUT_PLAN.PRIMARY,
+              messages: [{ role: 'user', content: prompt }],
+              temperature: 0.2,
+              response_format: { type: 'json_object' }
+            }),
+            signal: abortController.signal
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            return resData.choices?.[0]?.message?.content || '';
+          } else {
+            const errText = await response.text();
+            throw new Error(`Groq API returned status ${response.status}: ${errText}`);
+          }
+        })();
+
+        rawText = await Promise.race([groqPromise, timeoutPromise]);
+        successModel = 'groq';
+        console.log(`[generatePlan] Groq (${WORKOUT_PLAN.PRIMARY}) successfully generated plan.`);
+      } catch (err) {
+        console.error(`[generatePlan] Groq (${WORKOUT_PLAN.PRIMARY}) failed:`, err.message);
+        errors.push({ model: WORKOUT_PLAN.PRIMARY, error: err.message });
+      }
+    } else {
+      errors.push({ model: WORKOUT_PLAN.PRIMARY, error: 'GROQ_API_KEY missing' });
+    }
+
+    // Model 2: Gemini (Fallback)
+    if (!rawText && GEMINI_API_KEY) {
+      try {
+        console.log(`[generatePlan] Attempting Model 2: Gemini (${WORKOUT_PLAN.FALLBACK})...`);
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: GEMINI_MODEL,
+          model: WORKOUT_PLAN.FALLBACK,
           generationConfig: {
             temperature: 0.2,
           },
@@ -227,63 +276,13 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
         const geminiResult = await Promise.race([geminiPromise, timeoutPromise]);
         rawText = geminiResult.response.text();
         successModel = 'gemini';
-        console.log(`[generatePlan] Gemini (${GEMINI_MODEL}) successfully generated plan.`);
+        console.log(`[generatePlan] Gemini (${WORKOUT_PLAN.FALLBACK}) successfully generated plan.`);
       } catch (err) {
-        console.error(`[generatePlan] Gemini (${GEMINI_MODEL}) failed:`, err.message);
-        errors.push({ model: GEMINI_MODEL, error: err.message });
-      }
-    } else {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-      errors.push({ model: GEMINI_MODEL, error: 'GEMINI_API_KEY missing' });
-    }
-
-    // Model 2: Groq Llama 3.3 70B (Fallback)
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (!rawText && GROQ_API_KEY) {
-      try {
-        console.log('[generatePlan] Attempting Model 2: Groq Llama 3.3 70B...');
-        const abortController = new AbortController();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            abortController.abort();
-            reject(new Error('deadline-exceeded'));
-          }, 50000); // 50 second timeout for Groq
-        });
-
-        const groqPromise = (async () => {
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${GROQ_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
-              messages: [{ role: 'user', content: prompt }],
-              temperature: 0.2,
-              response_format: { type: 'json_object' }
-            }),
-            signal: abortController.signal
-          });
-
-          if (response.ok) {
-            const resData = await response.json();
-            return resData.choices?.[0]?.message?.content || '';
-          } else {
-            const errText = await response.text();
-            throw new Error(`Groq API returned status ${response.status}: ${errText}`);
-          }
-        })();
-
-        rawText = await Promise.race([groqPromise, timeoutPromise]);
-        successModel = 'groq';
-        console.log('[generatePlan] Groq successfully generated plan.');
-      } catch (err) {
-        console.error('[generatePlan] Groq Llama 3.3 70B failed:', err.message);
-        errors.push({ model: 'llama-3.3-70b-versatile', error: err.message });
+        console.error(`[generatePlan] Gemini (${WORKOUT_PLAN.FALLBACK}) failed:`, err.message);
+        errors.push({ model: WORKOUT_PLAN.FALLBACK, error: err.message });
       }
     } else if (!rawText) {
-      errors.push({ model: 'llama-3.3-70b-versatile', error: 'GROQ_API_KEY missing' });
+      errors.push({ model: WORKOUT_PLAN.FALLBACK, error: 'GEMINI_API_KEY missing' });
     }
 
     if (!rawText) {

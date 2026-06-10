@@ -738,6 +738,9 @@ export function useChallenges() {
 
         await setDoc(docRef, challengeDoc);
         await deleteDoc(personalTemplateRef);
+        // Immediately remove from local state so onSnapshot doesn't re-add it while
+        // Firestore propagates the delete (fixes duplicate display in Available section)
+        setPersonalTemplates(prev => prev.filter(t => t.id !== challengeId));
 
         await loadChallenges(user.uid);
         addToast('Challenge accepted! Let\'s get after it! 🔥', 'success');

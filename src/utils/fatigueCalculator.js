@@ -126,6 +126,17 @@ export function calculateMuscleFatigue(sessions = [], bodyweightKg = 70) {
       if (indivMuscle && dailyVolumeIndividual[indivMuscle] !== undefined) {
         dailyVolumeIndividual[indivMuscle][dayIdx] += exVolumeLoad;
       }
+
+      // Secondary muscle attribution (credits 30% fatigue workload)
+      const secondaries = getSecondaryMuscles(exKey);
+      for (const sec of secondaries) {
+        if (dailyVolumeGeneral[sec.category] !== undefined) {
+          dailyVolumeGeneral[sec.category][dayIdx] += exVolumeLoad * sec.weight;
+        }
+        if (dailyVolumeIndividual[sec.muscle] !== undefined) {
+          dailyVolumeIndividual[sec.muscle][dayIdx] += exVolumeLoad * sec.weight;
+        }
+      }
     }
   }
 
@@ -249,4 +260,31 @@ function _getIndividualMuscleExtended(exerciseKey, category) {
   }
 
   return _getIndividualMuscle(exerciseKey, category);
+}
+
+// ── Secondary muscle resolver ────────────────────────────────────────────────
+function getSecondaryMuscles(exerciseKey) {
+  const name = (exerciseKey || '').toLowerCase();
+  const secondaries = [];
+
+  if (name.includes('bench_press') || name.includes('bench press') || name.includes('chest_press') || name.includes('chest press') || name.includes('pushup') || name.includes('push_up')) {
+    secondaries.push({ muscle: 'triceps', category: 'arms', weight: 0.3 });
+    secondaries.push({ muscle: 'shoulders', category: 'shoulders', weight: 0.3 });
+  } else if (name.includes('overhead_press') || name.includes('overhead press') || name.includes('shoulder_press') || name.includes('shoulder press') || name.includes('ohp') || name.includes('military')) {
+    secondaries.push({ muscle: 'triceps', category: 'arms', weight: 0.3 });
+  } else if (name.includes('dip')) {
+    secondaries.push({ muscle: 'chest', category: 'chest', weight: 0.3 });
+    secondaries.push({ muscle: 'shoulders', category: 'shoulders', weight: 0.3 });
+  } else if (name.includes('pull_up') || name.includes('pull up') || name.includes('chin_up') || name.includes('chin up') || name.includes('pulldown') || name.includes('row')) {
+    secondaries.push({ muscle: 'biceps', category: 'arms', weight: 0.3 });
+  } else if (name.includes('deadlift')) {
+    secondaries.push({ muscle: 'lower_back', category: 'back', weight: 0.3 });
+    secondaries.push({ muscle: 'glutes', category: 'legs', weight: 0.3 });
+    secondaries.push({ muscle: 'hamstrings', category: 'legs', weight: 0.3 });
+  } else if (name.includes('squat')) {
+    secondaries.push({ muscle: 'glutes', category: 'legs', weight: 0.3 });
+    secondaries.push({ muscle: 'hamstrings', category: 'legs', weight: 0.3 });
+  }
+
+  return secondaries;
 }

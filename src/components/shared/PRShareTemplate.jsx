@@ -64,7 +64,7 @@ export const fetchStrengthStandards = async (exerciseName, oneRepMax, bodyweight
     }
 
     let selected = [...(standards[key] || standards.generic)];
-    if (nameLower.includes('dumbbell') || nameLower.includes('db') || nameLower.includes('curl') || nameLower.includes('extension') || nameLower.includes('lateral')) {
+    if (nameLower.includes('dumbbell') || nameLower.includes('db') || nameLower.includes('cable') || nameLower.includes('curl') || nameLower.includes('extension') || nameLower.includes('lateral') || nameLower.includes('fly')) {
       selected = selected.map(s => s * 0.5);
     }
 

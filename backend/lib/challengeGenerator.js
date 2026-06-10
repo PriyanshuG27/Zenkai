@@ -4,6 +4,7 @@ const { adminDb } = require('./firebaseAdmin');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const { SQUAD_CHALLENGE } = require('./models');
 
 /**
  * Core function to generate a weekly synergy challenge (Titan Raid) for a squad and save it.
@@ -101,10 +102,10 @@ async function generateChallengeForSquad(squadCode) {
 
   let copywriteJSON = null;
 
-  // Model 1: Groq Llama 3.3 70B (Primary)
+  // Model 1: Groq (Primary)
   if (GROQ_API_KEY) {
     try {
-      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Groq...`);
+      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Groq (${SQUAD_CHALLENGE.PRIMARY})...`);
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -112,7 +113,7 @@ async function generateChallengeForSquad(squadCode) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: SQUAD_CHALLENGE.PRIMARY,
           messages: [{ role: 'user', content: prompt }],
           response_format: { type: 'json_object' },
           temperature: 0.7
@@ -130,25 +131,24 @@ async function generateChallengeForSquad(squadCode) {
         }
 
         copywriteJSON = JSON.parse(cleanText);
-        console.log(`[challengeGenerator] Groq succeeded for ${squadCode}`);
+        console.log(`[challengeGenerator] Groq (${SQUAD_CHALLENGE.PRIMARY}) succeeded for ${squadCode}`);
       } else {
         const errText = await response.text();
         console.warn(`[challengeGenerator] Groq API returned status ${response.status}: ${errText}`);
       }
     } catch (groqErr) {
-      console.error('[challengeGenerator] Groq API call failed, trying fallback:', groqErr.message);
+      console.error(`[challengeGenerator] Groq (${SQUAD_CHALLENGE.PRIMARY}) call failed, trying fallback:`, groqErr.message);
     }
   }
 
   // Model 2: Gemini (Fallback)
   if (!copywriteJSON && GEMINI_API_KEY) {
     try {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini (${GEMINI_MODEL})...`);
+      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini (${SQUAD_CHALLENGE.FALLBACK})...`);
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({
-        model: GEMINI_MODEL,
+        model: SQUAD_CHALLENGE.FALLBACK,
         generationConfig: {
           temperature: 0.7,
           responseMimeType: 'application/json'
@@ -165,10 +165,9 @@ async function generateChallengeForSquad(squadCode) {
       }
 
       copywriteJSON = JSON.parse(cleanText);
-      console.log(`[challengeGenerator] Gemini (${GEMINI_MODEL}) succeeded for ${squadCode}`);
+      console.log(`[challengeGenerator] Gemini (${SQUAD_CHALLENGE.FALLBACK}) succeeded for ${squadCode}`);
     } catch (geminiErr) {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-      console.error(`[challengeGenerator] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
+      console.error(`[challengeGenerator] Gemini (${SQUAD_CHALLENGE.FALLBACK}) fallback failed:`, geminiErr.message);
     }
   }
 

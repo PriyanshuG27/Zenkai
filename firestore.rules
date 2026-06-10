@@ -53,7 +53,7 @@ service cloud.firestore {
         // Academic Buffer & Prehab
         'examDeloadActive', 'examStartDate', 'examEndDate', 'lastPrehabDate',
         // Plan regeneration limits
-        'dailyRegenCount', 'lastRegenDate',
+        'dailyRegenCount', 'lastRegenDate', 'recentRegenTimes', 'recentGymVerifyTimes',
         // Metadata
         'createdAt', 'updatedAt'
       ]);

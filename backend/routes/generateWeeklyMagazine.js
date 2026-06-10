@@ -6,6 +6,7 @@ const { validateUID } = require('../lib/validators');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const { WEEKLY_MAGAZINE } = require('../lib/models');
 
 function getISOWeek(date) {
   const tempDate = new Date(date.valueOf());
@@ -248,10 +249,37 @@ JSON structure:
     const prompt = `Here is the compressed weekly telemetry for the user:
 ${JSON.stringify(compressedTelemetry, null, 2)}`;
 
-    // Model 1: Groq Llama 3.3 70B (Primary)
-    if (GROQ_API_KEY) {
+    // Model 1: Gemma 4 31B via Gemini API (Primary — unlimited TPM, 1,500 RPD)
+    if (GEMINI_API_KEY) {
       try {
-        console.log(`[generateWeeklyMagazine] Calling Groq Llama 3.3 for ${uid}...`);
+        console.log(`[generateWeeklyMagazine] Calling Gemini (${WEEKLY_MAGAZINE.PRIMARY}) for ${uid}...`);
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({
+          model: WEEKLY_MAGAZINE.PRIMARY,
+          systemInstruction: systemPrompt,
+          generationConfig: { temperature: 0.8, responseMimeType: 'application/json' },
+        });
+        const result = await model.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        });
+        const rawContent = result.response.text().trim();
+
+        let cleanContent = rawContent;
+        if (cleanContent.startsWith('```')) {
+          cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
+        }
+        copywriteJSON = JSON.parse(cleanContent);
+        console.log(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.PRIMARY}) succeeded.`);
+      } catch (geminiErr) {
+        console.error(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.PRIMARY}) failed:`, geminiErr.message);
+      }
+    }
+
+    // Model 2: Llama 4 Scout via Groq (Fallback)
+    if (!copywriteJSON && GROQ_API_KEY) {
+      try {
+        console.log(`[generateWeeklyMagazine] Falling back to Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) for ${uid}...`);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -259,7 +287,7 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: WEEKLY_MAGAZINE.FALLBACK_GROQ,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: prompt }
@@ -268,37 +296,32 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
             temperature: 0.8
           })
         });
-
         if (response.ok) {
           const resData = await response.json();
-          const rawContent = resData.choices?.[0]?.message?.content || '{}';
-          
-          // Regex strip to remove markdown code blocks in case LLM hallucinated
-          let cleanContent = rawContent.trim();
+          const rawContent = (resData.choices?.[0]?.message?.content || '{}').trim();
+          let cleanContent = rawContent;
           if (cleanContent.startsWith('```')) {
             cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
           }
-
           copywriteJSON = JSON.parse(cleanContent);
-          console.log('[generateWeeklyMagazine] Groq call succeeded.');
+          console.log(`[generateWeeklyMagazine] Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) fallback succeeded.`);
         } else {
           const errText = await response.text();
-          console.warn(`[generateWeeklyMagazine] Groq API error status ${response.status}: ${errText}`);
+          console.warn(`[generateWeeklyMagazine] Groq fallback error ${response.status}: ${errText}`);
         }
       } catch (groqErr) {
-        console.error('[generateWeeklyMagazine] Groq call failed:', groqErr.message);
+        console.error(`[generateWeeklyMagazine] Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) fallback failed:`, groqErr.message);
       }
     }
 
-    // Model 2: Gemini (Fallback)
+    // Model 3: Gemini Flash (Last Resort)
     if (!copywriteJSON && GEMINI_API_KEY) {
       try {
-        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-        console.log(`[generateWeeklyMagazine] Calling Gemini (${GEMINI_MODEL}) fallback for ${uid}...`);
+        console.log(`[generateWeeklyMagazine] Calling Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort for ${uid}...`);
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: GEMINI_MODEL,
+          model: WEEKLY_MAGAZINE.FALLBACK_GEMINI,
           systemInstruction: systemPrompt,
           generationConfig: {
             temperature: 0.8,
@@ -316,14 +339,13 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
         }
 
         copywriteJSON = JSON.parse(cleanContent);
-        console.log(`[generateWeeklyMagazine] Gemini (${GEMINI_MODEL}) fallback succeeded.`);
+        console.log(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort succeeded.`);
       } catch (geminiErr) {
-        const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-        console.error(`[generateWeeklyMagazine] Gemini (${GEMINI_MODEL}) fallback failed:`, geminiErr.message);
+        console.error(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort failed:`, geminiErr.message);
       }
     }
 
-    // Fallback magazine payload if both APIs fail
+    // Fallback magazine payload if all APIs fail
     if (!copywriteJSON) {
       copywriteJSON = {
         headline: `${userName}'s Path to Power: A Week in Review`,

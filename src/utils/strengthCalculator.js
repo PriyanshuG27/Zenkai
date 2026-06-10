@@ -135,7 +135,9 @@ export function getMultipliersForExercise(exerciseKey, gender = 'male') {
     nameLower.includes('curl') ||
     nameLower.includes('raise') ||
     nameLower.includes('extension') ||
-    nameLower.includes('kickback')
+    nameLower.includes('kickback') ||
+    nameLower.includes('cable') ||
+    nameLower.includes('fly')
   );
   // Don't double-apply to compound movements that happen to contain these words
   const isCompound = (
@@ -228,9 +230,11 @@ export function calculateDetailedMuscleStrength(prs = [], profile = {}) {
     const isDumbbell = exInfo?.equipmentRequired?.includes('dumbbells') || 
                        exKey.includes('dumbbell') || 
                        exKey.includes('db');
+    const isCable = exInfo?.equipmentRequired?.includes('cable') ||
+                    exKey.includes('cable');
 
     const rawWeight = parseFloat(pr.weight) || 0;
-    const trueWeight = isDumbbell ? rawWeight * 2 : rawWeight;
+    const trueWeight = (isDumbbell || isCable) ? rawWeight * 2 : rawWeight;
 
     const est1RM = estimate1RM(pr.weight === 'BW' ? 'BW' : trueWeight, pr.reps);
     if (est1RM <= 0 && pr.weight !== 'BW') return;

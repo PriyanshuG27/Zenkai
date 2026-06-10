@@ -2,12 +2,22 @@
 
 const authGuard = require('../middleware/authGuard');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { VISION } = require('../lib/models');
+const { checkGymCheckinRateLimit } = require('../middleware/rateLimiter');
+const { adminDb } = require('../lib/firebaseAdmin');
 
 module.exports = [authGuard, async (req, res) => {
   const uid = req.user.uid;
   const base64DataUrl = req.body.image;
   if (!base64DataUrl) {
     return res.status(400).json({ error: 'Image data is required' });
+  }
+
+  try {
+    await checkGymCheckinRateLimit(adminDb, uid);
+  } catch (rateErr) {
+    console.warn(`[verifyGymImage] User ${uid} rate limited:`, rateErr.message);
+    return res.status(rateErr.status || 429).json({ error: rateErr.message || 'Too many gym verification attempts. Please try again later.' });
   }
 
   try {
@@ -33,12 +43,11 @@ module.exports = [authGuard, async (req, res) => {
     // Model 1: Gemini (Primary)
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (GEMINI_API_KEY) {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
       try {
-        console.log(`[verifyGymImage] Attempting Model 1: Gemini (${GEMINI_MODEL})`);
+        console.log(`[verifyGymImage] Attempting Model 1: Gemini (${VISION.PRIMARY})`);
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-          model: GEMINI_MODEL,
+          model: VISION.PRIMARY,
           generationConfig: {
             temperature: 0.1,
           },
@@ -55,26 +64,25 @@ module.exports = [authGuard, async (req, res) => {
         ]);
 
         const responseText = result.response.text().trim().toLowerCase();
-        console.log(`[verifyGymImage] Gemini (${GEMINI_MODEL}) response:`, responseText);
+        console.log(`[verifyGymImage] Gemini (${VISION.PRIMARY}) response:`, responseText);
         if (responseText.includes('yes')) {
           verified = true;
         }
-        modelUsed = GEMINI_MODEL;
+        modelUsed = VISION.PRIMARY;
         return res.status(200).json({ success: true, verified, modelUsed });
       } catch (err) {
-        console.error(`[verifyGymImage] Gemini (${GEMINI_MODEL}) failed, falling back:`, err.message);
-        errors.push({ model: GEMINI_MODEL, error: err.message });
+        console.error(`[verifyGymImage] Gemini (${VISION.PRIMARY}) failed, falling back:`, err.message);
+        errors.push({ model: VISION.PRIMARY, error: err.message });
       }
     } else {
-      const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-      errors.push({ model: GEMINI_MODEL, error: 'GEMINI_API_KEY missing' });
+      errors.push({ model: VISION.PRIMARY, error: 'GEMINI_API_KEY missing' });
     }
 
-    // Model 2: Groq Llama 3.2 Vision (Fallback)
+    // Model 2: Groq Vision (Fallback)
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (GROQ_API_KEY) {
       try {
-        console.log('[verifyGymImage] Attempting Model 2: llama-3.2-11b-vision-preview on Groq');
+        console.log(`[verifyGymImage] Attempting Model 2: Groq (${VISION.FALLBACK})`);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -82,7 +90,7 @@ module.exports = [authGuard, async (req, res) => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'llama-3.2-11b-vision-preview',
+            model: VISION.FALLBACK,
             messages: [
               {
                 role: 'user',
@@ -107,22 +115,22 @@ module.exports = [authGuard, async (req, res) => {
         if (response.ok) {
           const resData = await response.json();
           const contentText = resData.choices?.[0]?.message?.content?.trim()?.toLowerCase() || '';
-          console.log('[verifyGymImage] Groq Llama Vision response:', contentText);
+          console.log(`[verifyGymImage] Groq Vision (${VISION.FALLBACK}) response:`, contentText);
           if (contentText.includes('yes')) {
             verified = true;
           }
-          modelUsed = 'llama-3.2-11b-vision-preview';
+          modelUsed = VISION.FALLBACK;
           return res.status(200).json({ success: true, verified, modelUsed });
         } else {
           const errText = await response.text();
           throw new Error(`Groq API returned status ${response.status}: ${errText}`);
         }
       } catch (err) {
-        console.error('[verifyGymImage] Groq Llama Vision failed:', err.message);
-        errors.push({ model: 'llama-3.2-11b-vision-preview', error: err.message });
+        console.error(`[verifyGymImage] Groq Vision (${VISION.FALLBACK}) failed:`, err.message);
+        errors.push({ model: VISION.FALLBACK, error: err.message });
       }
     } else {
-      errors.push({ model: 'llama-3.2-11b-vision-preview', error: 'GROQ_API_KEY missing' });
+      errors.push({ model: VISION.FALLBACK, error: 'GROQ_API_KEY missing' });
     }
 
     // If all models failed

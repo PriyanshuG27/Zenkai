@@ -1,0 +1,5666 @@
+{
+  "barbell_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "dumbbell_bench_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.375,
+      "intermediate": 0.5,
+      "advanced": 0.65,
+      "elite": 0.8
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.244,
+      "intermediate": 0.325,
+      "advanced": 0.423,
+      "elite": 0.52
+    }
+  },
+  "push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "overhead_press": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.5,
+      "intermediate": 0.65,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.325,
+      "intermediate": 0.423,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "incline_barbell_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "decline_barbell_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "incline_dumbbell_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "decline_dumbbell_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "barbell_floor_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_floor_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "close_grip_barbell_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "close_grip_dumbbell_bench_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.375,
+      "intermediate": 0.5,
+      "advanced": 0.65,
+      "elite": 0.8
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.244,
+      "intermediate": 0.325,
+      "advanced": 0.423,
+      "elite": 0.52
+    }
+  },
+  "cable_chest_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "high_to_low_cable_chest_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "low_to_high_cable_chest_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "single_arm_cable_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "pec_deck_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "incline_dumbbell_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "decline_dumbbell_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "chest_dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "weighted_chest_dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "incline_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "decline_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "diamond_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "wide_grip_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "archer_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "handstand_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "weighted_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "plyometric_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "clapping_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "deficit_push_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "machine_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "incline_machine_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "decline_machine_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "hammer_strength_flat_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "hammer_strength_incline_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "hammer_strength_decline_chest_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "svend_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "landmine_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_pullover": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "chin_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "neutral_grip_pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "wide_grip_pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "close_grip_pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "behind_the_neck_pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "weighted_pull_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "weighted_chin_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "wide_grip_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "close_grip_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "reverse_grip_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "single_arm_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "behind_the_neck_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "v_bar_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "straight_arm_cable_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "rope_straight_arm_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "kneeling_lat_pulldown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_bent_over_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "underhand_barbell_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "yates_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "pendlay_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "deficit_pendlay_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "t_bar_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "chest_supported_t_bar_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "lying_t_bar_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "single_arm_dumbbell_row": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kroc_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "chest_supported_dumbbell_row": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "incline_dumbbell_row": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "chest_supported_machine_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "seated_cable_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "single_arm_seated_cable_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "v_bar_seated_cable_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "wide_grip_cable_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "underhand_cable_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "meadows_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "landmine_single_arm_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "seal_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_seal_row": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kettlebell_row": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "renegade_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "inverted_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.455,
+      "novice": 0.683,
+      "intermediate": 0.943,
+      "advanced": 1.268,
+      "elite": 1.56
+    }
+  },
+  "sumo_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.455,
+      "novice": 0.683,
+      "intermediate": 0.943,
+      "advanced": 1.268,
+      "elite": 1.56
+    }
+  },
+  "romanian_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.56,
+      "novice": 0.84,
+      "intermediate": 1.16,
+      "advanced": 1.56,
+      "elite": 1.92
+    }
+  },
+  "deficit_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.455,
+      "novice": 0.683,
+      "intermediate": 0.943,
+      "advanced": 1.268,
+      "elite": 1.56
+    }
+  },
+  "rack_pulls": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "block_pulls": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "snatch_grip_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.455,
+      "novice": 0.683,
+      "intermediate": 0.943,
+      "advanced": 1.268,
+      "elite": 1.56
+    }
+  },
+  "trap_bar_deadlift": {
+    "male": {
+      "beginner": 0.7,
+      "novice": 1.05,
+      "intermediate": 1.45,
+      "advanced": 1.95,
+      "elite": 2.4
+    },
+    "female": {
+      "beginner": 0.455,
+      "novice": 0.683,
+      "intermediate": 0.943,
+      "advanced": 1.268,
+      "elite": 1.56
+    }
+  },
+  "hyper_extensions": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "weighted_hyper_extensions": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "good_mornings": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_good_mornings": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "safety_bar_good_mornings": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "reverse_hyperextensions": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_deadlift": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.525,
+      "intermediate": 0.725,
+      "advanced": 0.975,
+      "elite": 1.2
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.341,
+      "intermediate": 0.471,
+      "advanced": 0.634,
+      "elite": 0.78
+    }
+  },
+  "kettlebell_deadlift": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.525,
+      "intermediate": 0.725,
+      "advanced": 0.975,
+      "elite": 1.2
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.341,
+      "intermediate": 0.471,
+      "advanced": 0.634,
+      "elite": 0.78
+    }
+  },
+  "machine_lat_pullover": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "military_press": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.5,
+      "intermediate": 0.65,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.325,
+      "intermediate": 0.423,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "push_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "seated_barbell_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_shoulder_press": {
+    "male": {
+      "beginner": 0.175,
+      "novice": 0.25,
+      "intermediate": 0.325,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.114,
+      "novice": 0.163,
+      "intermediate": 0.211,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "seated_dumbbell_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "arnold_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "single_arm_dumbbell_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kettlebell_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kettlebell_push_press": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "smith_machine_shoulder_press": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.5,
+      "intermediate": 0.65,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.325,
+      "intermediate": 0.423,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "behind_the_neck_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "machine_shoulder_press": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.5,
+      "intermediate": 0.65,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.325,
+      "intermediate": 0.423,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "hammer_strength_shoulder_press": {
+    "male": {
+      "beginner": 0.35,
+      "novice": 0.5,
+      "intermediate": 0.65,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.227,
+      "novice": 0.325,
+      "intermediate": 0.423,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "seated_dumbbell_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "single_arm_cable_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "behind_the_back_cable_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "machine_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kettlebell_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "incline_lateral_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "front_dumbbell_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "alternating_front_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "barbell_front_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_front_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "plate_front_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "face_pulls": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "rope_face_pulls": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "band_face_pulls": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "reverse_pec_deck_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "rear_delt_fly_machine": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_rear_delt_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "bent_over_rear_delt_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "seated_rear_delt_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "incline_dumbbell_rear_delt_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_rear_delt_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "single_arm_cable_rear_delt_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_shrugs": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "barbell_shrugs": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "behind_the_back_barbell_shrugs": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "smith_machine_shrugs": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "trap_bar_shrugs": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_upright_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "ez_bar_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_bicep_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "alternating_dumbbell_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_hammer_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cross_body_hammer_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_bicep_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "rope_bicep_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "preacher_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "ez_bar_preacher_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_preacher_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "concentration_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "spider_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "ez_bar_spider_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "incline_dumbbell_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "zottman_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_hammer_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "overhead_cable_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "machine_bicep_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "drag_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "reverse_grip_barbell_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "reverse_grip_ez_bar_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "reverse_dumbbell_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "plate_curls": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "kettlebell_curls": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "tricep_pushdown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "v_bar_pushdown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "rope_pushdown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "underhand_pushdown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "single_arm_pushdown": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "skull_crushers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "ez_bar_skull_crushers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_skull_crushers": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "decline_skull_crushers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "overhead_dumbbell_tricep_extension": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "single_arm_overhead_db_extension": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "overhead_cable_tricep_extension": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "rope_overhead_tricep_extension": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "close_grip_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "smith_machine_close_grip_bench_press": {
+    "male": {
+      "beginner": 0.5,
+      "novice": 0.75,
+      "intermediate": 1,
+      "advanced": 1.3,
+      "elite": 1.6
+    },
+    "female": {
+      "beginner": 0.325,
+      "novice": 0.488,
+      "intermediate": 0.65,
+      "advanced": 0.845,
+      "elite": 1.04
+    }
+  },
+  "dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "tricep_dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "bench_dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "weighted_bench_dips": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_tricep_kickback": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_tricep_kickback": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "jm_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "tate_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "barbell_wrist_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "behind_the_back_wrist_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_wrist_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "barbell_reverse_wrist_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_reverse_wrist_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "plate_pinching": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "wrist_roller": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "farmer_s_walk": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "trap_bar_farmer_s_walk": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_farmer_s_walk": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "concentration_hammer_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "single_arm_overhead_dumbbell_tricep_extension": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "reverse_cable_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_tricep_overhead_extension_v_bar": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "floor_press_close_grip": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "diamond_push_up_arm_focus": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "cable_one_arm_bicep_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "dumbbell_zottman_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "barbell_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "back_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "barbell_front_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "goblet_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "dumbbell_squat": {
+    "male": {
+      "beginner": 0.3,
+      "novice": 0.45,
+      "intermediate": 0.625,
+      "advanced": 0.825,
+      "elite": 1.05
+    },
+    "female": {
+      "beginner": 0.24,
+      "novice": 0.36,
+      "intermediate": 0.5,
+      "advanced": 0.66,
+      "elite": 0.84
+    }
+  },
+  "safety_bar_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "zercher_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "box_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "smith_machine_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "hack_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "machine_hack_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "leg_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "forty_five_degree_leg_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "horizontal_leg_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "single_leg_leg_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "belt_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "bulgarian_split_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "barbell_bulgarian_split_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "bodyweight_bulgarian_split_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "step_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_step_ups": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "barbell_step_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "pistol_squats": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "sissy_squats": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "bodyweight_squats": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "air_squats": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "jump_squats": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_walking_lunges": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "barbell_walking_lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "bodyweight_walking_lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_reverse_lunges": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "barbell_reverse_lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "bodyweight_reverse_lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_lateral_lunges": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "barbell_lateral_lunges": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "curtsy_lunges": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "barbell_hip_thrust": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "single_leg_hip_thrust": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_hip_thrust": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "machine_hip_thrust": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "glute_bridge": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "weighted_glute_bridge": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "cable_pull_through": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "barbell_rdl": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "dumbbell_rdl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "trap_bar_rdl": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "snatch_grip_rdl": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "leg_extensions": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "lying_leg_curls": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "seated_leg_curls": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "standing_leg_curls": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "nordics": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.2,
+      "novice": 0.32,
+      "intermediate": 0.48,
+      "advanced": 0.68,
+      "elite": 0.88
+    }
+  },
+  "nordic_hamstring_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "glute_ham_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "seated_calf_raises": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "donkey_calf_raises": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "leg_press_calf_raises": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "smith_machine_calf_raises": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "sumo_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "jefferson_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "hack_squat_machine_calf_raise": {
+    "male": {
+      "beginner": 0.3,
+      "novice": 0.45,
+      "intermediate": 0.625,
+      "advanced": 0.825,
+      "elite": 1.05
+    },
+    "female": {
+      "beginner": 0.24,
+      "novice": 0.36,
+      "intermediate": 0.5,
+      "advanced": 0.66,
+      "elite": 0.84
+    }
+  },
+  "single_leg_calf_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "seated_calf_raise_machine": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "dumbbell_goblet_squat": {
+    "male": {
+      "beginner": 0.3,
+      "novice": 0.45,
+      "intermediate": 0.625,
+      "advanced": 0.825,
+      "elite": 1.05
+    },
+    "female": {
+      "beginner": 0.24,
+      "novice": 0.36,
+      "intermediate": 0.5,
+      "advanced": 0.66,
+      "elite": 0.84
+    }
+  },
+  "forearm_plank": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "high_plank": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "side_plank_with_rotation": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "rkc_plank": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "weighted_plank": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "kneeling_ab_wheel_rollouts": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "standing_ab_wheel_rollouts": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "kneeling_cable_crunches": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "seated_cable_crunches": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "decline_sit_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "crunches": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "abdominal_crunch_machine": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "hanging_knee_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.087,
+      "novice": 0.14,
+      "intermediate": 0.21,
+      "advanced": 0.297,
+      "elite": 0.385
+    }
+  },
+  "dragon_flag": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "toes_to_bar": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "knees_to_elbows": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "captain_s_chair_leg_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.087,
+      "novice": 0.14,
+      "intermediate": 0.21,
+      "advanced": 0.297,
+      "elite": 0.385
+    }
+  },
+  "weighted_russian_twists": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "bicycle_crunches": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "mountain_climbers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "spider_man_mountain_climbers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "cable_woodchopper": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "standing_cable_woodchopper": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "kneeling_cable_woodchopper": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "dead_bug": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "bird_dog": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "hollow_body_hold": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "v_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "flutter_kicks": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "scissors": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "l_sit": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "windshield_wipers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "bear_crawl": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "pallof_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "cable_pallof_press": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "suitcase_carry": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "dumbbell_side_bend": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.087,
+      "novice": 0.14,
+      "intermediate": 0.21,
+      "advanced": 0.297,
+      "elite": 0.385
+    }
+  },
+  "sit_ups": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "reverse_crunch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "leg_pull_in": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "hanging_leg_tuck": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "ab_coaster_machine": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "foam_rolling_lats": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "foam_rolling_quads": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "foam_rolling_hamstrings": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "foam_rolling_calves": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "foam_rolling_it_band": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "upper_back_foam_rolling": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "glutes_foam_rolling": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "chest_doorway_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "child_s_pose": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "cobra_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "cat_cow_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "thread_the_needle": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "hamstring_doorway_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "pigeon_pose": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "world_s_greatest_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "figure_four_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "calf_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "wrist_stretches": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "shoulder_dislocates_band": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "deep_squat_hold": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.42,
+      "novice": 0.63,
+      "intermediate": 0.875,
+      "advanced": 1.155,
+      "elite": 1.47
+    }
+  },
+  "butterfly_stretch": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.087,
+      "novice": 0.14,
+      "intermediate": 0.21,
+      "advanced": 0.297,
+      "elite": 0.385
+    }
+  },
+  "standing_quad_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "seated_hamstring_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "sleeper_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "pec_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "lat_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "thoracic_extension_on_roller": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.087,
+      "novice": 0.14,
+      "intermediate": 0.21,
+      "advanced": 0.297,
+      "elite": 0.385
+    }
+  },
+  "hip_flexor_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "kneeling_hip_flexor_stretch": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.175,
+      "novice": 0.28,
+      "intermediate": 0.42,
+      "advanced": 0.595,
+      "elite": 0.77
+    }
+  },
+  "bayesian_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "lu_raise": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "reverse_cable_fly": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "sissy_squat": {
+    "male": {
+      "beginner": 0.6,
+      "novice": 0.9,
+      "intermediate": 1.25,
+      "advanced": 1.65,
+      "elite": 2.1
+    },
+    "female": {
+      "beginner": 0.48,
+      "novice": 0.72,
+      "intermediate": 1,
+      "advanced": 1.32,
+      "elite": 1.68
+    }
+  },
+  "dumbbell_spider_curl": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.081,
+      "novice": 0.13,
+      "intermediate": 0.195,
+      "advanced": 0.276,
+      "elite": 0.358
+    }
+  },
+  "cable_skull_crushers": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  },
+  "dumbbell_calf_raises": {
+    "male": {
+      "beginner": 0.125,
+      "novice": 0.2,
+      "intermediate": 0.3,
+      "advanced": 0.425,
+      "elite": 0.55
+    },
+    "female": {
+      "beginner": 0.1,
+      "novice": 0.16,
+      "intermediate": 0.24,
+      "advanced": 0.34,
+      "elite": 0.44
+    }
+  },
+  "machine_t_bar_row": {
+    "male": {
+      "beginner": 0.25,
+      "novice": 0.4,
+      "intermediate": 0.6,
+      "advanced": 0.85,
+      "elite": 1.1
+    },
+    "female": {
+      "beginner": 0.163,
+      "novice": 0.26,
+      "intermediate": 0.39,
+      "advanced": 0.552,
+      "elite": 0.715
+    }
+  }
+}

@@ -184,20 +184,43 @@ export const MobileProgress = () => {
 
         const sessionsExercises = await Promise.all(fetchExercisesPromises);
 
+        const getSecondaryGroups = (exKey) => {
+          const name = (exKey || '').toLowerCase();
+          const groups = [];
+          if (name.includes('bench_press') || name.includes('bench press') || name.includes('chest_press') || name.includes('chest press') || name.includes('pushup') || name.includes('push_up')) {
+            groups.push('arms', 'shoulders');
+          } else if (name.includes('overhead_press') || name.includes('overhead press') || name.includes('shoulder_press') || name.includes('shoulder press') || name.includes('ohp') || name.includes('military')) {
+            groups.push('arms');
+          } else if (name.includes('dip')) {
+            groups.push('chest', 'shoulders');
+          } else if (name.includes('pull_up') || name.includes('pull up') || name.includes('chin_up') || name.includes('chin up') || name.includes('pulldown') || name.includes('row')) {
+            groups.push('arms');
+          } else if (name.includes('deadlift')) {
+            groups.push('back', 'legs');
+          }
+          return groups;
+        };
+
         sessionsExercises.forEach((exercises) => {
           exercises.forEach((ex) => {
             const key = ex.exerciseKey || ex.exerciseId || '';
             const keyBase = key.split('_').slice(0, -1).join('_');
             const muscleGroup = exerciseToMuscleMap[key] || exerciseToMuscleMap[keyBase] || exerciseToMuscleMap[ex.name?.toLowerCase()] || 'other';
-            // Fix: filter for COMPLETED sets only (done or completed flag).
-            // Previously counted ex.sets.length which included sets that were added but never done.
             const completedSetsCount = ex.sets
               ? ex.sets.filter(s => s.done || s.completed).length
               : 0;
             
             if (completedSetsCount > 0) {
+              // Primary muscle group gets full sets credit
               distribution[muscleGroup] = (distribution[muscleGroup] || 0) + completedSetsCount;
               totalSets += completedSetsCount;
+
+              // Secondary muscle groups get 30% sets credit
+              const secondaries = getSecondaryGroups(key || ex.name);
+              secondaries.forEach((secGroup) => {
+                distribution[secGroup] = (distribution[secGroup] || 0) + completedSetsCount * 0.3;
+                totalSets += completedSetsCount * 0.3;
+              });
             }
           });
         });

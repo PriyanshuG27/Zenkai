@@ -8,13 +8,8 @@ import { WeeklyRecapScreen } from '../components/shared/WeeklyRecapScreen';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useXPStore } from '../stores/useXPStore';
 
-// Mock html2canvas
-vi.mock('html2canvas', () => ({
-  default: vi.fn().mockImplementation(() => {
-    const canvas = document.createElement('canvas');
-    canvas.toBlob = (cb) => cb(new Blob(['dummy-image'], { type: 'image/png' }));
-    return Promise.resolve(canvas);
-  }),
+vi.mock('../components/shared/weeklyRecapCardGenerator', () => ({
+  generateWeeklyStatsCardImage: vi.fn().mockResolvedValue('data:image/png;base64,ZHVtbXktaW1hZ2U='),
 }));
 
 describe('Weekly Recap System', () => {
