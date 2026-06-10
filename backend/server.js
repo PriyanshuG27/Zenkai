@@ -23,10 +23,14 @@ app.use(cors(isProd && allowedOrigins.length > 0
 // Expand parsing capacity to safely handle baseline Base64 compressed image strings
 app.use(express.json({ limit: '10mb' }));
 
-// Proactive Wake-Up / Health Verification Route
+// Proactive Wake-Up / Health Verification Routes
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'awake', timestamp: Date.now() });
 });
+app.get('/ping', (req, res) => {
+  res.status(200).json({ status: 'awake', timestamp: Date.now() });
+});
+
 
 // Endpoint Routing Maps
 app.post('/api/verifyGymImage', require('./routes/verifyGymImage'));

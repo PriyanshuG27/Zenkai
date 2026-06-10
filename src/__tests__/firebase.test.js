@@ -3,9 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Declare mocks for firebase dependencies
 const mockInitializeApp = vi.fn().mockReturnValue({ _type: 'firebase-app' });
 const mockGetApps = vi.fn().mockReturnValue([]);
-const mockGetFirestore = vi.fn().mockReturnValue({ _type: 'firestore-db' });
+const mockInitializeFirestore = vi.fn().mockReturnValue({ _type: 'firestore-db' });
 const mockConnectFirestoreEmulator = vi.fn();
-const mockEnableMultiTabIndexedDbPersistence = vi.fn().mockResolvedValue(undefined);
+const mockPersistentLocalCache = vi.fn().mockReturnValue({ _type: 'local-cache' });
+const mockPersistentMultipleTabManager = vi.fn().mockReturnValue({ _type: 'tab-manager' });
 const mockGetAuth = vi.fn().mockReturnValue({ _type: 'auth-instance' });
 const mockConnectAuthEmulator = vi.fn();
 const mockSetPersistence = vi.fn().mockResolvedValue(undefined);
@@ -16,9 +17,10 @@ vi.mock('firebase/app', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
-  getFirestore: mockGetFirestore,
+  initializeFirestore: mockInitializeFirestore,
   connectFirestoreEmulator: mockConnectFirestoreEmulator,
-  enableMultiTabIndexedDbPersistence: mockEnableMultiTabIndexedDbPersistence,
+  persistentLocalCache: mockPersistentLocalCache,
+  persistentMultipleTabManager: mockPersistentMultipleTabManager,
 }));
 
 vi.mock('firebase/auth', () => ({
@@ -56,11 +58,10 @@ describe('firebase initialization module', () => {
     const { db, auth, app } = await import('../lib/firebase');
 
     expect(mockInitializeApp).toHaveBeenCalled();
-    expect(mockGetFirestore).toHaveBeenCalled();
+    expect(mockInitializeFirestore).toHaveBeenCalled();
     expect(mockGetAuth).toHaveBeenCalled();
     expect(mockConnectFirestoreEmulator).not.toHaveBeenCalled();
     expect(mockConnectAuthEmulator).not.toHaveBeenCalled();
-    expect(mockEnableMultiTabIndexedDbPersistence).toHaveBeenCalledWith(db);
 
     expect(db).toEqual({ _type: 'firestore-db' });
     expect(auth).toEqual({ _type: 'auth-instance' });
@@ -101,26 +102,18 @@ describe('firebase initialization module', () => {
     expect(configArg.projectId).toBe('zenkai-test');
   });
 
-  it('handles offline persistence errors gracefully', async () => {
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it('configures modern local cache settings when running in a browser environment', async () => {
+    mockGetApps.mockReturnValue([]);
     
-    // Simulate failed-precondition error
-    mockEnableMultiTabIndexedDbPersistence.mockRejectedValueOnce({ code: 'failed-precondition' });
     await import('../lib/firebase');
-    // Wait for promise tick
-    await new Promise(resolve => setTimeout(resolve, 0));
-    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('multiple tabs open'));
 
-    // Reset modules for second run
-    vi.resetModules();
-    consoleWarnSpy.mockClear();
-
-    // Simulate unimplemented error
-    mockEnableMultiTabIndexedDbPersistence.mockRejectedValueOnce({ code: 'unimplemented' });
-    await import('../lib/firebase');
-    await new Promise(resolve => setTimeout(resolve, 0));
-    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('unimplemented in this browser'));
-    
-    consoleWarnSpy.mockRestore();
+    expect(mockInitializeFirestore).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        cache: { _type: 'local-cache' }
+      })
+    );
+    expect(mockPersistentLocalCache).toHaveBeenCalled();
+    expect(mockPersistentMultipleTabManager).toHaveBeenCalled();
   });
 });

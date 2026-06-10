@@ -125,7 +125,7 @@ describe('apiClient', () => {
       // Wait for promises to resolve
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/health'));
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/ping'));
       expect(consoleLogSpy).toHaveBeenCalledWith('Render node confirmed awake.');
     });
 

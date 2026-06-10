@@ -10,7 +10,12 @@
  */
 
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  connectFirestoreEmulator, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from 'firebase/firestore';
 import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { firebaseConfig } from './firebaseConfig';
 
@@ -28,7 +33,13 @@ if (useEmulator) {
 
 const app = getApps().length ? getApps()[0] : initializeApp(resolvedConfig);
 
-export const db = getFirestore(app);
+// Initialize Firestore with the modern persistence cache settings (multi-tab IndexedDB cache)
+export const db = initializeFirestore(app, {
+  cache: typeof window !== 'undefined'
+    ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    : undefined
+});
+
 export const auth = getAuth(app);
 
 if (useEmulator) {
@@ -44,16 +55,5 @@ if (useEmulator) {
   }
 }
 
-// Enable offline persistence (AFTER emulator connection)
-if (typeof window !== 'undefined') {
-  enableMultiTabIndexedDbPersistence(db)
-    .catch((err) => {
-      if (err.code === 'failed-precondition') {
-        console.warn('Firestore persistence failed-precondition (multiple tabs open)');
-      } else if (err.code === 'unimplemented') {
-        console.warn('Firestore persistence unimplemented in this browser');
-      }
-    });
-}
-
 export { app };
+
