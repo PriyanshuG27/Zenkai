@@ -445,7 +445,7 @@ export const MobileLogger = () => {
         setLocalError(
           newRetry >= 3
             ? 'Session saved locally — will sync when connection returns.'
-            : 'Could not save. Tap "Finish Session" to retry.'
+            : `Could not save. Tap "Finish Session" to retry. (${cleanMsg})`
         );
       }
     } finally {

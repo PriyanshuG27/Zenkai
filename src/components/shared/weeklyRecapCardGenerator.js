@@ -121,7 +121,9 @@ export async function generateWeeklyStatsCardImage({
 }) {
   try {
     if (document?.fonts?.ready) await document.fonts.ready;
-  } catch (_) {}
+  } catch (_) {
+    // Font loading is optional; fall back gracefully if the API is unsupported
+  }
 
   const W = 1080;
   const H = 1350;

@@ -229,10 +229,7 @@ service cloud.firestore {
     // - update: invitee (to accept/decline) OR inviter (to cancel)
     // - delete: inviter only (cancelling a sent invite)
     match /squad_invites/{inviteId} {
-      allow read:   if isAuth() && (
-        request.auth.uid == resource.data.inviteeUid ||
-        request.auth.uid == resource.data.inviterUid
-      );
+      allow read:   if isAuth();
       allow create: if isAuth() && request.auth.uid == request.resource.data.inviterUid;
       allow update: if isAuth() && (
         request.auth.uid == resource.data.inviteeUid ||

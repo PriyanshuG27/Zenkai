@@ -4,7 +4,7 @@ const authGuard = require('../middleware/authGuard');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { VISION } = require('../lib/models');
 const { checkGymCheckinRateLimit } = require('../middleware/rateLimiter');
-const { adminDb } = require('../lib/firebaseAdmin');
+const { admin, adminDb } = require('../lib/firebaseAdmin');
 
 module.exports = [authGuard, async (req, res) => {
   const uid = req.user.uid;

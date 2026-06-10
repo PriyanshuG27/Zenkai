@@ -171,6 +171,8 @@ export function useWorkoutLogger() {
       });
     });
 
+    totalVolume = Math.round(totalVolume);
+
     if (totalSets === 0) {
       throw new Error(
         '[useWorkoutLogger] Cannot save — no sets marked as done. ' +
@@ -208,7 +210,7 @@ export function useWorkoutLogger() {
           weight: s.weight === 'BW' ? 'BW' : (parseFloat(s.weight) || 0),
           done:   true,
         })),
-        volume: doneSets.reduce(
+        volume: Math.round(doneSets.reduce(
           (sum, s) => {
             const w = s.weight === 'BW'
               ? userBodyweight * getBWEffectiveFraction(exerciseKey)
@@ -216,7 +218,7 @@ export function useWorkoutLogger() {
             return sum + w * (parseInt(s.reps, 10) || 0);
           },
           0
-        ),
+        )),
       });
 
       // Find best set in this session by Epley 1RM

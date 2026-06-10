@@ -1534,7 +1534,7 @@ export const SquadMatchmaker = () => {
                       <div className="flex flex-col gap-2.5">
                         <div className="flex justify-between items-center text-[10px] font-mono text-[var(--text-secondary)] uppercase font-bold border-b border-neutral-900 pb-1.5">
                           <span>Squad Roster ({activeSquadMembers.length} members)</span>
-                          <span>Weekly Volume: {totalVolume}kg</span>
+                          <span>Weekly Volume: {Math.round(totalVolume)}kg</span>
                         </div>
                         
                         <div className="flex flex-col gap-2.5">
@@ -1562,7 +1562,7 @@ export const SquadMatchmaker = () => {
                               </div>
                               <div className="flex items-center gap-4 text-[10px] text-[var(--text-secondary)]">
                                 <span>Streak: <strong className="text-white">{mbr.streak || 0}d</strong></span>
-                                <span>Volume: <strong className="text-white">{mbr.volume || 0}kg</strong></span>
+                                <span>Volume: <strong className="text-white">{Math.round(mbr.volume || 0)}kg</strong></span>
                                 {isCreator && mbr.uid !== uid && (
                                   <button
                                     onClick={() => handleKickMember(mbr.uid)}
@@ -1850,7 +1850,7 @@ export const SquadMatchmaker = () => {
                     <div className="border border-neutral-900 bg-black/40 p-4.5 rounded-xl flex flex-col gap-1">
                       <span className="text-[9px] text-neutral-500 uppercase">Squad volume target</span>
                       <span className="text-xl font-display font-black text-[var(--primary)] uppercase">
-                        {totalVolume} / 8000 kg
+                        {Math.round(totalVolume)} / 8000 kg
                       </span>
                       <span className="text-[10px] text-neutral-400 font-sans leading-normal mt-0.5">
                         Cumulative weekly lift volume target. Reaching 8K unlocks rare Boss key.
@@ -2118,7 +2118,7 @@ export const SquadMatchmaker = () => {
                             >
                               {activeSquadMembers.filter(m => m.uid !== uid).map(m => (
                                 <option key={m.uid} value={m.uid}>
-                                  {m.name.replace(' (You)', '')} (Streak: {m.streak}d, Vol: {m.volume}kg)
+                                  {m.name.replace(' (You)', '')} (Streak: {m.streak}d, Vol: {Math.round(m.volume || 0)}kg)
                                 </option>
                               ))}
                             </select>
