@@ -471,7 +471,6 @@ export const SquadMatchmaker = () => {
     }
   };
 
-  // Join Squad Action
   const handleJoinSquad = async (e) => {
     e.preventDefault();
     if (!joinCodeInput.trim() || !uid || !mySquadCode) return;
@@ -479,6 +478,41 @@ export const SquadMatchmaker = () => {
     setLoading(true);
     try {
       const codeStr = joinCodeInput.trim().toUpperCase();
+
+      // Easter egg classified promo code from Sunday newspaper
+      if (codeStr === 'ZK-SYNERGY-2026') {
+        const xpLogRef = collection(db, 'users', uid, 'xpLog');
+        const q = query(xpLogRef, where('reason', '==', 'Sunday Newspaper Secret Synergy Code'), limit(1));
+        const logsSnap = await getDocs(q);
+        
+        if (!logsSnap.empty) {
+          alert('🎟️ You have already redeemed this secret classified promo code!');
+          setJoinCodeInput('');
+          setLoading(false);
+          return;
+        }
+
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+        const currentXP = userSnap.data()?.xp || 0;
+        
+        // Award 25 XP
+        await setDoc(userRef, { xp: currentXP + 25 }, { merge: true });
+
+        // Log to XP audit log
+        const newLogRef = doc(xpLogRef);
+        await setDoc(newLogRef, {
+          amount: 25,
+          reason: 'Sunday Newspaper Secret Synergy Code',
+          timestamp: new Date()
+        });
+
+        alert('🎉 Easter Egg Activated! You found the Sunday Classifieds Secret code. +25 XP awarded for scouting the newspaper!');
+        setJoinCodeInput('');
+        setLoading(false);
+        return;
+      }
+
       const docRef = doc(db, 'shared_squads', codeStr);
       const snap = await getDoc(docRef);
 
