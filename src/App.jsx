@@ -9,14 +9,27 @@ import { useUIStore } from './stores/useUIStore';
 // ─── Global Error Boundary ────────────────────────────────────────────────────
 // Catches any unhandled React render error and shows a recovery screen
 // instead of the entire app going blank (white screen of death).
+// Detects errors caused by stale JS chunks after a new deploy (PWA resuming from background).
+function isChunkLoadError(error) {
+  if (!error) return false;
+  const msg = error.message || '';
+  return (
+    error.name === 'ChunkLoadError' ||
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Loading chunk') ||
+    msg.includes('Loading CSS chunk')
+  );
+}
+
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, isChunkError: false };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    return { hasError: true, error, isChunkError: isChunkLoadError(error) };
   }
 
   componentDidCatch(error, info) {
@@ -25,6 +38,38 @@ class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      // Chunk load errors are caused by stale PWA cache after a new deploy.
+      // Show a friendly "new version available" prompt instead of a generic error.
+      if (this.state.isChunkError) {
+        return (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', height: '100dvh',
+            background: '#0a0a0a', color: '#f0f0f0', fontFamily: 'sans-serif',
+            gap: '12px', padding: '24px', textAlign: 'center'
+          }}>
+            <span style={{ fontSize: '2.5rem' }}>🚀</span>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>New version available!</h1>
+            <p style={{ fontSize: '0.85rem', color: '#888', margin: 0 }}>
+              Zenkai was updated in the background. Tap below to load the latest version.
+            </p>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('chunk_reload_attempted');
+                window.location.reload();
+              }}
+              style={{
+                marginTop: '8px', padding: '12px 28px',
+                background: '#FF5C00', color: '#fff', border: 'none',
+                borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '1rem'
+              }}
+            >
+              Update Now ✨
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -54,15 +99,24 @@ class ErrorBoundary extends Component {
   }
 }
 
-// Helper to automatically reload the page if a chunk fetch fails (e.g. after a new deploy)
+// Helper to automatically reload the page if a chunk fetch fails (e.g. after a new deploy).
+// Uses sessionStorage to track if a reload was already attempted this session,
+// preventing an infinite reload loop when the chunk is genuinely missing.
 function safeLazy(importFn) {
   return React.lazy(async () => {
     try {
       return await importFn();
     } catch (error) {
-      console.error('[safeLazy] Failed to load module chunk, reloading page:', error);
-      window.location.reload();
-      return new Promise(() => {}); // Return a pending promise to avoid rendering crash before reload
+      const alreadyReloaded = sessionStorage.getItem('chunk_reload_attempted') === 'true';
+      if (!alreadyReloaded) {
+        console.warn('[safeLazy] Chunk load failed — attempting one reload to pick up new deploy:', error.message);
+        sessionStorage.setItem('chunk_reload_attempted', 'true');
+        window.location.reload();
+        return new Promise(() => {}); // Suspend until reload
+      }
+      // Already tried a reload — let the ErrorBoundary handle it gracefully.
+      console.error('[safeLazy] Chunk load failed after reload attempt. Propagating to ErrorBoundary:', error.message);
+      throw error;
     }
   });
 }
@@ -215,6 +269,10 @@ function App() {
 
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Clear any stale chunk-reload flag now that the app booted successfully.
+    // This ensures the reload safety net works again for the next new deploy.
+    sessionStorage.removeItem('chunk_reload_attempted');
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleInstallPrompt);

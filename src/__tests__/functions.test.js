@@ -142,7 +142,8 @@ describe('validatePlan', () => {
             { name: 'Bench Press', sets: 3, reps: '8-10', targetWeight: 60 },
             { name: 'Incline Dumbbell Press', sets: 3, reps: '8-10', targetWeight: 20 },
             { name: 'Tricep Pushdown', sets: 3, reps: '10-12', targetWeight: 15 },
-            { name: 'Lateral Raise', sets: 3, reps: '12-15', targetWeight: 7.5 }
+            { name: 'Lateral Raise', sets: 3, reps: '12-15', targetWeight: 7.5 },
+            { name: 'Overhead Press', sets: 3, reps: '8-10', targetWeight: 40 }
           ]
         : [],
     })),
@@ -195,23 +196,22 @@ describe('validatePlan', () => {
     expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
   });
 
-  it('throws plan_parse_failed when an active day has less than 4 exercises', () => {
+  it('throws plan_parse_failed when an active day has less than 5 exercises', () => {
     const plan = JSON.parse(JSON.stringify(validPlan));
-    plan.days[0].exercises = plan.days[0].exercises.slice(0, 3);
+    plan.days[0].exercises = plan.days[0].exercises.slice(0, 4); // 4 exercises
     expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
   });
 
-  it('throws plan_parse_failed when an active day has more than 6 exercises', () => {
+  it('throws plan_parse_failed when an active day has more than 8 exercises', () => {
     const plan = JSON.parse(JSON.stringify(validPlan));
     const extraEx = { name: 'Extra Exercise', sets: 3, reps: '10', targetWeight: 10 };
-    plan.days[0].exercises.push(extraEx, extraEx, extraEx); // 4 + 3 = 7 exercises
+    plan.days[0].exercises.push(extraEx, extraEx, extraEx, extraEx, extraEx); // 5 + 5 = 10 exercises
     expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
   });
 
   it('throws plan_parse_failed when a rest day has exercises', () => {
     const plan = JSON.parse(JSON.stringify(validPlan));
     plan.days[1].focus = 'Rest';
-    // Days 1-5 active, Day 1 is index 1 (Tuesday). Giving it exercises under Rest focus.
     expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
   });
 });

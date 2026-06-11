@@ -95,7 +95,7 @@ function validatePlan(plan) {
 
     const exercises = day.exercises || [];
     if (day.focus !== 'Rest') {
-      if (exercises.length < 4 || exercises.length > 6) {
+      if (exercises.length < 5 || exercises.length > 8) {
         throw new Error('plan_parse_failed');
       }
     } else {

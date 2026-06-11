@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Dumbbell, Calendar, Coffee, Play, CheckCircle2, Circle, Sparkles } from 'lucide-react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+
 import { useWorkoutStore } from '../../stores/useWorkoutStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useXPEngine } from '../../hooks/useXPEngine';
@@ -75,24 +74,10 @@ export const WeeklyPlanView = ({ planDays = [], weekId = '' }) => {
 
     try {
       const usePowerUp = freeRegensLeftVal <= 0;
-      if (usePowerUp) {
-        const userRef = doc(db, 'users', uid);
-        await updateDoc(userRef, {
-          'powerUps.planRefresh': planRefreshCount - 1
-        });
-        
-        // Update local profile state
-        useAuthStore.setState({
-          profile: {
-            ...profile,
-            powerUps: {
-              ...(profile.powerUps || {}),
-              planRefresh: planRefreshCount - 1
-            }
-          }
-        });
-      }
-
+      // NOTE: Do NOT pre-deduct power-ups or daily regen count here.
+      // The backend handles all rate limit accounting atomically in checkRateLimit.
+      // The onSnapshot listener in App.jsx will automatically reflect the updated
+      // Firestore counts (dailyRegenCount / powerUps.planRefresh) in real-time.
       await generatePlan(requirements, usePowerUp);
     } catch (err) {
       console.error('Failed to regenerate plan:', err);
