@@ -121,7 +121,7 @@ export const SundayMagazine = () => {
   ];
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-8 bg-[#e8dfc7] text-[#1e1e1c] min-h-[90vh] font-sans">
+    <div className="w-full max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-8 bg-[#eae4d9] text-[#1a1a18] min-h-[90vh] font-sans">
       
       {/* Header and Controls */}
       <div className="border-b-4 border-black pb-5 mt-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -140,7 +140,7 @@ export const SundayMagazine = () => {
         <button
           onClick={() => fetchMagazine(true)}
           disabled={refreshing || reprintCount >= 1}
-          className="flex items-center gap-2 border-2 border-black bg-white hover:bg-neutral-100 text-black font-mono text-xs uppercase px-4 py-2.5 rounded-lg shadow-[3px_3px_0px_black] active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 border-2 border-black bg-white hover:bg-neutral-100 text-black font-mono text-xs uppercase px-4 py-2.5 rounded-none shadow-[3px_3px_0px_black] active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
           <span>
@@ -154,7 +154,7 @@ export const SundayMagazine = () => {
       </div>
 
       {error ? (
-        <div className="border-4 border-black bg-white p-6 rounded-2xl shadow-[4px_4px_0px_black] text-left max-w-lg mx-auto flex flex-col gap-4">
+        <div className="border-4 border-black bg-white p-6 rounded-none shadow-[4px_4px_0px_black] text-left max-w-lg mx-auto flex flex-col gap-4">
           <div className="flex items-center gap-2 text-red-650 font-bold uppercase font-mono text-sm">
             <AlertTriangle size={18} />
             <span>Magazine Print Jammed</span>
@@ -162,7 +162,7 @@ export const SundayMagazine = () => {
           <p className="text-xs text-neutral-800 font-sans leading-relaxed">{error}</p>
           <button
             onClick={() => fetchMagazine()}
-            className="w-full text-center border-2 border-black bg-[var(--primary)] text-black font-display font-black text-xs uppercase py-2.5 rounded-lg shadow-[3px_3px_0px_black]"
+            className="w-full text-center border-2 border-black bg-[var(--primary)] text-black font-display font-black text-xs uppercase py-2.5 rounded-none shadow-[3px_3px_0px_black]"
           >
             Retry Printing
           </button>
@@ -171,7 +171,7 @@ export const SundayMagazine = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* LEFT COLUMN: Main Editorial Newspaper Page (col-span-8) */}
-          <div className="lg:col-span-8 border-4 border-black bg-[#fdfbf7] text-[#1a1a18] p-6 md:p-8 rounded-2xl shadow-[5px_5px_0px_black] flex flex-col gap-6 text-left relative overflow-hidden font-serif">
+          <div className="lg:col-span-8 border-4 border-black bg-[#faf8f5] text-[#1a1a18] p-6 md:p-8 rounded-none shadow-[6px_6px_0px_black] flex flex-col gap-6 text-left relative overflow-hidden font-serif">
             
             {/* Newspaper Heading Mask */}
             <div className="border-b-4 border-double border-black pb-4 text-center">
@@ -208,7 +208,7 @@ export const SundayMagazine = () => {
 
             {/* Cues Vault overlay schematic */}
             {telemetry.desk_vault_cues && telemetry.desk_vault_cues.length > 0 ? (
-              <div className="border-2 border-black bg-[#f5efe4] p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden">
+              <div className="border-2 border-black bg-[#f5efe4] p-6 rounded-none flex flex-col gap-4 relative overflow-hidden">
                 <div className="border-b border-black pb-1.5 flex justify-between items-center text-xs font-mono font-bold">
                   <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
                     <Activity size={14} className="text-neutral-700" />
@@ -218,7 +218,7 @@ export const SundayMagazine = () => {
                 </div>
 
                 {/* Barbell schematic SVG */}
-                <div className="relative h-48 w-full bg-[#fdfbf7] border border-neutral-300 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="relative h-48 w-full bg-[#faf8f5] border border-black/30 rounded-none flex items-center justify-center overflow-hidden">
                   <svg className="absolute w-full h-full max-w-md pointer-events-none" viewBox="0 0 400 200">
                     {/* Grid Lines */}
                     <line x1="0" y1="50" x2="400" y2="50" stroke="#f0f0f0" strokeDasharray="3 3" />
@@ -264,7 +264,7 @@ export const SundayMagazine = () => {
                       return (
                         <div 
                           key={idx} 
-                          className="absolute pointer-events-auto bg-yellow-100/90 border border-yellow-300 p-2 shadow-sm rounded transform rotate-1 select-none"
+                          className="absolute pointer-events-auto bg-yellow-100/90 border border-yellow-300 p-2 shadow-sm rounded-none transform rotate-1 select-none"
                           style={{ top: coords.top, left: coords.left }}
                         >
                           <span 
@@ -280,18 +280,18 @@ export const SundayMagazine = () => {
                 </div>
               </div>
             ) : (
-              <div className="border-2 border-black bg-amber-50/90 p-6 rounded-xl flex flex-col gap-3 text-left relative overflow-hidden">
+              <div className="border-2 border-black bg-[#faf8f5] p-6 rounded-none flex flex-col gap-3 text-left relative overflow-hidden">
                 <div className="flex items-start gap-4">
-                  <div className="p-2 bg-amber-100/80 rounded-lg border border-amber-300 text-amber-800 flex items-center justify-center shrink-0">
+                  <div className="p-2 bg-[#f5efe4] rounded-none border border-black text-[#1a1a18] flex items-center justify-center shrink-0">
                     <AlertTriangle size={20} />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-mono font-black uppercase text-amber-900 tracking-wider">CUES VAULT INACTIVE</span>
+                    <span className="text-[10px] font-mono font-black uppercase text-neutral-800 tracking-wider">CUES VAULT INACTIVE</span>
                     <h4 className="font-serif font-black text-base text-black mt-0.5 leading-tight">
                       You haven't logged any mental cues in the Recap Cinema yet!
                     </h4>
                     <p className="text-xs text-neutral-700 font-sans leading-relaxed mt-2.5">
-                      To map verbal cues on this diagram, open the <a href="/recap" className="text-blue-600 font-bold hover:underline">Recap Cinema</a>, select a workout session, and write a checklist of verbal cues (e.g. *"keep elbows tucked"*) under the Desk Vault cue notes.
+                      To map verbal cues on this diagram, open the <a href="/recap" className="text-black underline font-bold">Recap Cinema</a>, select a workout session, and write a checklist of verbal cues (e.g. *"keep elbows tucked"*) under the Desk Vault cue notes.
                     </p>
                   </div>
                 </div>
@@ -302,173 +302,123 @@ export const SundayMagazine = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               
               {/* Muscle Volume Distribution Bar Chart */}
-              <div className="border-2 border-black p-4 bg-[#f5efe4] rounded-xl flex flex-col gap-4 font-mono text-[10px] text-neutral-800 text-left">
-                <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
-                  <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
-                    <Activity size={14} className="text-neutral-700" />
-                    <span>VOLUME DISTRIBUTION BY GROUP</span>
-                  </span>
-                  <span className="text-neutral-500 uppercase">VOL (KG)</span>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {(() => {
-                    const dist = telemetry?.volume_distribution_kg || {};
-                    const totalDistVolume = Object.values(dist).reduce((a, b) => Number(a) + Number(b), 0) || 1;
-                    return Object.entries(dist).map(([group, vol]) => {
-                      const percent = Math.round((Number(vol) / totalDistVolume) * 100);
-                      const barColor = {
-                        chest: '#ff6b6b', // Crimson
-                        back: '#4dadf7',  // Sky Blue
-                        legs: '#51cf66',  // Emerald
-                        shoulders: '#fcc419', // Mustard
-                        arms: '#cc5de8',  // Purple
-                        core: '#20c997'   // Teal
-                      }[group] || '#868e96';
+              {(() => {
+                const dist = telemetry?.volume_distribution_kg || {};
+                const totalDistVolume = Object.values(dist).reduce((a, b) => Number(a) + Number(b), 0);
+                
+                if (totalDistVolume === 0) {
+                  return (
+                    <div className="border-2 border-dashed border-red-800 p-5 bg-[#fbf5eb] rounded-none flex flex-col gap-3 font-serif text-[#7f1d1d] text-left shadow-[3px_3px_0px_black]">
+                      <div className="flex items-center gap-2 font-bold uppercase text-xs">
+                        <AlertTriangle size={16} className="text-red-800" />
+                        <span>TELEMETRY VOLUMES EMPTY</span>
+                      </div>
+                      <h4 className="font-bold text-sm text-black uppercase">No volume data has been logged this week!</h4>
+                      <p className="text-[10px] font-sans text-neutral-700 leading-normal">
+                        You have not used the <a href="/recap" className="text-black underline font-bold">Recap Cinema</a> to sync your weekly workouts. Open the Recap Cinema to log your sessions and print your volume distribution.
+                      </p>
+                    </div>
+                  );
+                }
 
-                      return (
-                        <div key={group} className="flex flex-col gap-1">
-                          <div className="flex justify-between items-end font-bold uppercase text-black text-[10px]">
-                            <span>{group}</span>
-                            <span className="text-neutral-600 font-normal">{Number(vol).toLocaleString()} kg ({percent}%)</span>
+                const activeGroups = Object.entries(dist).filter(([_, vol]) => Number(vol) > 0);
+                const dormantGroups = Object.entries(dist).filter(([_, vol]) => Number(vol) === 0).map(([group]) => group.toUpperCase());
+
+                return (
+                  <div className="border-2 border-black p-4 bg-[#faf8f5] rounded-none flex flex-col gap-4 font-mono text-[10px] text-neutral-800 text-left shadow-[3px_3px_0px_black]">
+                    <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
+                      <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
+                        <Activity size={14} className="text-neutral-700" />
+                        <span>VOLUME DISTRIBUTION BY GROUP</span>
+                      </span>
+                      <span className="text-neutral-500 uppercase">VOL (KG)</span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {activeGroups.map(([group, vol]) => {
+                        const percent = Math.round((Number(vol) / totalDistVolume) * 100);
+                        // Vintage hatched patterns using inline CSS linear-gradients
+                        const barPattern = {
+                          chest: 'repeating-linear-gradient(45deg, #1a1a18, #1a1a18 1.5px, transparent 1.5px, transparent 4.5px)',
+                          back: 'repeating-linear-gradient(-45deg, #1a1a18, #1a1a18 1.5px, transparent 1.5px, transparent 4.5px)',
+                          legs: 'repeating-linear-gradient(90deg, #1a1a18, #1a1a18 1.5px, transparent 1.5px, transparent 3.5px)',
+                          shoulders: 'repeating-linear-gradient(45deg, #1a1a18, #1a1a18 2.5px, transparent 2.5px, transparent 6px)',
+                          arms: 'repeating-linear-gradient(0deg, #1a1a18, #1a1a18 1.5px, transparent 1.5px, transparent 3.5px)',
+                          core: 'radial-gradient(#1a1a18 25%, transparent 26%)'
+                        }[group] || 'repeating-linear-gradient(45deg, #1a1a18, #1a1a18 1px, transparent 1px, transparent 4px)';
+
+                        const backgroundSize = group === 'core' ? '4px 4px' : undefined;
+
+                        return (
+                          <div key={group} className="flex flex-col gap-1">
+                            <div className="flex justify-between items-end font-bold uppercase text-black text-[10px]">
+                              <span>{group}</span>
+                              <span className="text-neutral-600 font-normal">{Number(vol).toLocaleString()} kg ({percent}%)</span>
+                            </div>
+                            <div className="w-full bg-[#faf8f5] border border-black h-4 rounded-none overflow-hidden relative shadow-[1.5px_1.5px_0px_rgba(0,0,0,1)]">
+                              <div
+                                className="h-full border-r border-black"
+                                style={{
+                                  width: `${percent}%`,
+                                  background: barPattern,
+                                  backgroundSize: backgroundSize
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="w-full bg-white border-2 border-black h-3.5 rounded overflow-hidden relative shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                            <div
-                              className="h-full border-r border-black"
-                              style={{
-                                width: `${Math.max(percent, vol > 0 ? 4 : 0)}%`,
-                                backgroundColor: barColor
-                              }}
-                            />
+                        );
+                      })}
+                      
+                      {dormantGroups.length > 0 && (
+                        <div className="border-t border-black/20 pt-3.5 mt-1.5 flex flex-col gap-1">
+                          <div className="font-bold text-[9px] uppercase tracking-wider text-neutral-600 flex items-center gap-1.5 font-sans">
+                            <AlertTriangle size={11} className="text-neutral-600" />
+                            <span>Dormant Muscle Zones (0 kg)</span>
                           </div>
+                          <p className="text-[9.5px] font-sans text-neutral-700 leading-normal">
+                            No training load registered for: <strong>{dormantGroups.join(', ')}</strong>. 
+                            <span className="italic block mt-1 text-[8.5px] text-neutral-500">
+                              Sync sessions in the <a href="/recap" className="underline font-bold text-neutral-800">Recap Cinema</a> to reactivate these zones.
+                            </span>
+                          </p>
                         </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
-              {/* Gym Atmosphere & Map Stack */}
+              {/* Gym Atmosphere Index Column */}
               <div className="flex flex-col gap-6">
                 {/* Gym Atmosphere Report Widget */}
-                <div className="border-2 border-black p-4 bg-[#f5efe4] rounded-xl flex flex-col gap-2 font-mono text-[10px] text-[#1a1a18] text-left">
-                  <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
-                    <span className="text-black uppercase tracking-wider flex items-center gap-1">
+                <div className="border-2 border-black p-5 bg-[#faf8f5] rounded-none flex flex-col gap-3 font-mono text-[10px] text-[#1a1a18] text-left shadow-[3px_3px_0px_black]">
+                  <div className="border-b border-black pb-2 flex justify-between items-center font-bold text-xs">
+                    <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
                       <span>🌡️ GYM ATMOSPHERE WEATHER INDEX</span>
                     </span>
                     <span className="text-neutral-500 uppercase">WEEKLY AVG</span>
                   </div>
-                  <div className="grid grid-cols-1 gap-y-2 mt-1">
-                    <div className="flex justify-between border-b border-neutral-250 pb-1">
-                      <span className="text-neutral-500">AVG TEMPERATURE:</span>
+                  
+                  {/* Typographical Leaders layout */}
+                  <div className="flex flex-col gap-2.5 mt-2.5">
+                    <div className="flex justify-between items-end gap-1 font-mono text-[9.5px] text-neutral-800">
+                      <span className="uppercase text-neutral-600 font-bold">AVG TEMPERATURE</span>
+                      <span className="flex-1 border-b border-dotted border-black/40 min-w-4 mb-1"></span>
                       <span className="font-bold text-black">28°C (Sweaty/Heavy)</span>
                     </div>
-                    <div className="flex justify-between border-b border-neutral-250 pb-1">
-                      <span className="text-neutral-500">MUSIC BPM LEVEL:</span>
+                    <div className="flex justify-between items-end gap-1 font-mono text-[9.5px] text-neutral-800">
+                      <span className="uppercase text-neutral-600 font-bold">MUSIC BPM LEVEL</span>
+                      <span className="flex-1 border-b border-dotted border-black/40 min-w-4 mb-1"></span>
                       <span className="font-bold text-black">130 BPM (Synthwave/Phonk)</span>
                     </div>
-                    <div className="flex justify-between border-b border-neutral-255 pb-1">
-                      <span className="text-neutral-555">CROWD LEVEL:</span>
-                      <span className="font-bold text-red-655">Peak Hour (90% Occupancy)</span>
+                    <div className="flex justify-between items-end gap-1 font-mono text-[9.5px] text-neutral-800">
+                      <span className="uppercase text-neutral-600 font-bold">CROWD LEVEL</span>
+                      <span className="flex-1 border-b border-dotted border-black/40 min-w-4 mb-1"></span>
+                      <span className="font-bold text-red-700">90% Occupancy (Peak)</span>
                     </div>
-                    <div className="flex justify-between border-b border-neutral-255 pb-1">
-                      <span className="text-neutral-555">CHALK ATMOSPHERE:</span>
+                    <div className="flex justify-between items-end gap-1 font-mono text-[9.5px] text-neutral-800">
+                      <span className="uppercase text-neutral-600 font-bold">CHALK ATMOSPHERE</span>
+                      <span className="flex-1 border-b border-dotted border-black/40 min-w-4 mb-1"></span>
                       <span className="font-bold text-black">PR Dry / Chalky</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Gym Land Meteorological Map */}
-                <div className="border-2 border-black p-5 bg-[#fcf9f2] rounded-xl flex flex-col gap-4 font-mono text-[10px] text-[#1a1a18] text-left shadow-[3px_3px_0px_rgba(0,0,0,1)]">
-                  <div className="border-b-2 border-black pb-2 flex justify-between items-center font-bold text-xs">
-                    <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
-                      <span>🗺️ LOCAL GYM WEATHER ALMANAC</span>
-                    </span>
-                    <span className="bg-black text-[#fdfbf7] px-2 py-0.5 rounded text-[8px] uppercase tracking-widest animate-pulse">LIVE STATUS</span>
-                  </div>
-
-                  <p className="text-[9px] font-sans text-neutral-600 leading-normal border-b border-dashed border-neutral-300 pb-2.5">
-                    <strong>HOW TO READ:</strong> Real-time lifter density and barbell loads shape the gym's micro-climates. High exertion yields seismic heat waves, high cardio yields sweat monsoons, and chalk creates heavy dumbbell fog.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Zone A: Dumbbell Bay */}
-                    <div className="border-2 border-black p-3 bg-blue-50/60 rounded-lg flex flex-col gap-2 shadow-[2px_2px_0px_black] hover:-translate-y-0.5 transition-transform">
-                      <div className="flex justify-between items-center border-b border-blue-200 pb-1.5">
-                        <span className="font-bold text-[9.5px] text-blue-900 uppercase flex items-center gap-1">
-                          <span>💨💪 ZONE A: DUMBBELL BAY</span>
-                        </span>
-                        <span className="text-[8px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200 font-bold uppercase select-none">BREEZY</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-1 text-[8.5px] font-mono text-neutral-800 border-b border-dashed border-blue-150 pb-2">
-                        <div>🌡️ Temp: 24°C</div>
-                        <div>💨 Fan Speed: HIGH</div>
-                        <div>🌫️ Chalk: HEAVY</div>
-                        <div>🔊 Music: Phonk (130 BPM)</div>
-                      </div>
-                      <p className="text-[8.5px] font-sans text-neutral-700 leading-relaxed italic">
-                        Cool air from max fans keeps you fresh during lateral raises. Grip environment is highly chalky.
-                      </p>
-                    </div>
-
-                    {/* Zone B: Squat Peak */}
-                    <div className="border-2 border-black p-3 bg-orange-50/60 rounded-lg flex flex-col gap-2 shadow-[2px_2px_0px_black] hover:-translate-y-0.5 transition-transform">
-                      <div className="flex justify-between items-center border-b border-orange-200 pb-1.5">
-                        <span className="font-bold text-[9.5px] text-orange-900 uppercase flex items-center gap-1">
-                          <span>🌋🏋️ ZONE B: SQUAT PEAK</span>
-                        </span>
-                        <span className="text-[8px] bg-orange-100 text-orange-850 px-1.5 py-0.5 rounded border border-orange-200 font-bold uppercase select-none">SEISMIC</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-1 text-[8.5px] font-mono text-neutral-800 border-b border-dashed border-orange-150 pb-2">
-                        <div>🌡️ Temp: 32°C (PR Heat)</div>
-                        <div>⚠️ State: Peak Load</div>
-                        <div>📊 Occupancy: 95%</div>
-                        <div>🔊 Music: Metal/Rock</div>
-                      </div>
-                      <p className="text-[8.5px] font-sans text-neutral-700 leading-relaxed italic">
-                        The floor is shaking from heavy barbell squats. Expect maximum heat—keep your core braced.
-                      </p>
-                    </div>
-
-                    {/* Zone C: Cardio Deck */}
-                    <div className="border-2 border-black p-3 bg-green-50/60 rounded-lg flex flex-col gap-2 shadow-[2px_2px_0px_black] hover:-translate-y-0.5 transition-transform">
-                      <div className="flex justify-between items-center border-b border-green-200 pb-1.5">
-                        <span className="font-bold text-[9.5px] text-green-900 uppercase flex items-center gap-1">
-                          <span>☔🏃 ZONE C: CARDIO DECK</span>
-                        </span>
-                        <span className="text-[8px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded border border-green-200 font-bold uppercase select-none">MONSOON</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-1 text-[8.5px] font-mono text-neutral-800 border-b border-dashed border-green-150 pb-2">
-                        <div>🌡️ Temp: 28°C</div>
-                        <div>💧 Humidity: 95%</div>
-                        <div>💨 Breeze: Sweaty</div>
-                        <div>📉 Oxygen: Low</div>
-                      </div>
-                      <p className="text-[8.5px] font-sans text-neutral-700 leading-relaxed italic">
-                        Extreme humidity caused by heavy cardio sweat. Drink water; you are in a high-endurance monsoon.
-                      </p>
-                    </div>
-
-                    {/* Zone D: Smoothie Oasis */}
-                    <div className="border-2 border-black p-3 bg-purple-50/60 rounded-lg flex flex-col gap-2 shadow-[2px_2px_0px_black] hover:-translate-y-0.5 transition-transform">
-                      <div className="flex justify-between items-center border-b border-purple-200 pb-1.5">
-                        <span className="font-bold text-[9.5px] text-purple-900 uppercase flex items-center gap-1">
-                          <span>🌴🥤 ZONE D: SMOOTHIE OASIS</span>
-                        </span>
-                        <span className="text-[8px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded border border-purple-200 font-bold uppercase select-none">COOL</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-1 text-[8.5px] font-mono text-neutral-800 border-b border-dashed border-purple-150 pb-2">
-                        <div>🌡️ Temp: 18°C (AC)</div>
-                        <div>🥛 Rain: +30g Whey</div>
-                        <div>❄️ Climate: Calm Chill</div>
-                        <div>👤 Crowds: Low</div>
-                      </div>
-                      <p className="text-[8.5px] font-sans text-neutral-700 leading-relaxed italic">
-                        Air-conditioned haven for muscle recovery. Stop by to refuel with premium whey protein.
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -549,7 +499,7 @@ export const SundayMagazine = () => {
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Telemetry Dashboard */}
-            <div className="border-4 border-black bg-[#faf6ee] p-6 rounded-2xl shadow-[4px_4px_0px_black] text-left flex flex-col gap-4 text-black">
+            <div className="border-4 border-black bg-[#faf8f5] p-6 rounded-none shadow-[5px_5px_0px_black] text-left flex flex-col gap-4 text-black">
               <div className="border-b border-black pb-2 flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider">
                 <span className="text-black flex items-center gap-2">
                   <Target size={14} className="text-blue-800" />
@@ -592,7 +542,7 @@ export const SundayMagazine = () => {
             </div>
 
             {/* Coach's Pull Quote */}
-            <div className="border-4 border-black bg-[#fef9c3] text-black p-6 rounded-2xl shadow-[4px_4px_0px_black] text-left flex flex-col gap-4 relative overflow-hidden">
+            <div className="border-4 border-black bg-[#fef9c3] text-black p-6 rounded-none shadow-[5px_5px_0px_black] text-left flex flex-col gap-4 relative overflow-hidden">
               <Quote className="absolute right-4 bottom-2 text-yellow-250/30 w-24 h-24 pointer-events-none" />
               <span className="text-[9px] font-mono text-neutral-600 uppercase font-black tracking-wider block">
                 COACH LLAMA'S VERDICT
@@ -609,7 +559,7 @@ export const SundayMagazine = () => {
             </div>
 
             {/* PRs Broken Ledger Card */}
-            <div className="border-4 border-black bg-[#faf6ee] p-6 rounded-2xl shadow-[4px_4px_0px_black] text-left flex flex-col gap-4 text-black">
+            <div className="border-4 border-black bg-[#faf8f5] p-6 rounded-none shadow-[5px_5px_0px_black] text-left flex flex-col gap-4 text-black">
               <div className="border-b border-black pb-2 flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider">
                 <span className="text-black flex items-center gap-2">
                   <Flame size={14} className="text-red-650" />
@@ -620,7 +570,7 @@ export const SundayMagazine = () => {
               {telemetry.recent_personal_records && telemetry.recent_personal_records.length > 0 ? (
                 <div className="flex flex-col gap-2.5">
                   {telemetry.recent_personal_records.map((pr, idx) => (
-                    <div key={idx} className="border border-neutral-300 p-3 bg-white/80 rounded-xl text-xs font-mono flex items-center gap-2.5 text-black">
+                    <div key={idx} className="border border-black p-3 bg-white rounded-none shadow-[1.5px_1.5px_0px_black] text-xs font-mono flex items-center gap-2.5 text-black">
                       <span className="text-yellow-650 font-bold text-sm">🏆</span>
                       <span className="text-black leading-tight">{pr}</span>
                     </div>
@@ -634,14 +584,14 @@ export const SundayMagazine = () => {
             </div>
 
             {/* Future Focus */}
-            <div className="border-4 border-black bg-blue-50 text-blue-900 p-6 rounded-2xl shadow-[4px_4px_0px_black] text-left flex flex-col gap-3">
-              <span className="text-[9px] font-mono text-blue-700 uppercase font-black tracking-wider block">
+            <div className="border-4 border-black bg-[#faf8f5] text-black p-6 rounded-none shadow-[5px_5px_0px_black] text-left flex flex-col gap-3">
+              <span className="text-[9px] font-mono text-neutral-600 uppercase font-black tracking-wider block">
                 UPCOMING WEEKLY OBJECTIVE
               </span>
-              <h5 className="font-display font-black text-lg uppercase tracking-tight text-blue-950 leading-none">
+              <h5 className="font-display font-black text-lg uppercase tracking-tight text-black leading-none">
                 FUTURE FOCUS TARGET
               </h5>
-              <p className="text-xs font-sans leading-relaxed text-blue-950/80">
+              <p className="text-xs font-sans leading-relaxed text-neutral-700">
                 {magazineData.futureFocus}
               </p>
             </div>
