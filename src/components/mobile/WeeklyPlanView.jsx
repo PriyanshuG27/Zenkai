@@ -246,7 +246,7 @@ export const WeeklyPlanView = ({ planDays = [], weekId = '' }) => {
                     <p className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-wider">
                       Target exercises ({dayObj.exercises.length})
                     </p>
-                    <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1">
+                    <div className="flex flex-col gap-2 pr-1">
                       {dayObj.exercises.map((ex, index) => (
                         <div
                           key={index}

@@ -5,11 +5,12 @@ import { useUIStore } from '../../stores/useUIStore';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc, collection, addDoc, query, onSnapshot, deleteDoc } from 'firebase/firestore';
-import { Smartphone, LogOut, Info, User, Flame, Trophy, Award, Check, X, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Trash2, Plus, ArrowLeft } from 'lucide-react';
+import { Smartphone, LogOut, Info, User, Flame, Trophy, Award, Check, X, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Trash2, Plus, ArrowLeft, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWeeklyRecap } from '../../hooks/useWeeklyRecap';
 import { WeeklyRecapScreen } from '../shared/WeeklyRecapScreen';
 import { GymLeaderboard } from '../shared/GymLeaderboard';
+import { compressGymImage } from '../../utils/imageCompressor';
 
 const EQUIPMENT_CATEGORIES = [
   { label: 'Chest & Push', items: ['Flat Bench', 'Incline Bench', 'Decline Bench', 'Chest Press Machine', 'Pec Deck', 'Dip Bars'] },
@@ -87,6 +88,9 @@ export const MobileProfile = () => {
   const [expandedFeedbackId, setExpandedFeedbackId] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
   const [sortBy, setSortBy] = useState('Most Liked');
+  const [feedbackScreenshot, setFeedbackScreenshot] = useState(null);
+  const [isCompressingScreenshot, setIsCompressingScreenshot] = useState(false);
+  const [activeScreenshotViewer, setActiveScreenshotViewer] = useState(null);
 
   useEffect(() => {
     if (!isFeatureModalOpen) return;
@@ -124,10 +128,12 @@ export const MobileProfile = () => {
         upvotes: [],
         downvotes: [],
         createdAt: new Date().toISOString(),
+        screenshot: feedbackScreenshot || null
       });
       addToast('Feedback posted successfully! 🚀', 'success');
       setFeedbackTitle('');
       setFeedbackText('');
+      setFeedbackScreenshot(null);
       setIsAddingFeedback(false);
     } catch (err) {
       console.error('Error submitting feedback:', err);
@@ -857,6 +863,65 @@ export const MobileProfile = () => {
                     />
                   </div>
 
+                  {/* Screenshot Upload Section */}
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    <label className="text-[10px] font-mono text-[var(--secondary)] uppercase tracking-wider">
+                      Attach Screenshot (Optional)
+                    </label>
+                    
+                    {feedbackScreenshot ? (
+                      <div className="relative w-24 h-24 border-2 border-black rounded overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)] group mt-1">
+                        <img src={`data:image/jpeg;base64,${feedbackScreenshot}`} alt="Feedback Screenshot" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFeedbackScreenshot(null)}
+                          className="absolute top-1 right-1 p-1 bg-black/80 hover:bg-black text-white rounded-full border border-[#333] transition-all cursor-pointer flex items-center justify-center"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-1">
+                        {isCompressingScreenshot ? (
+                          <div className="w-full py-2 border-2 border-black bg-[#1a1a1a] text-[var(--text-secondary)] font-mono text-xs uppercase tracking-wider text-center flex justify-center items-center gap-2 cursor-not-allowed opacity-75">
+                            <span className="h-3 w-3 border-2 border-[var(--secondary)] border-t-transparent rounded-full animate-spin" />
+                            <span>Compressing Image...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <label
+                              htmlFor="feedback-screenshot"
+                              className="w-full py-2 border-2 border-black bg-[#1c1c1c] hover:bg-[#2c2c2c] text-[var(--text-secondary)] hover:text-white font-mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center flex justify-center items-center gap-2 cursor-pointer"
+                            >
+                              <Camera size={14} />
+                              <span>Choose Screenshot</span>
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              id="feedback-screenshot"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setIsCompressingScreenshot(true);
+                                try {
+                                  const cleanBase64 = await compressGymImage(file, 1024, 0.7);
+                                  setFeedbackScreenshot(cleanBase64);
+                                } catch (err) {
+                                  console.error("Error compressing screenshot:", err);
+                                  addToast("Failed to process image.", "error");
+                                } finally {
+                                  setIsCompressingScreenshot(false);
+                                }
+                              }}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Form Footer */}
                   <div className="flex gap-3 mt-auto pt-3 border-t border-[#222] shrink-0">
                     <button
@@ -994,14 +1059,36 @@ export const MobileProfile = () => {
                               </div>
 
                               {/* Title (Clickable to expand) */}
-                              <div
-                                onClick={() => setExpandedFeedbackId(isExpanded ? null : item.id)}
-                                className="font-display font-extrabold text-sm uppercase tracking-wide hover:text-[var(--secondary)] transition-all cursor-pointer flex items-center justify-between gap-1.5 mt-1 text-white"
-                              >
-                                <span className="leading-tight flex-1">{item.title}</span>
-                                <span className="text-[var(--text-secondary)] shrink-0">
-                                  {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                </span>
+                              <div className="flex items-start justify-between gap-3 mt-1">
+                                <div
+                                  onClick={() => setExpandedFeedbackId(isExpanded ? null : item.id)}
+                                  className="font-display font-extrabold text-sm uppercase tracking-wide hover:text-[var(--secondary)] transition-all cursor-pointer flex-1 text-white leading-tight mt-0.5"
+                                >
+                                  {item.title}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {item.screenshot && !isExpanded && (
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveScreenshotViewer(`data:image/jpeg;base64,${item.screenshot}`);
+                                      }}
+                                      className="w-10 h-10 border border-black rounded overflow-hidden shadow-[1px_1px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 cursor-pointer transition-all shrink-0"
+                                    >
+                                      <img
+                                        src={`data:image/jpeg;base64,${item.screenshot}`}
+                                        alt="Screenshot thumbnail"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                  <button
+                                    onClick={() => setExpandedFeedbackId(isExpanded ? null : item.id)}
+                                    className="text-[var(--text-secondary)] hover:text-white bg-transparent border-none cursor-pointer p-0"
+                                  >
+                                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                  </button>
+                                </div>
                               </div>
 
                               {/* Expandable Explanation Area */}
@@ -1013,8 +1100,22 @@ export const MobileProfile = () => {
                                     exit={{ opacity: 0, height: 0 }}
                                     className="overflow-hidden"
                                   >
-                                    <div className="text-xs text-[var(--text-secondary)] font-sans py-2 border-t border-[#2a2a2a] mt-1 leading-relaxed whitespace-pre-wrap">
-                                      {item.description}
+                                    <div className="text-xs text-[var(--text-secondary)] font-sans py-2 border-t border-[#2a2a2a] mt-1 leading-relaxed whitespace-pre-wrap flex flex-col gap-2.5">
+                                      <span>{item.description}</span>
+                                      {item.screenshot && (
+                                        <div className="mt-1 flex">
+                                          <div
+                                            onClick={() => setActiveScreenshotViewer(`data:image/jpeg;base64,${item.screenshot}`)}
+                                            className="relative w-20 h-20 border-2 border-black rounded overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 cursor-pointer transition-all shrink-0"
+                                          >
+                                            <img
+                                              src={`data:image/jpeg;base64,${item.screenshot}`}
+                                              alt="Screenshot preview"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                     <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500 pt-2 border-t border-[#222]">
                                       <span>By {item.userName}</span>
@@ -1104,6 +1205,37 @@ export const MobileProfile = () => {
                   </div>
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Screenshot Viewer Overlay */}
+      <AnimatePresence>
+        {activeScreenshotViewer && (
+          <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4 backdrop-blur-xs">
+            {/* Backdrop Close */}
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setActiveScreenshotViewer(null)} />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative max-w-full max-h-full flex flex-col items-center justify-center z-10"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveScreenshotViewer(null)}
+                className="absolute -top-12 right-2 px-3 py-1.5 bg-[var(--surface)] border-2 border-black rounded-full text-white font-mono font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <X size={16} /> Close
+              </button>
+              
+              <img
+                src={activeScreenshotViewer}
+                alt="Fullscreen screenshot"
+                className="max-w-full max-h-[80vh] object-contain border-4 border-black rounded shadow-[8px_8px_0px_rgba(0,0,0,1)] bg-neutral-900"
+              />
             </motion.div>
           </div>
         )}

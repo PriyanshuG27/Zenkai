@@ -94,6 +94,16 @@ function validatePlan(plan) {
     if (day.day === 7) continue;
 
     const exercises = day.exercises || [];
+    if (day.focus !== 'Rest') {
+      if (exercises.length < 4 || exercises.length > 6) {
+        throw new Error('plan_parse_failed');
+      }
+    } else {
+      if (exercises.length > 0) {
+        throw new Error('plan_parse_failed');
+      }
+    }
+
     for (const ex of exercises) {
       if (typeof ex.name !== 'string' || ex.name.trim() === '') {
         throw new Error('plan_parse_failed');

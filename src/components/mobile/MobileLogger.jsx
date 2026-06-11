@@ -216,6 +216,15 @@ export const MobileLogger = () => {
     };
   }, [isActive, requestWakeLock]);
 
+  // Request notification permissions for rest timer alerts on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch((err) =>
+        console.error('Error requesting notification permission:', err)
+      );
+    }
+  }, []);
+
   // ─── Rest Timer Background Countdown ───────────────────────────────────────
   useEffect(() => {
     if (!restTimerEndTimestamp) return;
@@ -228,6 +237,39 @@ export const MobileLogger = () => {
         setRestTimerEndTimestamp(null);
         setRestTimeRemaining(null);
         playRestTimerBeep();
+
+        // 1. Vibrate device (vibrate, pause, vibrate)
+        if (navigator.vibrate) {
+          navigator.vibrate([300, 100, 300]);
+        }
+
+        // 2. Trigger Push Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const title = 'Zenkai Rest Timer';
+          const options = {
+            body: 'Rest over! Time for your next set. 💪',
+            icon: '/logos/zenkai_app_icon.png',
+            tag: 'zenkai-rest-timer',
+            requireInteraction: true
+          };
+
+          try {
+            // Standard window Notification constructor (Desktop)
+            new Notification(title, options);
+          } catch (err) {
+            // Mobile PWA fallback (Safari iOS/Chrome Android)
+            if (navigator.serviceWorker) {
+              navigator.serviceWorker.ready.then((reg) => {
+                reg.showNotification(title, options);
+              }).catch((swErr) => {
+                console.error('Service worker notification failed:', swErr);
+              });
+            } else {
+              console.error('Standard notification failed and no service worker found:', err);
+            }
+          }
+        }
+
         toast('🔔 Rest over! Time for your next set.', 'success');
       }
     }, 500);
@@ -837,11 +879,11 @@ export const MobileLogger = () => {
           <AnimatePresence>
             {restTimeRemaining !== null && restTimeRemaining > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                initial={{ opacity: 0, y: -50, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                exit={{ opacity: 0, y: -50, scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                className="fixed bottom-20 left-4 right-4 z-30 bg-yellow-300 text-black border-2 border-black px-4 py-3 rounded-xl shadow-[3px_3px_0px_black] flex items-center justify-between font-mono font-bold select-none"
+                className="fixed top-16 left-4 right-4 z-40 bg-yellow-300 text-black border-2 border-black px-4 py-3 rounded-xl shadow-[3px_3px_0px_black] flex items-center justify-between font-mono font-bold select-none"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="animate-spin text-sm">⏳</span>

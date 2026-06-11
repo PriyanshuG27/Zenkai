@@ -340,7 +340,8 @@ service cloud.firestore {
           request.resource.data.status == resource.data.status &&
           request.resource.data.uid == resource.data.uid &&
           request.resource.data.userName == resource.data.userName &&
-          request.resource.data.createdAt == resource.data.createdAt
+          request.resource.data.createdAt == resource.data.createdAt &&
+          request.resource.data.get('screenshot', null) == resource.data.get('screenshot', null)
         )
       );
       

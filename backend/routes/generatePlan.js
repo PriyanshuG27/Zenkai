@@ -6,9 +6,56 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { validateUID, validatePlanRequest, validatePlan, HttpsError } = require('../lib/validators');
 const { checkRateLimit } = require('../middleware/rateLimiter');
 const { WORKOUT_PLAN } = require('../lib/models');
+const exercisesDatabase = require('../data/exercises.json');
 
 const FieldValue = admin.firestore.FieldValue;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+function mapAvailableEquipment(equipmentList) {
+  const mapped = new Set();
+  equipmentList.forEach((item) => {
+    if (!item) return;
+    const normalized = item.trim();
+    if (normalized === 'Barbell') mapped.add('barbell');
+    else if (normalized === 'Dumbbells') mapped.add('dumbbells');
+    else if (normalized === 'Cable Machine') mapped.add('cables');
+    else if (normalized === 'Pull-up Bar') mapped.add('pullup_bar');
+    else if (normalized === 'Leg Press') {
+      mapped.add('leg_press');
+      mapped.add('calf_raise');
+    }
+    else if (normalized === 'Leg Extension') mapped.add('leg_extension');
+    else if (normalized === 'Leg Curl') mapped.add('leg_curl');
+    else if (normalized === 'Ab Wheel') mapped.add('ab_roller');
+    else if (['Flat Bench', 'Incline Bench', 'Decline Bench', 'Preacher Curl Bench'].includes(normalized)) {
+      mapped.add('bench');
+    }
+    mapped.add(normalized.toLowerCase());
+  });
+  if (mapped.has('dumbbells') || mapped.has('barbell')) {
+    mapped.add('calf_raise');
+  }
+  return Array.from(mapped);
+}
+
+function mapMedicalFlags(medicalFlags) {
+  const mapped = new Set();
+  medicalFlags.forEach((flag) => {
+    if (!flag) return;
+    const normalized = flag.trim();
+    if (normalized === 'Shoulder Impingement' || normalized === 'Rotator Cuff Issue') {
+      mapped.add('shoulder_impingement');
+    } else if (normalized === 'Lower Back Issues' || normalized === 'Herniated Disc' || normalized === 'Hernia') {
+      mapped.add('lower_back');
+    } else if (normalized === 'Bad Knees') {
+      mapped.add('bad_knees');
+    } else if (normalized === 'Post-Surgery') {
+      mapped.add('post_surgery');
+    }
+    mapped.add(normalized.toLowerCase().replace('-', '_').replace(' ', '_'));
+  });
+  return Array.from(mapped);
+}
 
 function getISOWeek(date = new Date()) {
   const tempDate = new Date(date.valueOf());
@@ -50,6 +97,26 @@ module.exports = [authGuard, async (req, res) => {
       sessionDuration = '45-60 mins',
       dietType = 'Vegetarian'
     } = userDoc.data();
+
+    const mappedEquipment = new Set(mapAvailableEquipment(equipmentList));
+    const mappedMedical = new Set(mapMedicalFlags(medicalFlags));
+
+    const allowedExercises = exercisesDatabase.filter((ex) => {
+      const required = ex.equipmentRequired || [];
+      if (required.length > 0 && !required.every((item) => mappedEquipment.has(item))) {
+        return false;
+      }
+      const restricted = ex.medicallyRestricted || [];
+      if (restricted.length > 0 && restricted.some((flag) => mappedMedical.has(flag))) {
+        return false;
+      }
+      return true;
+    });
+
+    const allowedExercisesSummary = allowedExercises.map(ex => ({
+      name: ex.name,
+      muscleGroup: ex.muscleGroup
+    }));
 
     const sessionsSnap = await adminDb
       .collection(`users/${uid}/sessions`)
@@ -124,8 +191,15 @@ module.exports = [authGuard, async (req, res) => {
     if (previousPlan && previousPlan.plan) {
       prompt = `You are an elite fitness coach and Strength Coach. You MUST take the user's PREVIOUS WEEK'S WORKOUT PLAN and output the EXACT SAME PLAN, but make surgical modifications only to the flagged exercises based on the user's recent feedback.
 
+CRITICAL EXERCISE COUNT CONSTRAINT:
+Every active (non-rest) workout day in the generated plan MUST contain exactly 4 to 6 exercises. If a copied workout day from the previous plan has fewer than 4 exercises, you MUST select and append appropriate exercises from the ALLOWED EXERCISES list targeting the same or complementary muscle groups to reach exactly 4 to 6 exercises. Never output fewer than 4 exercises or more than 6 exercises for any active workout day. This count limit is absolute and strict.
+
 PREVIOUS WEEK'S PLAN:
 ${JSON.stringify(previousPlan.plan)}
+
+ALLOWED EXERCISES:
+You MUST select all exercise names strictly from this list. Use their exact names (e.g. "Dumbbell Bench Press"). Do NOT invent new exercises and do NOT use snake_case keys (like "dumbbell_bench_press"):
+${JSON.stringify(allowedExercisesSummary)}
 
 USER FEEDBACK / DEBRIEF FLAGS FROM THE LAST 14 DAYS:
 - Joint Pain/Discomfort (Substitute these exercises with joint-friendly, biomechanically similar movements): [${painList.join(', ')}]
@@ -145,14 +219,14 @@ ${req.body?.personalRequirements ? `USER'S PERSONAL REQUIREMENTS FOR THIS WEEK:\
 
 STRICT RULES FOR MODIFICATION:
 1. Copy the PREVIOUS WEEK'S PLAN exactly (same days, same focus, same exercises, same sets/reps/weights), EXCEPT for exercises flagged in the feedback/debrief list or affected by user's personal requirements.
-2. For any exercise in the Joint Pain list: Replace it with a joint-friendly, biomechanically similar alternative that targets the same muscle group. For example, replace heavy barbell lifts with dumbbell, cable, or machine alternatives (e.g., replace Barbell Bench Press with Dumbbell Bench Press or Chest Press machine) to reduce shear stress. Do NOT prescribe the original exercise.
-3. For any exercise in the Too Easy list: Increase the targetWeight by 2.5% to 5.0% (rounded to the nearest 2.5 kg, e.g. from 60 kg to 62.5 kg). If it's a bodyweight exercise, increase the target reps instead.
-4. For any exercise in the Broken Equipment list: Replace it with a free-weight or alternative machine exercise that targets the same muscles and is compatible with the Available Equipment.
-5. Ensure all prescribed exercises comply with the Available Equipment list and Medical Restrictions.
-6. Ensure every active (non-rest) workout day contains exactly 4 to 6 exercises. If a copied workout day from the previous plan has fewer than 4 exercises, you MUST supplement it with additional movements from the Available Equipment list to reach exactly 4 to 6 exercises.
-7. Ensure exercises follow a logical progression flow: start with the heaviest compound lift of the day, followed by secondary compound movements, then accessory movements, and finish with isolation or core movements. NEVER place isolation movements before compounds.
-8. Ensure NO exercise is duplicated on the same day.
-9. Absolutely do not change any other exercises or focuses. Keep the structure identical.
+2. If any exercise in the PREVIOUS WEEK'S PLAN has a snake_case name (e.g. 'cable_chest_fly'), you MUST translate it to its corresponding clean name from the ALLOWED EXERCISES list (e.g. 'Cable Chest Fly') before outputting it. Never output snake_case names.
+3. For any exercise in the Joint Pain list: Replace it with a joint-friendly, biomechanically similar alternative from the ALLOWED EXERCISES list that targets the same muscle group. For example, replace heavy barbell lifts with dumbbell, cable, or machine alternatives. Do NOT prescribe the original exercise.
+4. For any exercise in the Too Easy list: Increase the targetWeight by 2.5% to 5.0% (rounded to the nearest 2.5 kg, e.g. from 60 kg to 62.5 kg). If it's a bodyweight exercise, increase the target reps instead.
+5. For any exercise in the Broken Equipment list: Replace it with a free-weight or alternative machine exercise from the ALLOWED EXERCISES list that targets the same muscles and is compatible with the Available Equipment.
+6. Ensure all prescribed exercises comply with the Available Equipment list and Medical Restrictions.
+7. Ensure every active (non-rest) workout day contains exactly 4 to 6 exercises. If a copied workout day from the previous plan has fewer than 4 exercises, you MUST supplement it with additional movements from the ALLOWED EXERCISES list to reach exactly 4 to 6 exercises.
+8. Ensure exercises follow a logical progression flow: start with the heaviest compound lift of the day, followed by secondary compound movements, then accessory movements, and finish with isolation or core movements. NEVER place isolation movements before compounds.
+9. Ensure NO exercise is duplicated on the same day.
 10. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order).
 
 OUTPUT FORMAT:
@@ -161,6 +235,14 @@ JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Re
 IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for each day from 1 to 7 in sequential order. Do NOT omit rest days; they must have "focus": "Rest" and "exercises": []`;
     } else {
       prompt = `You are an elite fitness coach generating a highly customized weekly workout plan.
+
+CRITICAL EXERCISE COUNT CONSTRAINT:
+Every active (non-rest) workout day in the generated plan MUST contain exactly 4 to 6 exercises. If a workout day has fewer than 4 exercises in your recent logs, you MUST select and append appropriate exercises from the ALLOWED EXERCISES list targeting the same or complementary muscle groups to reach exactly 4 to 6 exercises. Never output fewer than 4 exercises or more than 6 exercises for any active workout day. This count limit is absolute and strict.
+
+ALLOWED EXERCISES:
+You MUST select all exercise names strictly from this list. Use their exact names (e.g. "Dumbbell Bench Press"). Do NOT invent new exercises and do NOT use snake_case keys (like "dumbbell_bench_press"):
+${JSON.stringify(allowedExercisesSummary)}
+
 USER PROFILE: 
 - Experience Level: ${userType}
 - Primary Goal: ${goal}
@@ -182,14 +264,14 @@ STRICT RULES:
    - Muscle Gain (Hypertrophy): 3-4 sets of 8-12 reps.
    - Fat Loss / Conditioning: 3 sets of 12-15 reps with higher tempo.
 5. Ensure workouts fit within the Max Session Duration.
-6. Every active (non-rest) workout day in the plan MUST contain exactly 4 to 6 exercises. If the RECENT SESSION LOGS are empty (or this is a fresh plan), prescribe a high-quality, well-structured starter routine. Each active workout day must have exactly 4 to 6 exercises: starting with primary compound lifts (e.g. Squat, Bench Press, or Push-Ups/Pull-Ups for bodyweight) followed by accessory and isolation movements. Use conservative starter weights matching the experience level, age, and gender.
+6. Every active (non-rest) workout day in the plan MUST contain exactly 4 to 6 exercises. If the RECENT SESSION LOGS are empty (or this is a fresh plan), prescribe a high-quality, well-structured starter routine using exercises from the ALLOWED EXERCISES list. Each active workout day must have exactly 4 to 6 exercises: starting with primary compound lifts (e.g. Squat, Bench Press, or Push-Ups/Pull-Ups for bodyweight) followed by accessory and isolation movements. Use conservative starter weights matching the experience level, age, and gender.
 7. If RECENT SESSION LOGS exist:
    - Identify the maximum weight and reps completed for each exercise.
    - Calculate their Estimated 1RM using the Epley formula: 1RM = Weight * (1 + Reps / 30).
    - Prescribe a targetWeight for the new plan's sets that equals 70-80% of that estimated 1RM for the target rep range.
    - Apply a precise 2.5% to 5.0% progressive overload weight increase on top of their recent maximum weight lifted for identical exercises.
    - Round all targetWeight values to the nearest 2.5 kg increment (e.g. 60 kg, 62.5 kg, 65 kg; 0 for bodyweight).
-   - To satisfy the 4 to 6 exercises requirement per active day, if the recent logs for a specific workout day have fewer than 4 exercises, you MUST supplement them by adding relevant accessory or isolation exercises from the Available Equipment list.
+   - To satisfy the 4 to 6 exercises requirement per active day, if the recent logs for a specific workout day have fewer than 4 exercises, you MUST supplement them by adding relevant accessory or isolation exercises from the ALLOWED EXERCISES list.
 8. Ensure exercises follow a logical progression flow: start with the heaviest compound lift of the day, followed by secondary compound movements, then accessory movements, and finish with isolation or core movements. NEVER place isolation movements before compounds.
 9. Ensure NO exercise is duplicated on the same day.
 10. If the user experience level is 'Comeback', ignore progression and dial target weights back to 70-80% of their recent logs to ease them in safely.
@@ -306,6 +388,34 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     }
 
     const plan = parseGeminiJSON(rawText);
+
+    // Normalize exercise names to clean, official title case display names from exercisesDatabase
+    const exerciseCatalog = {};
+    exercisesDatabase.forEach(ex => {
+      exerciseCatalog[ex.key.toLowerCase()] = ex.name;
+      exerciseCatalog[ex.name.toLowerCase()] = ex.name;
+      const cleanKey = ex.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      exerciseCatalog[cleanKey] = ex.name;
+    });
+
+    if (plan && Array.isArray(plan.days)) {
+      plan.days.forEach(day => {
+        if (day.exercises && Array.isArray(day.exercises)) {
+          day.exercises.forEach(ex => {
+            if (ex && typeof ex.name === 'string') {
+              const lowerName = ex.name.toLowerCase().trim();
+              const cleanKey = lowerName.replace(/[^a-z0-9]+/g, '_');
+              if (exerciseCatalog[cleanKey]) {
+                ex.name = exerciseCatalog[cleanKey];
+              } else if (exerciseCatalog[lowerName]) {
+                ex.name = exerciseCatalog[lowerName];
+              }
+            }
+          });
+        }
+      });
+    }
+
     validatePlan(plan);
 
     const weekId =
