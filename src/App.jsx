@@ -54,9 +54,22 @@ class ErrorBoundary extends Component {
   }
 }
 
+// Helper to automatically reload the page if a chunk fetch fails (e.g. after a new deploy)
+function safeLazy(importFn) {
+  return React.lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error) {
+      console.error('[safeLazy] Failed to load module chunk, reloading page:', error);
+      window.location.reload();
+      return new Promise(() => {}); // Return a pending promise to avoid rendering crash before reload
+    }
+  });
+}
+
 // Layout Shells
-const MobileApp = React.lazy(() => import('./components/mobile/MobileApp'));
-const DesktopApp = React.lazy(() => import('./components/desktop/DesktopApp'));
+const MobileApp = safeLazy(() => import('./components/mobile/MobileApp'));
+const DesktopApp = safeLazy(() => import('./components/desktop/DesktopApp'));
 
 // Route Guards
 import { GuestRoute }      from './components/shared/GuestRoute';
@@ -71,27 +84,27 @@ import { PWAInstallModal } from './components/shared/PWAInstallModal';
 import { PWAInstallBanner } from './components/shared/PWAInstallBanner';
 import { ToastStack } from './components/shared/ToastStack';
 
-const OnboardingPage = React.lazy(() => import('./components/shared/OnboardingPage'));
+const OnboardingPage = safeLazy(() => import('./components/shared/OnboardingPage'));
 
 // Mobile Screens
 import { MobileHome }           from './components/mobile/MobileHome';
 import { MobileLogger }         from './components/mobile/MobileLogger';
 import { MobileSessionComplete } from './components/mobile/MobileSessionComplete';
 
-const MobileProgress = React.lazy(() => import('./components/mobile/MobileProgress'));
-const MobilePlan = React.lazy(() => import('./components/mobile/MobilePlan'));
-const MobileChallenges = React.lazy(() => import('./components/mobile/MobileChallenges'));
-const MobileProfile = React.lazy(() => import('./components/mobile/MobileProfile'));
+const MobileProgress = safeLazy(() => import('./components/mobile/MobileProgress'));
+const MobilePlan = safeLazy(() => import('./components/mobile/MobilePlan'));
+const MobileChallenges = safeLazy(() => import('./components/mobile/MobileChallenges'));
+const MobileProfile = safeLazy(() => import('./components/mobile/MobileProfile'));
 
 // Desktop Screens
 import { DesktopDashboard }  from './components/desktop/DesktopDashboard';
 
-const SquadMatchmaker = React.lazy(() => import('./components/desktop/SquadMatchmaker').then(m => ({ default: m.SquadMatchmaker })));
-const DesktopLogEditor = React.lazy(() => import('./components/desktop/DesktopLogEditor').then(m => ({ default: m.DesktopLogEditor })));
-const PosterStudio = React.lazy(() => import('./components/desktop/PosterStudio').then(m => ({ default: m.PosterStudio })));
-const AuraForecaster = React.lazy(() => import('./components/desktop/AuraForecaster').then(m => ({ default: m.AuraForecaster })));
-const SundayMagazine = React.lazy(() => import('./components/desktop/SundayMagazine').then(m => ({ default: m.SundayMagazine })));
-const DesktopProfile = React.lazy(() => import('./components/desktop/DesktopProfile'));
+const SquadMatchmaker = safeLazy(() => import('./components/desktop/SquadMatchmaker').then(m => ({ default: m.SquadMatchmaker })));
+const DesktopLogEditor = safeLazy(() => import('./components/desktop/DesktopLogEditor').then(m => ({ default: m.DesktopLogEditor })));
+const PosterStudio = safeLazy(() => import('./components/desktop/PosterStudio').then(m => ({ default: m.PosterStudio })));
+const AuraForecaster = safeLazy(() => import('./components/desktop/AuraForecaster').then(m => ({ default: m.AuraForecaster })));
+const SundayMagazine = safeLazy(() => import('./components/desktop/SundayMagazine').then(m => ({ default: m.SundayMagazine })));
+const DesktopProfile = safeLazy(() => import('./components/desktop/DesktopProfile'));
 
 // ─── Inner router tree — reads layout from parent ────────────────────────────
 // Defined inside BrowserRouter so hooks that need router context work correctly.

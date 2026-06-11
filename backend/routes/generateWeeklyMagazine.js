@@ -243,7 +243,21 @@ JSON structure:
     }
   ],
   "coachVerdict": "A final raw quote representing your overall verdict (1-2 sentences)",
-  "futureFocus": "Target focus recommendations for the upcoming week"
+  "futureFocus": "Target focus recommendations for the upcoming week",
+  "horoscope": {
+    "aries": {
+      "prediction": "A customized funny gym horoscope prediction for Aries (e.g. gym traffic forecast, training zone weather alert, or general motivational roast based on user's weak points/streaks)",
+      "luckyLift": "Suggested gym exercise/lift (e.g. Zercher Squat)"
+    },
+    "leo": {
+      "prediction": "A customized funny gym horoscope prediction for Leo",
+      "luckyLift": "Suggested gym exercise/lift"
+    },
+    "capricorn": {
+      "prediction": "A customized funny gym horoscope prediction for Capricorn",
+      "luckyLift": "Suggested gym exercise/lift"
+    }
+  }
 }`;
 
     const prompt = `Here is the compressed weekly telemetry for the user:
@@ -386,7 +400,21 @@ ${JSON.stringify(compressedTelemetry, null, 2)}`;
           }
         ],
         coachVerdict: "Consistency is king. Show up, load the bar, and execute with focus.",
-        futureFocus: "Prioritize target hypertrophy brackets and maintain your active streak."
+        futureFocus: "Prioritize target hypertrophy brackets and maintain your active streak.",
+        horoscope: {
+          aries: {
+            prediction: "Your squat rack will be occupied by a guy doing barbell curls today. Exercise patience, or suggest working in. Your energy demands heavy lifting.",
+            luckyLift: "Zercher Squat"
+          },
+          leo: {
+            prediction: "The chalk bag is calling your name. A massive PR is written in your stars if you play heavy Phonk music. Avoid machine training this week.",
+            luckyLift: "5x5 Bench Press"
+          },
+          capricorn: {
+            prediction: "An extra rest day is recommended by stars, but your muscles demand heavy overhead presses. Push through. Consistency streak will multiply.",
+            luckyLift: "Overhead Press"
+          }
+        }
       };
     }
 

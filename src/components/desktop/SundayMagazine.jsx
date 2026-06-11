@@ -174,51 +174,51 @@ export const SundayMagazine = () => {
             </div>
 
             {/* Cues Vault overlay schematic */}
-            <div className="border-2 border-black bg-neutral-50 p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden">
-              <div className="border-b border-black pb-1.5 flex justify-between items-center text-xs font-mono font-bold">
-                <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
-                  <Activity size={14} className="text-neutral-700" />
-                  <span>BIOMECHANICAL CUES VAULT SCHEMATIC</span>
-                </span>
-                <span className="text-neutral-500 uppercase">Interactive Map</span>
-              </div>
+            {telemetry.desk_vault_cues && telemetry.desk_vault_cues.length > 0 ? (
+              <div className="border-2 border-black bg-neutral-50 p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden">
+                <div className="border-b border-black pb-1.5 flex justify-between items-center text-xs font-mono font-bold">
+                  <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity size={14} className="text-neutral-700" />
+                    <span>BIOMECHANICAL CUES VAULT SCHEMATIC</span>
+                  </span>
+                  <span className="text-neutral-500 uppercase">Interactive Map</span>
+                </div>
 
-              {/* Barbell schematic SVG */}
-              <div className="relative h-48 w-full bg-white border border-neutral-300 rounded-lg flex items-center justify-center overflow-hidden">
-                <svg className="absolute w-full h-full max-w-md pointer-events-none" viewBox="0 0 400 200">
-                  {/* Grid Lines */}
-                  <line x1="0" y1="50" x2="400" y2="50" stroke="#f0f0f0" strokeDasharray="3 3" />
-                  <line x1="0" y1="100" x2="400" y2="100" stroke="#f0f0f0" strokeDasharray="3 3" />
-                  <line x1="0" y1="150" x2="400" y2="150" stroke="#f0f0f0" strokeDasharray="3 3" />
-                  <line x1="100" y1="0" x2="100" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
-                  <line x1="200" y1="0" x2="200" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
-                  <line x1="300" y1="0" x2="300" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
+                {/* Barbell schematic SVG */}
+                <div className="relative h-48 w-full bg-white border border-neutral-300 rounded-lg flex items-center justify-center overflow-hidden">
+                  <svg className="absolute w-full h-full max-w-md pointer-events-none" viewBox="0 0 400 200">
+                    {/* Grid Lines */}
+                    <line x1="0" y1="50" x2="400" y2="50" stroke="#f0f0f0" strokeDasharray="3 3" />
+                    <line x1="0" y1="100" x2="400" y2="100" stroke="#f0f0f0" strokeDasharray="3 3" />
+                    <line x1="0" y1="150" x2="400" y2="150" stroke="#f0f0f0" strokeDasharray="3 3" />
+                    <line x1="100" y1="0" x2="100" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
+                    <line x1="200" y1="0" x2="200" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
+                    <line x1="300" y1="0" x2="300" y2="200" stroke="#f0f0f0" strokeDasharray="3 3" />
 
-                  {/* Barbell shaft */}
-                  <line x1="50" y1="100" x2="350" y2="100" stroke="#444" strokeWidth="6" strokeLinecap="round" />
-                  
-                  {/* Left plates */}
-                  <rect x="70" y="50" width="12" height="100" rx="3" fill="#e53e3e" stroke="black" strokeWidth="2" />
-                  <rect x="85" y="60" width="10" height="80" rx="2" fill="#3182ce" stroke="black" strokeWidth="2" />
-                  <rect x="98" y="70" width="8" height="60" rx="1.5" fill="#38a169" stroke="black" strokeWidth="2" />
-                  <rect x="109" y="80" width="5" height="40" rx="1" fill="#dd6b20" stroke="black" strokeWidth="2" />
-                  
-                  {/* Right plates */}
-                  <rect x="318" y="50" width="12" height="100" rx="3" fill="#e53e3e" stroke="black" strokeWidth="2" />
-                  <rect x="305" y="60" width="10" height="80" rx="2" fill="#3182ce" stroke="black" strokeWidth="2" />
-                  <rect x="294" y="70" width="8" height="60" rx="1.5" fill="#38a169" stroke="black" strokeWidth="2" />
-                  <rect x="286" y="80" width="5" height="40" rx="1" fill="#dd6b20" stroke="black" strokeWidth="2" />
+                    {/* Barbell shaft */}
+                    <line x1="50" y1="100" x2="350" y2="100" stroke="#444" strokeWidth="6" strokeLinecap="round" />
+                    
+                    {/* Left plates */}
+                    <rect x="70" y="50" width="12" height="100" rx="3" fill="#e53e3e" stroke="black" strokeWidth="2" />
+                    <rect x="85" y="60" width="10" height="80" rx="2" fill="#3182ce" stroke="black" strokeWidth="2" />
+                    <rect x="98" y="70" width="8" height="60" rx="1.5" fill="#38a169" stroke="black" strokeWidth="2" />
+                    <rect x="109" y="80" width="5" height="40" rx="1" fill="#dd6b20" stroke="black" strokeWidth="2" />
+                    
+                    {/* Right plates */}
+                    <rect x="318" y="50" width="12" height="100" rx="3" fill="#e53e3e" stroke="black" strokeWidth="2" />
+                    <rect x="305" y="60" width="10" height="80" rx="2" fill="#3182ce" stroke="black" strokeWidth="2" />
+                    <rect x="294" y="70" width="8" height="60" rx="1.5" fill="#38a169" stroke="black" strokeWidth="2" />
+                    <rect x="286" y="80" width="5" height="40" rx="1" fill="#dd6b20" stroke="black" strokeWidth="2" />
 
-                  {/* Collar sleeve */}
-                  <rect x="114" y="94" width="20" height="12" fill="#888" stroke="black" strokeWidth="1.5" />
-                  <rect x="266" y="94" width="20" height="12" fill="#888" stroke="black" strokeWidth="1.5" />
+                    {/* Collar sleeve */}
+                    <rect x="114" y="94" width="20" height="12" fill="#888" stroke="black" strokeWidth="1.5" />
+                    <rect x="266" y="94" width="20" height="12" fill="#888" stroke="black" strokeWidth="1.5" />
 
-                  {/* Center ring */}
-                  <circle cx="200" cy="100" r="6" fill="#1a202c" />
-                </svg>
+                    {/* Center ring */}
+                    <circle cx="200" cy="100" r="6" fill="#1a202c" />
+                  </svg>
 
-                {/* Overlaid Cues in Hand-written Font */}
-                {telemetry.desk_vault_cues && telemetry.desk_vault_cues.length > 0 ? (
+                  {/* Overlaid Cues in Hand-written Font */}
                   <div className="absolute inset-0 w-full h-full font-serif pointer-events-none">
                     {telemetry.desk_vault_cues.slice(0, 3).map((cue, idx) => {
                       // Alternate positions around the barbell
@@ -244,16 +244,170 @@ export const SundayMagazine = () => {
                       );
                     })}
                   </div>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/85 p-4 pointer-events-auto text-center">
-                    <span 
-                      className="text-xs font-mono text-neutral-500 uppercase font-black"
-                    >
-                      Vault Empty. Log trigger cues in Recap Cinema to map overlays!
-                    </span>
-                  </div>
-                )}
+                </div>
               </div>
+            ) : (
+              <div className="border-2 border-black bg-amber-50/70 p-6 rounded-xl flex flex-col gap-3 text-left relative overflow-hidden">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-amber-100/80 rounded-lg border border-amber-300 text-amber-800 flex items-center justify-center shrink-0">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-mono font-black uppercase text-amber-900 tracking-wider">CUES VAULT INACTIVE</span>
+                    <h4 className="font-serif font-black text-base text-black mt-0.5 leading-tight">
+                      You haven't logged any mental cues in the Recap Cinema yet!
+                    </h4>
+                    <p className="text-xs text-neutral-700 font-sans leading-relaxed mt-2.5">
+                      To map verbal cues on this diagram, open the <a href="/recap" className="text-blue-600 font-bold hover:underline">Recap Cinema</a>, select a workout session, and write a checklist of verbal cues (e.g. *"keep elbows tucked"*) under the Desk Vault cue notes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2-Column Newspaper Layout for telemetry viz and weather charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              
+              {/* Muscle Volume Distribution Bar Chart */}
+              <div className="border-2 border-black p-4 bg-neutral-50 rounded-xl flex flex-col gap-4 font-mono text-[10px] text-neutral-800 text-left">
+                <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
+                  <span className="text-black uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity size={14} className="text-neutral-700" />
+                    <span>VOLUME DISTRIBUTION BY GROUP</span>
+                  </span>
+                  <span className="text-neutral-500 uppercase">VOL (KG)</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {(() => {
+                    const dist = telemetry?.volume_distribution_kg || {};
+                    const totalDistVolume = Object.values(dist).reduce((a, b) => Number(a) + Number(b), 0) || 1;
+                    return Object.entries(dist).map(([group, vol]) => {
+                      const percent = Math.round((Number(vol) / totalDistVolume) * 100);
+                      const barColor = {
+                        chest: '#ff6b6b', // Crimson
+                        back: '#4dadf7',  // Sky Blue
+                        legs: '#51cf66',  // Emerald
+                        shoulders: '#fcc419', // Mustard
+                        arms: '#cc5de8',  // Purple
+                        core: '#20c997'   // Teal
+                      }[group] || '#868e96';
+
+                      return (
+                        <div key={group} className="flex flex-col gap-1">
+                          <div className="flex justify-between items-end font-bold uppercase text-black text-[10px]">
+                            <span>{group}</span>
+                            <span className="text-neutral-600 font-normal">{Number(vol).toLocaleString()} kg ({percent}%)</span>
+                          </div>
+                          <div className="w-full bg-white border-2 border-black h-3.5 rounded overflow-hidden relative shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                            <div
+                              className="h-full border-r border-black"
+                              style={{
+                                width: `${Math.max(percent, vol > 0 ? 4 : 0)}%`,
+                                backgroundColor: barColor
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {/* Gym Atmosphere & Map Stack */}
+              <div className="flex flex-col gap-6">
+                {/* Gym Atmosphere Report Widget */}
+                <div className="border-2 border-black p-4 bg-neutral-50 rounded-xl flex flex-col gap-2 font-mono text-[10px] text-neutral-800 text-left">
+                  <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
+                    <span className="text-black uppercase tracking-wider flex items-center gap-1">
+                      <span>🌡️ GYM ATMOSPHERE WEATHER INDEX</span>
+                    </span>
+                    <span className="text-neutral-500 uppercase">WEEKLY AVG</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-2 mt-1">
+                    <div className="flex justify-between border-b border-neutral-250 pb-1">
+                      <span className="text-neutral-500">AVG TEMPERATURE:</span>
+                      <span className="font-bold text-black">28°C (Sweaty/Heavy)</span>
+                    </div>
+                    <div className="flex justify-between border-b border-neutral-250 pb-1">
+                      <span className="text-neutral-500">MUSIC BPM LEVEL:</span>
+                      <span className="font-bold text-black">130 BPM (Synthwave/Phonk)</span>
+                    </div>
+                    <div className="flex justify-between border-b border-neutral-250 pb-1">
+                      <span className="text-neutral-550">CROWD LEVEL:</span>
+                      <span className="font-bold text-red-650">Peak Hour (90% Occupancy)</span>
+                    </div>
+                    <div className="flex justify-between border-b border-neutral-250 pb-1">
+                      <span className="text-neutral-550">CHALK ATMOSPHERE:</span>
+                      <span className="font-bold text-black">PR Dry / Chalky</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gym Land Meteorological Map */}
+                <div className="border-2 border-black p-4 bg-neutral-50 rounded-xl flex flex-col gap-3 font-mono text-[10px] text-neutral-800 text-left">
+                  <div className="border-b border-black pb-1.5 flex justify-between items-center font-bold">
+                    <span className="text-black uppercase tracking-wider flex items-center gap-1">
+                      <span>🗺️ ZENKAI GYM LAND METEOROLOGICAL BLUEPRINT</span>
+                    </span>
+                    <span className="text-neutral-500 uppercase">LIVE</span>
+                  </div>
+                  
+                  <div className="w-full bg-white border border-neutral-300 rounded p-1.5 relative overflow-hidden flex items-center justify-center">
+                    <svg className="w-full h-auto max-w-xs" viewBox="0 0 240 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Grid background */}
+                      <defs>
+                        <pattern id="gymGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#f4f4f5" strokeWidth="0.5" />
+                        </pattern>
+                      </defs>
+                      <rect width="240" height="160" fill="url(#gymGrid)" />
+                      <rect x="5" y="5" width="230" height="150" rx="2" stroke="#000" strokeWidth="1" strokeDasharray="3 3" />
+
+                      {/* Zone A: Dumbbell Bay (Top Left) */}
+                      <rect x="15" y="15" width="95" height="55" rx="1.5" fill="#eff6ff" stroke="#000" strokeWidth="1" />
+                      <line x1="15" y1="30" x2="110" y2="30" stroke="#000" strokeWidth="0.5" strokeDasharray="1 1" />
+                      <text x="20" y="25" fill="#000" fontSize="5" fontWeight="bold" fontFamily="monospace">ZONE A: DUMBBELL BAY</text>
+                      <text x="20" y="42" fill="#2563eb" fontSize="4.5" fontWeight="bold" fontFamily="monospace">💨 FANS HIGH // CHALKY</text>
+                      {/* Dumbbell visual */}
+                      <rect x="20" y="47" width="10" height="2" rx="0.5" fill="#000" />
+                      <rect x="22" y="45" width="1" height="6" fill="#000" />
+                      <rect x="27" y="45" width="1" height="6" fill="#000" />
+
+                      {/* Zone B: Squat Rack Peak (Top Right) */}
+                      <rect x="130" y="15" width="95" height="55" rx="1.5" fill="#fff7ed" stroke="#000" strokeWidth="1" />
+                      <line x1="130" y1="30" x2="225" y2="30" stroke="#000" strokeWidth="0.5" strokeDasharray="1 1" />
+                      <text x="135" y="25" fill="#000" fontSize="5" fontWeight="bold" fontFamily="monospace">ZONE B: SQUAT PEAK</text>
+                      <text x="135" y="42" fill="#ea580c" fontSize="4.5" fontWeight="bold" fontFamily="monospace">⚠️ SEISMIC // HEAVY</text>
+                      {/* Barbell visual */}
+                      <line x1="145" y1="50" x2="175" y2="50" stroke="#000" strokeWidth="1" />
+                      <rect x="148" y="47" width="2" height="7" fill="#000" />
+                      <rect x="170" y="47" width="2" height="7" fill="#000" />
+
+                      {/* Zone C: Cardio Monsoon Deck (Bottom Right) */}
+                      <rect x="130" y="85" width="95" height="60" rx="1.5" fill="#f0fdf4" stroke="#000" strokeWidth="1" />
+                      <line x1="130" y1="100" x2="225" y2="100" stroke="#000" strokeWidth="0.5" strokeDasharray="1 1" />
+                      <text x="135" y="95" fill="#000" fontSize="5" fontWeight="bold" fontFamily="monospace">ZONE C: CARDIO DECK</text>
+                      <text x="135" y="112" fill="#16a34a" fontSize="4.5" fontWeight="bold" fontFamily="monospace">🌧️ 95% HUMIDITY // MONSOON</text>
+                      {/* Treadmill visual */}
+                      <path d="M 145 130 L 160 130 L 163 120" stroke="#000" strokeWidth="1" strokeLinecap="round" />
+
+                      {/* Zone D: Smoothie Bar Oasis (Bottom Left) */}
+                      <rect x="15" y="85" width="95" height="60" rx="1.5" fill="#faf5ff" stroke="#000" strokeWidth="1" />
+                      <line x1="15" y1="100" x2="110" y2="100" stroke="#000" strokeWidth="0.5" strokeDasharray="1 1" />
+                      <text x="20" y="95" fill="#000" fontSize="5" fontWeight="bold" fontFamily="monospace">ZONE D: SMOOTHIE OASIS</text>
+                      <text x="20" y="112" fill="#9333ea" fontSize="4.5" fontWeight="bold" fontFamily="monospace">❄️ COOL BREEZE // +30G WHEY</text>
+                      {/* Cup visual */}
+                      <path d="M 20 122 L 25 122 L 24 132 L 21 132 Z" fill="#000" />
+
+                      {/* Compass */}
+                      <circle cx="120" cy="77" r="6" fill="#fff" stroke="#000" strokeWidth="0.75" />
+                      <text x="118.5" y="79" fill="#000" fontSize="6.5" fontWeight="black" fontFamily="sans-serif">N</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             {/* Core Articles (The Sections) */}
@@ -268,6 +422,61 @@ export const SundayMagazine = () => {
                   </p>
                 </div>
               ))}
+            </div>
+
+            {/* Zenkai Horoscope Section */}
+            <div className="border-t-4 border-double border-black pt-5 mt-6 flex flex-col gap-4 text-left font-serif">
+              <h4 className="font-serif font-black text-xl text-black uppercase tracking-tight text-center border-b border-black pb-2 select-none">
+                🌟 TRAINING ASTROLOGICAL ALIGNMENTS
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans text-xs text-neutral-800">
+                <div className="flex flex-col gap-1.5 border-b md:border-b-0 md:border-r border-neutral-250 pb-4 md:pb-0 md:pr-4">
+                  <span className="font-serif font-black text-xs text-black uppercase flex items-center gap-1.5">
+                    <span>♈ ARIES</span>
+                    <span className="text-[9px] font-mono text-neutral-500 font-normal">(MAR 21 - APR 19)</span>
+                  </span>
+                  <p className="leading-relaxed text-neutral-700 text-justify">
+                    {magazineData.horoscope?.aries?.prediction || "Your squat rack will be occupied by a guy doing barbell curls today. Exercise patience, or suggest working in. Your energy demands heavy lifting."}{" "}
+                    <strong>Lucky Lift:</strong> {magazineData.horoscope?.aries?.luckyLift || "Zercher Squat"}.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1.5 border-b md:border-b-0 md:border-r border-neutral-250 pb-4 md:pb-0 md:pr-4">
+                  <span className="font-serif font-black text-xs text-black uppercase flex items-center gap-1.5">
+                    <span>♌ LEO</span>
+                    <span className="text-[9px] font-mono text-neutral-500 font-normal">(JUL 23 - AUG 22)</span>
+                  </span>
+                  <p className="leading-relaxed text-neutral-700 text-justify">
+                    {magazineData.horoscope?.leo?.prediction || "The chalk bag is calling your name. A massive PR is written in your stars if you play heavy Phonk music. Avoid machine training this week."}{" "}
+                    <strong>Lucky Lift:</strong> {magazineData.horoscope?.leo?.luckyLift || "5x5 Bench Press"}.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1.5 pb-2">
+                  <span className="font-serif font-black text-xs text-black uppercase flex items-center gap-1.5">
+                    <span>♑ CAPRICORN</span>
+                    <span className="text-[9px] font-mono text-neutral-500 font-normal">(DEC 22 - JAN 19)</span>
+                  </span>
+                  <p className="leading-relaxed text-neutral-700 text-justify">
+                    {magazineData.horoscope?.capricorn?.prediction || "An extra rest day is recommended by stars, but your muscles demand heavy overhead presses. Push through. Consistency streak will multiply."}{" "}
+                    <strong>Lucky Lift:</strong> {magazineData.horoscope?.capricorn?.luckyLift || "Overhead Press"}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Retro Classified Ad Coupon */}
+            <div className="border-2 border-dashed border-neutral-400 p-4 mt-4 bg-yellow-50/20 text-center relative font-mono text-xs select-none">
+              <span className="absolute -top-2 left-4 bg-white px-2 text-[9px] font-bold text-neutral-500 uppercase tracking-widest border border-neutral-300">
+                ✂️ Cut Out Coupon
+              </span>
+              <h5 className="font-serif font-black text-sm uppercase text-black mb-1">
+                SQUAD DRAFT ACTIVE — REDEEM SYNERGY CODE
+              </h5>
+              <p className="text-[10px] text-neutral-600 leading-tight">
+                Are you training alone? Join an active squad to fight PvE Titan Raid Bosses and earn +6% weekly XP multipliers. Double your gains with teammate consistency synergy.
+              </p>
+              <div className="mt-2.5 font-serif font-black text-[10px] uppercase text-blue-900 tracking-wider">
+                PROMO CODE: ZK-SYNERGY-2026 // REDEEM IN SQUAD MATCHMAKER
+              </div>
             </div>
 
           </div>

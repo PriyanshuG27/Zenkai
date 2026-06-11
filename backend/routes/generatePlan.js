@@ -145,12 +145,15 @@ ${req.body?.personalRequirements ? `USER'S PERSONAL REQUIREMENTS FOR THIS WEEK:\
 
 STRICT RULES FOR MODIFICATION:
 1. Copy the PREVIOUS WEEK'S PLAN exactly (same days, same focus, same exercises, same sets/reps/weights), EXCEPT for exercises flagged in the feedback/debrief list or affected by user's personal requirements.
-2. For any exercise in the Joint Pain list: Replace it with a joint-friendly, biomechanically similar alternative that targets the same muscle group. Do NOT prescribe the original exercise.
+2. For any exercise in the Joint Pain list: Replace it with a joint-friendly, biomechanically similar alternative that targets the same muscle group. For example, replace heavy barbell lifts with dumbbell, cable, or machine alternatives (e.g., replace Barbell Bench Press with Dumbbell Bench Press or Chest Press machine) to reduce shear stress. Do NOT prescribe the original exercise.
 3. For any exercise in the Too Easy list: Increase the targetWeight by 2.5% to 5.0% (rounded to the nearest 2.5 kg, e.g. from 60 kg to 62.5 kg). If it's a bodyweight exercise, increase the target reps instead.
 4. For any exercise in the Broken Equipment list: Replace it with a free-weight or alternative machine exercise that targets the same muscles and is compatible with the Available Equipment.
 5. Ensure all prescribed exercises comply with the Available Equipment list and Medical Restrictions.
-6. Absolutely do not change any other exercises or focuses. Keep the structure identical.
-7. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order).
+6. Ensure every active (non-rest) workout day contains exactly 4 to 6 exercises. If a copied workout day from the previous plan has fewer than 4 exercises, you MUST supplement it with additional movements from the Available Equipment list to reach exactly 4 to 6 exercises.
+7. Ensure exercises follow a logical progression flow: start with the heaviest compound lift of the day, followed by secondary compound movements, then accessory movements, and finish with isolation or core movements. NEVER place isolation movements before compounds.
+8. Ensure NO exercise is duplicated on the same day.
+9. Absolutely do not change any other exercises or focuses. Keep the structure identical.
+10. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order).
 
 OUTPUT FORMAT:
 Respond ONLY with valid, minified JSON. Absolutely NO markdown, NO text outside the JSON, NO explanation.
@@ -174,18 +177,24 @@ STRICT RULES:
 1. ONLY schedule workouts according to the Target Frequency (e.g., if 3-4 days/week, schedule exactly 3 or 4 days, rest the others).
 2. NEVER prescribe exercises requiring equipment not in the Available Equipment list.
 3. NEVER prescribe exercises that violate the Medical Restrictions.
-4. Adapt the rep-ranges and sets based on the Primary Goal (e.g., Muscle Gain = 8-12 reps, Strength = 3-6 reps, Fat Loss = higher pace/reps).
+4. Adapt the rep-ranges and sets strictly based on the Primary Goal:
+   - Strength/Power: 3-5 sets of 3-6 reps, prioritizing heavy compound movements.
+   - Muscle Gain (Hypertrophy): 3-4 sets of 8-12 reps.
+   - Fat Loss / Conditioning: 3 sets of 12-15 reps with higher tempo.
 5. Ensure workouts fit within the Max Session Duration.
-6. If the RECENT SESSION LOGS are empty (or this is a fresh plan), prescribe a high-quality, well-structured starter routine. For each active workout day, prescribe exactly 4 to 6 exercises: starting with primary compound lifts (e.g. Squat, Bench Press, or Push-Ups/Pull-Ups for bodyweight) followed by accessory and isolation movements. Use conservative starter weights matching the experience level, age, and gender.
+6. Every active (non-rest) workout day in the plan MUST contain exactly 4 to 6 exercises. If the RECENT SESSION LOGS are empty (or this is a fresh plan), prescribe a high-quality, well-structured starter routine. Each active workout day must have exactly 4 to 6 exercises: starting with primary compound lifts (e.g. Squat, Bench Press, or Push-Ups/Pull-Ups for bodyweight) followed by accessory and isolation movements. Use conservative starter weights matching the experience level, age, and gender.
 7. If RECENT SESSION LOGS exist:
    - Identify the maximum weight and reps completed for each exercise.
    - Calculate their Estimated 1RM using the Epley formula: 1RM = Weight * (1 + Reps / 30).
    - Prescribe a targetWeight for the new plan's sets that equals 70-80% of that estimated 1RM for the target rep range.
    - Apply a precise 2.5% to 5.0% progressive overload weight increase on top of their recent maximum weight lifted for identical exercises.
    - Round all targetWeight values to the nearest 2.5 kg increment (e.g. 60 kg, 62.5 kg, 65 kg; 0 for bodyweight).
-8. If the user experience level is 'Comeback', ignore progression and dial target weights back to 70-80% of their recent logs to ease them in safely.
-9. CRITICAL AI CONTAMINATION FILTER: Ignore any session in RECENT SESSION LOGS where "safeMode": true is present. Treat flagged sessions as sick/recovery days. Do NOT use their weights/reps to calculate overload targets. Instead, progressive overload must be computed relative to the most recent healthy (unflagged) session for each exercise.
-10. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order). Non-workout/rest days must be explicitly included with "focus": "Rest" and "exercises": [].
+   - To satisfy the 4 to 6 exercises requirement per active day, if the recent logs for a specific workout day have fewer than 4 exercises, you MUST supplement them by adding relevant accessory or isolation exercises from the Available Equipment list.
+8. Ensure exercises follow a logical progression flow: start with the heaviest compound lift of the day, followed by secondary compound movements, then accessory movements, and finish with isolation or core movements. NEVER place isolation movements before compounds.
+9. Ensure NO exercise is duplicated on the same day.
+10. If the user experience level is 'Comeback', ignore progression and dial target weights back to 70-80% of their recent logs to ease them in safely.
+11. CRITICAL AI CONTAMINATION FILTER: Ignore any session in RECENT SESSION LOGS where "safeMode": true is present. Treat flagged sessions as sick/recovery days. Do NOT use their weights/reps to calculate overload targets. Instead, progressive overload must be computed relative to the most recent healthy (unflagged) session for each exercise.
+12. The "days" array MUST contain exactly 7 day objects (Day 1 to Day 7 in order). Non-workout/rest days must be explicitly included with "focus": "Rest" and "exercises": [].
 
 ${req.body?.personalRequirements ? `USER'S PERSONAL REQUIREMENTS FOR THIS WEEK:\n"${req.body.personalRequirements}"\nYou MUST incorporate these requirements into the plan.\n` : ''}
 OUTPUT FORMAT:
