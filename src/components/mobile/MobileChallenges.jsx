@@ -1666,71 +1666,140 @@ export const MobileChallenges = () => {
                     </p>
                   </div>
 
-                  {/* Three chests list */}
-                  <div className="flex flex-col gap-3">
+                  {/* Three Chests Rendering */}
+                  <div className="flex flex-col gap-5">
                     {/* Common Chest */}
-                    <div className="border-2 border-black bg-amber-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-amber-900">
-                      <div className="flex justify-between items-center">
-                        <div className="flex flex-col text-left">
-                          <span className="text-[9px] font-mono text-amber-500 font-bold uppercase">Bronze Box 📦</span>
-                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Common Chest</h4>
+                    <div className="border-2 border-black bg-amber-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-amber-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-amber-500 font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                            Common Chest
+                          </span>
                         </div>
-                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">Cost: 1 Key</span>
+                        <div className="w-36 h-36 mx-auto bg-amber-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
+                          Bronze Vault Box
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          A solid entry-level vault chest containing basic consumables and small chunks of XP.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-300">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">70%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">25%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">5%</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-36 h-36 mx-auto bg-amber-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                        <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                      </div>
-                      <p className="text-[10px] text-[var(--text-secondary)]">Bronze-tier box with basic consumables (Quest Skips, Shields) & basic XP boosts.</p>
+
                       <button
                         onClick={() => handleOpenChest('common')}
                         disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 1}
-                        className="w-full py-2 border-2 border-black bg-amber-400 hover:bg-amber-500 disabled:opacity-40 text-black font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                        className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center font-barlow"
                       >
-                        Open Common Chest
+                        Open (1 Boss Key 🔑)
                       </button>
                     </div>
 
                     {/* Rare Chest */}
-                    <div className="border-2 border-black bg-blue-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-blue-900">
-                      <div className="flex justify-between items-center">
-                        <div className="flex flex-col text-left">
-                          <span className="text-[9px] font-mono text-blue-400 font-bold uppercase">Iron Chest 🎁</span>
-                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Rare Chest</h4>
+                    <div className="border-2 border-black bg-blue-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-blue-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-blue-400 font-bold uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
+                            Rare Chest
+                          </span>
                         </div>
-                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 shrink-0">Cost: 3 Keys</span>
+                        <div className="w-36 h-36 mx-auto bg-blue-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
+                          Iron Vault Chest
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          A fortified chest with a significantly higher chance at rare title rewards, multiple skips, and high XP tiers.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-300">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">15%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">65%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">20%</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-36 h-36 mx-auto bg-blue-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                        <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                      </div>
-                      <p className="text-[10px] text-[var(--text-secondary)]">Fortified chest with high chance of Custom Titles, multi-skips, & 2x XP Boosters.</p>
+
                       <button
                         onClick={() => handleOpenChest('rare')}
                         disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 3}
-                        className="w-full py-2 border-2 border-black bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-black font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center font-barlow"
                       >
-                        Open Rare Chest
+                        Open (3 Boss Keys 🔑)
                       </button>
                     </div>
 
                     {/* Legendary Chest */}
-                    <div className="border-2 border-black bg-purple-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-purple-900">
-                      <div className="flex justify-between items-center">
-                        <div className="flex flex-col text-left">
-                          <span className="text-[9px] font-mono text-purple-400 font-bold uppercase">Obsidian Relic 💎</span>
-                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Legendary Chest</h4>
+                    <div className="border-2 border-black bg-purple-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-purple-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                            Legendary Chest
+                          </span>
                         </div>
-                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 shrink-0">Cost: 5 Keys</span>
+                        <div className="w-36 h-36 mx-auto bg-purple-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
+                          Obsidian Vault Relic
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          The ultimate vault treasure. Guarantees 75% Legendary drops including glowing avatar auras and major XP boosts.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-350">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">0%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">25%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">75%</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-36 h-36 mx-auto bg-purple-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                        <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                      </div>
-                      <p className="text-[10px] text-[var(--text-secondary)]">Obsidian-tier box. Guarantees 75% Legendary drops including glowing avatar auras.</p>
+
                       <button
                         onClick={() => handleOpenChest('legendary')}
                         disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 5}
-                        className="w-full py-2 border-2 border-black bg-purple-500 hover:bg-purple-600 disabled:opacity-40 text-white font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                        className="w-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center font-barlow"
                       >
-                        Open Legendary Chest
+                        Open (5 Boss Keys 🔑)
                       </button>
                     </div>
                   </div>
