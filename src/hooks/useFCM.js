@@ -46,6 +46,24 @@ export async function disablePushNotifications(uid) {
 }
 
 /**
+ * Helper to unregister the old conflicting firebase-messaging-sw.js service worker.
+ */
+async function cleanupStaleServiceWorkers() {
+  if (typeof window === 'undefined' || !navigator.serviceWorker || !navigator.serviceWorker.getRegistrations) return;
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) {
+      if (r.active && r.active.scriptURL.includes('firebase-messaging-sw.js')) {
+        await r.unregister();
+        console.info('[FCM] Successfully unregistered conflicting firebase-messaging-sw.js registration.');
+      }
+    }
+  } catch (err) {
+    console.warn('[FCM] Error cleaning up old service workers:', err);
+  }
+}
+
+/**
  * Re-enables push notifications:
  * - Sets localStorage preference to true
  * - Re-runs FCM token registration
@@ -69,6 +87,9 @@ export async function enablePushNotifications(uid, addToast) {
       console.info('[FCM] Permission not granted — re-enable aborted.');
       return false;
     }
+
+    // Cleanup conflicting legacy service workers
+    await cleanupStaleServiceWorkers();
 
     // Use the active service worker via .ready — most reliable approach
     const swReg = await navigator.serviceWorker.ready;
@@ -147,6 +168,9 @@ export function useFCM() {
           console.info('[FCM] Notification permission not granted. Skipping token registration.');
           return;
         }
+
+        // Cleanup conflicting legacy service workers
+        await cleanupStaleServiceWorkers();
 
         // Use navigator.serviceWorker.ready — resolves to the active sw.js registration.
         // More reliable than getRegistrations() which can return stale entries.
