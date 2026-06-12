@@ -159,9 +159,11 @@ export const DesktopDashboard = () => {
           try {
             const sessData = docSnap.data();
             
-            // Only fetch exercises subcollection for the top 3 displayed sessions to optimize reads
+            // Check for flat exercises first (0 additional reads); fallback to subcollection for top 3
             let exercises = [];
-            if (i < 3) {
+            if (sessData.exercises && Array.isArray(sessData.exercises) && sessData.exercises.length > 0) {
+              exercises = sessData.exercises;
+            } else if (i < 3) {
               const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
               exercises = exSnap.docs.map(exDoc => exDoc.data());
             }
@@ -396,11 +398,11 @@ export const DesktopDashboard = () => {
                     {/* Log Card Header */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#222] pb-3">
                       <div>
-                        <span className="font-mono text-[10px] uppercase font-bold text-[var(--text-secondary)]">
-                          Workout completed on
+                        <span className="font-mono text-[11px] uppercase font-black text-[var(--primary)] block tracking-wide">
+                          {sess.name || (sess.planDayId === 'custom' || !sess.planDayId ? 'Custom Session' : `Day ${sess.planDayId} Session`)}
                         </span>
-                        <h4 className="font-display font-black text-lg text-white uppercase tracking-wide mt-0.5">
-                          {sess.date.toLocaleDateString('en-IN', {
+                        <h4 className="font-display font-bold text-xs text-neutral-400 uppercase tracking-wide mt-0.5">
+                          Completed on {sess.date.toLocaleDateString('en-IN', {
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',

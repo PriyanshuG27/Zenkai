@@ -152,16 +152,7 @@ export function useWorkout() {
         prsEstablished: newPRList.map((pr) => pr.exerciseId),
       });
 
-      // Write individual sub-documents for each executed exercise
-      completedExercises.forEach((ex) => {
-        const exRef = doc(db, 'users', user.uid, 'sessions', sessionId, 'exercises', ex.exerciseId);
-        batch.set(exRef, {
-          exerciseId: ex.exerciseId,
-          name:       ex.name,
-          sets:       ex.sets,
-          timestamp:  serverTimestamp(),
-        });
-      });
+      // PR records are written below
 
       // Write PR records
       newPRList.forEach((pr) => {

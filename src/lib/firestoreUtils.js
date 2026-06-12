@@ -300,3 +300,107 @@ export const abbreviateExerciseName = (name) => {
     .replace(/Barbell/gi, 'BB')
     .replace(/Dumbbell/gi, 'DB');
 };
+
+export const determineWorkoutName = (exercises) => {
+  if (!exercises || exercises.length === 0) return 'Custom Session';
+
+  // Filter exercises with at least one completed/done set
+  const completedExs = exercises.filter(ex => 
+    ex.sets && ex.sets.some(s => s.done || s.completed)
+  );
+
+  if (completedExs.length === 0) return 'Custom Session';
+
+  // Map each completed exercise to a normalized muscle group name
+  const hitGroups = new Set();
+  completedExs.forEach(ex => {
+    let group = (ex.muscleGroup || '').toLowerCase().trim();
+    const name = (ex.name || '').toLowerCase();
+    const key = (ex.exerciseKey || ex.exerciseId || '').toLowerCase();
+
+    if (!group) {
+      // Try to infer from name or key
+      if (name.includes('chest') || name.includes('bench press') || name.includes('pushup') || name.includes('flye')) {
+        group = 'chest';
+      } else if (name.includes('back') || name.includes('row') || name.includes('pull') || name.includes('chin') || name.includes('lat ')) {
+        group = 'back';
+      } else if (name.includes('shoulder') || name.includes('press') || name.includes('raise') || name.includes('delt') || name.includes('lateral')) {
+        group = 'shoulders';
+      } else if (name.includes('leg') || name.includes('squat') || name.includes('calf') || name.includes('lung') || name.includes('deadlift') || name.includes('press')) {
+        group = 'legs';
+      } else if (name.includes('curl') || name.includes('bicep') || name.includes('tricep') || name.includes('arm') || name.includes('dip')) {
+        group = 'arms';
+      } else if (name.includes('abs') || name.includes('core') || name.includes('crunch') || name.includes('plank')) {
+        group = 'core';
+      }
+    }
+
+    if (group === 'arms') {
+      if (name.includes('bicep') || key.includes('bicep') || name.includes('curl') || key.includes('curl') || name.includes('chin') || key.includes('chin')) {
+        hitGroups.add('Biceps');
+      } else if (name.includes('tricep') || key.includes('tricep') || name.includes('extension') || key.includes('extension') || name.includes('dip') || key.includes('dip') || name.includes('kickback') || key.includes('kickback') || name.includes('pressdown') || key.includes('pressdown')) {
+        hitGroups.add('Triceps');
+      } else {
+        hitGroups.add('Arms');
+      }
+    } else if (group === 'chest') {
+      hitGroups.add('Chest');
+    } else if (group === 'back') {
+      hitGroups.add('Back');
+    } else if (group === 'shoulders') {
+      hitGroups.add('Shoulders');
+    } else if (group === 'legs') {
+      hitGroups.add('Legs');
+    } else if (group === 'core') {
+      hitGroups.add('Core');
+    } else if (group === 'stretching') {
+      hitGroups.add('Stretching');
+    }
+  });
+
+  const groupsArr = Array.from(hitGroups);
+  if (groupsArr.length === 0) return 'Custom Session';
+
+  const hasPush = groupsArr.some(g => ['Chest', 'Shoulders', 'Triceps'].includes(g));
+  const hasPull = groupsArr.some(g => ['Back', 'Biceps'].includes(g));
+  const hasLegs = groupsArr.includes('Legs');
+  const hasCore = groupsArr.includes('Core');
+
+  const pushCount = ['Chest', 'Shoulders', 'Triceps'].filter(g => groupsArr.includes(g)).length;
+  const pullCount = ['Back', 'Biceps'].filter(g => groupsArr.includes(g)).length;
+
+  if (pushCount === 3 && !hasPull && !hasLegs) {
+    return 'Push Workout';
+  }
+  if (pullCount === 2 && !hasPush && !hasLegs) {
+    return 'Pull Workout';
+  }
+  if (hasLegs && !hasPush && !hasPull) {
+    return 'Legs Workout';
+  }
+  if (hasCore && groupsArr.length === 1) {
+    return 'Core Workout';
+  }
+
+  // Handle 2 groups
+  if (groupsArr.length === 2) {
+    const sorted = groupsArr.sort();
+    return `${sorted[0]} & ${sorted[1]} Workout`;
+  }
+
+  // Handle 1 group
+  if (groupsArr.length === 1) {
+    return `${groupsArr[0]} Workout`;
+  }
+
+  // Handle upper/full body
+  if (hasPush && hasPull && hasLegs) {
+    return 'Full Body Workout';
+  }
+  if (hasPush && hasPull && !hasLegs) {
+    return 'Upper Body Workout';
+  }
+
+  const displayGroups = groupsArr.slice(0, 3).sort();
+  return `${displayGroups.join(' & ')} Workout`;
+};

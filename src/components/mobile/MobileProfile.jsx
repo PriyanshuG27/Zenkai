@@ -14,6 +14,8 @@ import { useWeeklyRecap } from '../../hooks/useWeeklyRecap';
 import { WeeklyRecapScreen } from '../shared/WeeklyRecapScreen';
 import { GymLeaderboard } from '../shared/GymLeaderboard';
 import { compressGymImage } from '../../utils/imageCompressor';
+import { useSquadStore } from '../../stores/useSquadStore';
+import { sendPushNotification } from '../../utils/notificationHelper';
 
 const EQUIPMENT_CATEGORIES = [
   { label: 'Chest & Push', items: ['Flat Bench', 'Incline Bench', 'Decline Bench', 'Chest Press Machine', 'Pec Deck', 'Dip Bars'] },
@@ -139,6 +141,26 @@ export const MobileProfile = () => {
   const uid = auth.currentUser?.uid;
   const { totalXP, level, levelName, streak } = useXPStore();
   const { isStandalone, openModal, addToast } = useUIStore();
+  const activeSquadCode = useSquadStore((s) => s.activeSquadCode);
+  const [expandedVersion, setExpandedVersion] = useState('1.1.1');
+
+  useEffect(() => {
+    const hasSeenUpdate = localStorage.getItem('zenkai_seen_v1_1_1') === 'true';
+    if (!hasSeenUpdate) {
+      addToast('🚀 FitDesi updated to v1.1.1! Check out What\'s New in your Profile.', 'success');
+
+      if (activeSquadCode) {
+        sendPushNotification({
+          squadCode: activeSquadCode,
+          title: 'Zenkai Update: v1.1.1 is Live! 🚀',
+          body: 'Firestore optimizations, dynamic leaderboard cache timers, and force sync are now live.',
+          url: '/profile'
+        });
+      }
+
+      localStorage.setItem('zenkai_seen_v1_1_1', 'true');
+    }
+  }, [activeSquadCode, addToast]);
 
   const { recap, weekId: recapWeekId } = useWeeklyRecap();
   const [showRecap, setShowRecap] = useState(false);
@@ -1623,29 +1645,77 @@ export const MobileProfile = () => {
 
         {/* Push Notification Toggle */}
         <PushNotificationToggle />
-        <div className="border-2 border-black bg-[var(--surface)] p-4 rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left">
-          <div className="flex items-center gap-2 border-b border-[#222] pb-2 mb-3">
+        <div className="border-2 border-black bg-[var(--surface)] p-4 rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left flex flex-col gap-3">
+          <div className="flex items-center gap-2 border-b border-[#222] pb-2">
             <Sparkles size={16} className="text-[var(--primary)]" />
             <span className="font-display text-sm font-black uppercase tracking-wide text-white">
-              What's New in v1.1
+              What's New in Zenkai
             </span>
           </div>
-          <ul className="text-[10px] text-neutral-300 font-sans list-disc pl-4 space-y-1.5 leading-relaxed">
-            <li><strong className="text-white">Custom In-App Dialogs:</strong> Native browser popups have been fully replaced with custom-animated neubrutalist modals.</li>
-            <li><strong className="text-white">Smart Workout Reminders:</strong> Sends in-app and browser notifications 1 hour prior to your teammate's scheduled workouts.</li>
-            <li><strong className="text-white">Rest Days / Not Going:</strong> Added a "Not Going" (Rest Day 😴) option to Gym check-ins and scheduling polls.</li>
-            <li><strong className="text-white">Midnight Clearing:</strong> Polls and check-ins now clear automatically at midnight local time to keep the board fresh.</li>
-            <li><strong className="text-white">Weekly Challenge Regeneration Cooldown:</strong> Enforced a strict 48-hour rate-limit on weekly challenge rerolls.</li>
-            <li><strong className="text-white">Tougher Boss HP:</strong> Boss raids now scale dynamically with a 12,000kg baseline per member to keep the battles competitive.</li>
-            <li><strong className="text-white">Currency Separation:</strong> Spendable XP (Aura shop) is now separated from your Lifetime XP so buying cosmetics never decreases your level.</li>
-          </ul>
+
+          <div className="flex flex-col gap-2">
+            {/* v1.1.1 Accordion */}
+            <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--bg-elevated)]">
+              <button 
+                onClick={() => setExpandedVersion(expandedVersion === '1.1.1' ? null : '1.1.1')}
+                className="w-full flex items-center justify-between px-3 py-2 bg-black/25 font-display text-[10px] font-black uppercase text-white hover:bg-black/40 transition-all text-left"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="bg-[var(--primary)] text-black px-1 py-0.2 rounded text-[7px] font-mono font-bold">LATEST</span>
+                  <span>v1.1.1 — Database Optimizations</span>
+                </div>
+                <span className="text-neutral-500">
+                  {expandedVersion === '1.1.1' ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                </span>
+              </button>
+              
+              {expandedVersion === '1.1.1' && (
+                <div className="p-3 border-t border-[var(--border)] bg-black/10">
+                  <ul className="text-[9px] text-neutral-300 font-sans list-disc pl-4 space-y-1.5 leading-relaxed">
+                    <li><strong className="text-white">Firestore Write Flattening:</strong> Workout exercises are now saved as a flat array within the session document, saving ~50% database write quota.</li>
+                    <li><strong className="text-white">Global Zustand Listeners:</strong> Extracted active squad listeners to global Zustand state. Switching tabs now costs 0 additional database reads.</li>
+                    <li><strong className="text-white">Leaderboard Caching & Live Timer:</strong> Cached rankings for 15 minutes and added a live `Refreshes in MM:SS` countdown timer.</li>
+                    <li><strong className="text-white">Force Sync:</strong> Added a Neubrutalist sync button next to the leaderboard for on-demand live rank updates.</li>
+                    <li><strong className="text-white">Backward-Compatible Workouts:</strong> Added checks to seamlessly load both new flat-array workouts and legacy subcollection workouts.</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* v1.1.0 Accordion */}
+            <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--bg-elevated)]">
+              <button 
+                onClick={() => setExpandedVersion(expandedVersion === '1.1.0' ? null : '1.1.0')}
+                className="w-full flex items-center justify-between px-3 py-2 bg-black/25 font-display text-[10px] font-black uppercase text-white hover:bg-black/40 transition-all text-left"
+              >
+                <span>v1.1.0 — UI Reminders & Dialogs</span>
+                <span className="text-neutral-500">
+                  {expandedVersion === '1.1.0' ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                </span>
+              </button>
+              
+              {expandedVersion === '1.1.0' && (
+                <div className="p-3 border-t border-[var(--border)] bg-black/10">
+                  <ul className="text-[9px] text-neutral-300 font-sans list-disc pl-4 space-y-1.5 leading-relaxed">
+                    <li><strong className="text-white">Custom In-App Dialogs:</strong> Native browser popups have been fully replaced with custom-animated neubrutalist modals.</li>
+                    <li><strong className="text-white">Smart Workout Reminders:</strong> Sends in-app and browser notifications 1 hour prior to your teammate's scheduled workouts.</li>
+                    <li><strong className="text-white">Rest Days / Not Going:</strong> Added a "Not Going" (Rest Day 😴) option to Gym check-ins and scheduling polls.</li>
+                    <li><strong className="text-white">Midnight Clearing:</strong> Polls and check-ins now clear automatically at midnight local time to keep the board fresh.</li>
+                    <li><strong className="text-white">Weekly Challenge Regeneration Cooldown:</strong> Enforced a strict 48-hour rate-limit on weekly challenge rerolls.</li>
+                    <li><strong className="text-white">Tougher Boss HP:</strong> Boss raids now scale dynamically with a 12,000kg baseline per member to keep the battles competitive.</li>
+                    <li><strong className="text-white">Currency Separation:</strong> Spendable XP (Aura shop) is now separated from your Lifetime XP so buying cosmetics never decreases your level.</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="border-2 border-[var(--border)] bg-[var(--bg-elevated)] p-4 rounded-lg flex items-start gap-3">
           <Info size={18} className="text-[var(--text-secondary)] shrink-0 mt-0.5" />
           <div className="flex flex-col text-left">
             <span className="font-display text-xs font-bold uppercase tracking-wide text-[var(--text-primary)]">
-              Zenkai Mobile v1.1.0
+              Zenkai Mobile v1.1.1
             </span>
             <p className="text-[9px] text-[var(--text-secondary)] font-sans leading-relaxed mt-0.5">
               Designed for Indian athletes. Standard Neubrutalist Telemetry Shell. Offline synchronization enabled via local caching.

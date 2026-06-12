@@ -471,8 +471,13 @@ export const MobileLogger = () => {
   const handleRepeatWorkout = async (pastSess) => {
     try {
       // 1. Fetch the full exercises subcollection of this past session
-      const exSnap = await getDocs(collection(db, 'users', user.uid, 'sessions', pastSess.id, 'exercises'));
-      const exercisesList = exSnap.docs.map(exDoc => exDoc.data());
+      let exercisesList = [];
+      if (pastSess.exercises && Array.isArray(pastSess.exercises) && pastSess.exercises.length > 0) {
+        exercisesList = pastSess.exercises;
+      } else {
+        const exSnap = await getDocs(collection(db, 'users', user.uid, 'sessions', pastSess.id, 'exercises'));
+        exercisesList = exSnap.docs.map(exDoc => exDoc.data());
+      }
       
       // 2. Start session
       startSession(pastSess.moodTag || 'average', pastSess.stomachFlag || false);

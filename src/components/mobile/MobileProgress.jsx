@@ -180,6 +180,10 @@ export const MobileProgress = () => {
 
         // Fetch exercises from the sub-collection for each matching session
         const fetchExercisesPromises = snap.docs.map(async (docSnap) => {
+          const sessData = docSnap.data();
+          if (sessData.exercises && Array.isArray(sessData.exercises) && sessData.exercises.length > 0) {
+            return sessData.exercises;
+          }
           const exercisesRef = collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises');
           const exSnap = await getDocs(exercisesRef);
           return exSnap.docs.map(d => d.data());
@@ -274,8 +278,13 @@ export const MobileProgress = () => {
         const loadedSessions = [];
         for (const docSnap of snap.docs) {
           const sessData = docSnap.data();
-          const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
-          const exercises = exSnap.docs.map(exDoc => exDoc.data());
+          let exercises = [];
+          if (sessData.exercises && Array.isArray(sessData.exercises) && sessData.exercises.length > 0) {
+            exercises = sessData.exercises;
+          } else {
+            const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
+            exercises = exSnap.docs.map(exDoc => exDoc.data());
+          }
           loadedSessions.push({
             id: docSnap.id,
             ...sessData,

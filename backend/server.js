@@ -42,6 +42,8 @@ app.post('/api/generateWeeklyMagazine', require('./routes/generateWeeklyMagazine
 app.post('/api/sendNotification', require('./routes/sendNotification'));
 app.post('/api/scheduleRestNotification', require('./routes/scheduleRestNotification'));
 app.post('/api/cancelRestNotification', require('./routes/cancelRestNotification'));
+app.post('/api/openTreasureChest', require('./routes/openTreasureChest'));
+app.post('/api/summonNextTitan', require('./routes/summonNextTitan'));
 
 // Initialize automated weekly challenge background scheduler
 const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');

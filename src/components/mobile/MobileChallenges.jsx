@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Flame,
   Trophy,
@@ -16,8 +16,11 @@ import {
   Unlock,
   Sparkles,
   Trash2,
-  FastForward
+  FastForward,
+  Key
 } from 'lucide-react';
+import { collection, query, where, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import { callZenkaiAPI } from '../../lib/apiClient';
 import { SquadMatchmaker } from '../desktop/SquadMatchmaker';
 import { useChallenges } from '../../hooks/useChallenges';
@@ -107,6 +110,16 @@ export const MobileChallenges = () => {
   const [storeSubTab, setStoreSubTab] = useState('perks');
   const [selectedShopItem, setSelectedShopItem] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(10);
+
+  // Treasure Vault / Titan Summoning states
+  const [openingChest, setOpeningChest] = useState(false);
+  const [openedReward, setOpenedReward] = useState(null);
+  const [openedTier, setOpenedTier] = useState(null);
+  const [chestOpeningType, setChestOpeningType] = useState(null);
+  const [activeSquad, setActiveSquad] = useState(null);
+  const [loadingSquad, setLoadingSquad] = useState(false);
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
+  const [summoningTitan, setSummoningTitan] = useState(false);
 
   const { setMobileTab, addToast } = useUIStore();
   const startSession = useWorkoutStore((state) => state.startSession);
@@ -437,6 +450,184 @@ export const MobileChallenges = () => {
     setMobileTab('workout');
     navigate('/workout');
     addToast('Overdrive active: 1.5x XP Multiplier enabled! ⚡', 'success');
+  };
+
+  // Listen to joined squads in real-time on mobile
+  useEffect(() => {
+    if (!user?.uid) return;
+    setLoadingSquad(true);
+    const q = query(
+      collection(db, 'shared_squads'),
+      where('memberUids', 'array-contains', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      if (!snap.empty) {
+        setActiveSquad(snap.docs[0].data());
+      } else {
+        setActiveSquad(null);
+      }
+      setLoadingSquad(false);
+    }, (err) => {
+      console.error('[MobileChallenges] Squad query failed:', err);
+      setLoadingSquad(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  // Cooldown countdown timer effect
+  useEffect(() => {
+    const challenge = activeSquad?.activeChallenge;
+    if (!challenge || challenge.status !== 'completed' || !challenge.completedAt) {
+      setCooldownTimeLeft(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const completedAtMs = typeof challenge.completedAt.toDate === 'function'
+        ? challenge.completedAt.toDate().getTime()
+        : new Date(challenge.completedAt).getTime();
+      
+      const elapsed = Date.now() - completedAtMs;
+      const cooldownMs = 24 * 60 * 60 * 1000;
+      const remaining = Math.max(0, cooldownMs - elapsed);
+      setCooldownTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [activeSquad?.activeChallenge]);
+
+  const formatCooldownTime = (ms) => {
+    if (ms <= 0) return '';
+    const totalSecs = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSummonNextTitan = async () => {
+    if (!activeSquad || !user?.uid) return;
+    const currentKeys = profile?.powerUps?.bossFightKey || 0;
+    const cost = cooldownTimeLeft > 0 ? 2 : 1;
+
+    if (currentKeys < cost) {
+      addToast(`Insufficient Boss Keys. You need ${cost} keys, you have ${currentKeys}.`, 'error');
+      return;
+    }
+
+    if (!window.confirm(`Spend ${cost} Boss Key${cost > 1 ? 's' : ''} to summon the next Titan Raid?`)) {
+      return;
+    }
+
+    setSummoningTitan(true);
+    try {
+      const res = await callZenkaiAPI('summonNextTitan', { squadCode: activeSquad.squadCode });
+      if (res.data && res.data.success) {
+        // Update local profile keys
+        const currentProfile = useAuthStore.getState().profile || {};
+        useAuthStore.getState().setProfile({
+          ...currentProfile,
+          powerUps: {
+            ...currentProfile.powerUps,
+            bossFightKey: res.data.nextKeys
+          }
+        });
+        
+        addToast("Titan successfully summoned! ⚔️", 'success');
+      }
+    } catch (err) {
+      console.error('[summonNextTitan] Error:', err);
+      addToast(err.message || "Failed to summon next Titan.", 'error');
+    } finally {
+      setSummoningTitan(false);
+    }
+  };
+
+  const handleOpenChest = async (chestType) => {
+    if (!user?.uid || openingChest) return;
+    
+    const cost = chestType === 'common' ? 1 : chestType === 'rare' ? 3 : 5;
+    const currentKeys = profile?.powerUps?.bossFightKey || 0;
+
+    if (currentKeys < cost) {
+      addToast(`Insufficient Boss Keys. Costs ${cost} keys, you have ${currentKeys}.`, 'error');
+      return;
+    }
+
+    setOpeningChest(true);
+    setChestOpeningType(chestType);
+    setOpenedReward(null);
+    setOpenedTier(null);
+
+    try {
+      const startTime = Date.now();
+      const res = await callZenkaiAPI('openTreasureChest', { chestType });
+      const elapsed = Date.now() - startTime;
+      const minDuration = 1800; // 1.8 seconds for premium opening feel
+      if (elapsed < minDuration) {
+        await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
+      }
+
+      if (res.data && res.data.success) {
+        const { reward, tier, nextKeys, nextXp, nextLevel } = res.data;
+        
+        // Update local profile immediately
+        const currentProfile = useAuthStore.getState().profile || {};
+        const nextPowerUps = { ...currentProfile.powerUps };
+        nextPowerUps.bossFightKey = nextKeys;
+
+        if (reward.type === 'consumable') {
+          nextPowerUps[reward.key] = (nextPowerUps[reward.key] || 0) + reward.value;
+        } else if (reward.type === 'title' || reward.type === 'aura') {
+          const dbKey = reward.type === 'title' 
+            ? `unlocked_title_${reward.key}_until` 
+            : `unlocked_aura_${reward.key}_until`;
+          
+          const currentUntil = nextPowerUps[dbKey];
+          let baseTime = Date.now();
+          if (currentUntil) {
+            const currentUntilMs = new Date(currentUntil).getTime();
+            if (currentUntilMs > Date.now()) {
+              baseTime = currentUntilMs;
+            }
+          }
+          const untilDate = new Date(baseTime + reward.days * 24 * 60 * 60 * 1000);
+          nextPowerUps[dbKey] = untilDate.toISOString();
+        }
+
+        // Apply changes to store
+        useAuthStore.getState().setProfile({
+          ...currentProfile,
+          xp: nextXp,
+          level: nextLevel,
+          powerUps: nextPowerUps
+        });
+
+        // Sync with squad_codes as well (if present)
+        if (profile.squadCode) {
+          const { doc, setDoc } = await import('firebase/firestore');
+          const codeRef = doc(db, 'squad_codes', profile.squadCode);
+          await setDoc(codeRef, {
+            xp: nextXp,
+            level: nextLevel,
+            powerUps: nextPowerUps,
+            updatedAt: new Date()
+          }, { merge: true }).catch(err => console.warn('[MobileChallenges] Sync keys error:', err));
+        }
+
+        setOpenedReward(reward);
+        setOpenedTier(tier);
+      }
+    } catch (err) {
+      console.error('[openTreasureChest] Error:', err);
+      addToast(err.message || 'Failed to open treasure chest.', 'error');
+    } finally {
+      setOpeningChest(false);
+    }
   };
 
   const handleUnlockSkill = async (skillKey) => {
@@ -1146,9 +1337,19 @@ export const MobileChallenges = () => {
                 >
                   Armory Shop
                 </button>
+                <button
+                  onClick={() => setStoreSubTab('vault')}
+                  className={`flex-1 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-widest rounded transition-all ${
+                    storeSubTab === 'vault'
+                      ? 'bg-amber-400 text-black shadow-[1.5px_1.5px_0px_black] border-2 border-black'
+                      : 'text-[var(--text-secondary)] hover:text-white border-2 border-transparent'
+                  }`}
+                >
+                  Vault
+                </button>
               </div>
 
-              {storeSubTab === 'perks' ? (
+              {storeSubTab === 'perks' && (
                 /* Fitness Skill Tree Section */
                 <div className="border-2 border-black bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-4">
                   <div className="border-b border-[var(--border)] pb-3 flex justify-between items-center">
@@ -1255,8 +1456,43 @@ export const MobileChallenges = () => {
                       );
                     })}
                   </div>
+
+                  {/* Future Expansions / Coming Soon Banners */}
+                  <div className="border-t border-dashed border-[var(--border)] pt-4 mt-2">
+                    <div className="text-[9px] font-mono text-neutral-500 uppercase font-bold tracking-wider mb-2.5 text-left flex items-center gap-1.5">
+                      <span>🔒 Locked Future Expansions</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {/* Chained Coming Soon Card */}
+                      <div className="border-2 border-black bg-neutral-950/20 p-4 rounded-lg flex flex-col gap-2 relative overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)] select-none min-h-[90px] justify-center text-center items-center">
+                        {/* Chains graphic background */}
+                        <div className="absolute inset-0 opacity-15 flex items-center justify-center pointer-events-none text-2xl font-black">
+                          🔗 🔗 🔗 🔗 🔗 🔗 🔗
+                        </div>
+                        
+                        <div className="absolute top-2 right-[-24px] bg-amber-500 border border-black text-black text-[7px] font-mono font-bold uppercase py-0.5 px-6 rotate-45 tracking-widest shadow-sm">
+                          Locked
+                        </div>
+
+                        <div className="p-2 border-2 border-black rounded-full bg-neutral-900 text-amber-500 shadow-[1.5px_1.5px_0px_black] z-10">
+                          <Lock size={16} />
+                        </div>
+                        
+                        <div className="z-10 mt-1">
+                          <h4 className="font-display text-xs font-black uppercase tracking-widest font-barlow text-white">
+                            Expansion Slot Soon
+                          </h4>
+                          <p className="text-[8px] text-neutral-400 font-sans mt-0.5 max-w-[220px] mx-auto leading-normal">
+                            Advanced skill tree nodes are under construction. New pathways will unlock next season!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ) : (
+              )}
+
+              {storeSubTab === 'shop' && (
                 /* Armory & XP Shop Section */
                 <div className="border-2 border-black bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-4">
                   <div className="border-b border-[var(--border)] pb-3 flex justify-between items-center">
@@ -1403,8 +1639,300 @@ export const MobileChallenges = () => {
                   </div>
                 </div>
               )}
+
+              {storeSubTab === 'vault' && (
+                <div className="flex flex-col gap-4 text-left font-mono text-xs">
+                  {/* Treasure Vault Intro Card */}
+                  <div className="border-2 border-black bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-3">
+                    <div className="flex justify-between items-center border-b border-[var(--border)] pb-2.5">
+                      <div className="flex flex-col text-left">
+                        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5 font-barlow">
+                          <Key size={14} className="text-amber-400 animate-pulse" />
+                          <span>Treasure Vault</span>
+                        </h2>
+                        <p className="text-[9px] font-mono text-[var(--text-secondary)] uppercase mt-0.5">
+                          Spend Boss Keys on Loot Boxes
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="px-2.5 py-1 border-2 border-black bg-amber-400 text-black font-mono font-bold text-[10px] rounded shadow-[2px_2px_0px_rgba(0,0,0,1)] font-barlow flex items-center gap-1 shrink-0">
+                          <Key size={12} />
+                          <span>{profile?.powerUps?.bossFightKey || 0} keys</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      Earn Boss Keys by conquering weekly squad Titan Raids. Spend them here to open treasure boxes with random premium loot!
+                    </p>
+                  </div>
+
+                  {/* Three chests list */}
+                  <div className="flex flex-col gap-3">
+                    {/* Common Chest */}
+                    <div className="border-2 border-black bg-amber-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-amber-900">
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col text-left">
+                          <span className="text-[9px] font-mono text-amber-500 font-bold uppercase">Bronze Box 📦</span>
+                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Common Chest</h4>
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">Cost: 1 Key</span>
+                      </div>
+                      <div className="w-36 h-36 mx-auto bg-amber-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                      </div>
+                      <p className="text-[10px] text-[var(--text-secondary)]">Bronze-tier box with basic consumables (Quest Skips, Shields) & basic XP boosts.</p>
+                      <button
+                        onClick={() => handleOpenChest('common')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 1}
+                        className="w-full py-2 border-2 border-black bg-amber-400 hover:bg-amber-500 disabled:opacity-40 text-black font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                      >
+                        Open Common Chest
+                      </button>
+                    </div>
+
+                    {/* Rare Chest */}
+                    <div className="border-2 border-black bg-blue-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-blue-900">
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col text-left">
+                          <span className="text-[9px] font-mono text-blue-400 font-bold uppercase">Iron Chest 🎁</span>
+                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Rare Chest</h4>
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 shrink-0">Cost: 3 Keys</span>
+                      </div>
+                      <div className="w-36 h-36 mx-auto bg-blue-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                      </div>
+                      <p className="text-[10px] text-[var(--text-secondary)]">Fortified chest with high chance of Custom Titles, multi-skips, & 2x XP Boosters.</p>
+                      <button
+                        onClick={() => handleOpenChest('rare')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 3}
+                        className="w-full py-2 border-2 border-black bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-black font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                      >
+                        Open Rare Chest
+                      </button>
+                    </div>
+
+                    {/* Legendary Chest */}
+                    <div className="border-2 border-black bg-purple-950/15 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-3 border-purple-900">
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col text-left">
+                          <span className="text-[9px] font-mono text-purple-400 font-bold uppercase">Obsidian Relic 💎</span>
+                          <h4 className="font-display text-sm font-bold uppercase text-white font-barlow mt-0.5">Legendary Chest</h4>
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-white uppercase bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 shrink-0">Cost: 5 Keys</span>
+                      </div>
+                      <div className="w-36 h-36 mx-auto bg-purple-950/30 border-2 border-black rounded-lg flex items-center justify-center relative select-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                      </div>
+                      <p className="text-[10px] text-[var(--text-secondary)]">Obsidian-tier box. Guarantees 75% Legendary drops including glowing avatar auras.</p>
+                      <button
+                        onClick={() => handleOpenChest('legendary')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 5}
+                        className="w-full py-2 border-2 border-black bg-purple-500 hover:bg-purple-600 disabled:opacity-40 text-white font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow"
+                      >
+                        Open Legendary Chest
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cooldown and Portal summoning Section */}
+                  {activeSquad ? (
+                    <div className="border-2 border-black bg-neutral-950 p-4 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] mt-2 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-col text-left">
+                          <span className="text-[9px] font-mono text-purple-400 font-bold uppercase tracking-wider">🌌 Titan Summon Portal</span>
+                          <h4 className="font-display text-xs font-bold uppercase text-white font-barlow mt-0.5">
+                            {cooldownTimeLeft > 0 ? (
+                              <>Cooldown: <span className="text-red-500">{formatCooldownTime(cooldownTimeLeft)}</span></>
+                            ) : (
+                              <span className="text-green-500">Portal Ready!</span>
+                            )}
+                          </h4>
+                        </div>
+                        <span className="text-[9px] font-mono text-[var(--text-secondary)] bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded uppercase font-bold">
+                          Squad: {activeSquad.squadName}
+                        </span>
+                      </div>
+                      
+                      <p className="text-[10px] text-neutral-400 font-sans leading-relaxed">
+                        {cooldownTimeLeft > 0 
+                          ? `The weekly Titan has been slayed! Bypassing the 24-hour summon cooldown costs 2 Boss Keys. You currently have ${profile?.powerUps?.bossFightKey || 0} keys.`
+                          : "The summon portal is fully charged. Summon the next Titan Raid immediately for 1 Boss Key!"}
+                      </p>
+
+                      {activeSquad.activeChallenge?.status === 'completed' ? (
+                        <button
+                          onClick={handleSummonNextTitan}
+                          disabled={summoningTitan}
+                          className={`w-full py-2 border-2 border-black font-display font-extrabold text-xs uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center cursor-pointer font-barlow ${
+                            cooldownTimeLeft > 0
+                              ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                              : 'bg-green-500 hover:bg-green-600 text-black'
+                          }`}
+                        >
+                          {summoningTitan ? "Summoning..." : `Summon Next Titan (${cooldownTimeLeft > 0 ? 2 : 1} Keys)`}
+                        </button>
+                      ) : (
+                        <div className="border border-dashed border-neutral-850 p-2.5 rounded text-center">
+                          <span className="text-[9px] font-mono text-red-500 font-bold uppercase">⚔️ Titan Raid In Progress</span>
+                          <p className="text-[9px] text-neutral-500 font-sans mt-0.5 leading-snug">
+                            Defeat your active weekly Raid Boss, "{activeSquad.activeChallenge?.title}", before summoning another one!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-neutral-800 p-4 rounded-lg bg-neutral-950/20 text-center flex flex-col items-center gap-1.5">
+                      <Lock size={18} className="text-neutral-600" />
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase font-bold">Summon Portal Locked</span>
+                      <p className="text-[9px] text-neutral-600 font-sans max-w-xs leading-relaxed">
+                        You are not a member of any accountability squad. Go join/create a squad in the squads tab to participate in Titan Raids.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
+
+          {/* Treasure Chest Opening Modal */}
+          <AnimatePresence>
+            {(openingChest || openedReward) && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[150] p-4 backdrop-blur-md">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="border-4 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[8px_8px_0px_black] w-full max-w-sm text-center flex flex-col items-center gap-5 relative font-mono text-xs border-amber-500"
+                >
+                  {openingChest ? (
+                    /* Opening Animation State */
+                    <div className="py-8 flex flex-col items-center gap-4">
+                      <motion.div
+                        animate={{
+                          rotate: [0, -8, 8, -8, 8, -4, 4, 0],
+                          scaleX: [1, 1.15, 0.85, 1.1, 0.95, 1],
+                          scaleY: [1, 0.85, 1.15, 0.9, 1.05, 1],
+                          y: [0, -15, 0, -5, 0]
+                        }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 0.8,
+                          ease: "easeInOut"
+                        }}
+                        className="w-32 h-32 select-none flex items-center justify-center relative"
+                      >
+                        {/* Ambient glow background */}
+                        <div className={`absolute inset-2 rounded-full blur-2xl opacity-75 -z-10 ${
+                          chestOpeningType === 'legendary' 
+                            ? 'bg-purple-500/50 shadow-[0_0_40px_rgba(168,85,247,0.8)]' 
+                            : chestOpeningType === 'rare' 
+                            ? 'bg-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.8)]' 
+                            : 'bg-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.8)]'
+                        }`} />
+
+                        <img 
+                          src={
+                            chestOpeningType === 'common' ? '/common_chest.png' : 
+                            chestOpeningType === 'rare' ? '/rare_chest.png' : 
+                            '/legendary_chest.png'
+                          } 
+                          alt="Opening Chest" 
+                          className="w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10" 
+                        />
+
+                        {/* Sparkles / particle bursts during cracking */}
+                        <div className="absolute inset-0 pointer-events-none -z-10">
+                          <motion.span 
+                            animate={{ y: [-10, -40], x: [-5, -25], scale: [0, 1, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.2, delay: 0.1 }}
+                            className="absolute text-yellow-300 text-lg top-4 left-4"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [-15, -45], x: [5, 25], scale: [0, 1.2, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.0, delay: 0.3 }}
+                            className="absolute text-amber-300 text-base top-6 right-4"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [10, -20], x: [-15, -35], scale: [0, 0.8, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}
+                            className="absolute text-white text-sm bottom-8 left-2"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [12, -25], x: [15, 35], scale: [0, 1.1, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.3, delay: 0.2 }}
+                            className="absolute text-yellow-400 text-sm bottom-6 right-2"
+                          >✨</motion.span>
+                        </div>
+                      </motion.div>
+                      <h4 className="font-display font-black text-lg text-white uppercase tracking-wider animate-pulse mt-2 font-barlow">
+                        Cracking the Vault...
+                      </h4>
+                      <p className="text-[10px] text-neutral-400 font-sans px-4">
+                        Consulting the oracle ledger for rolled drops. Stand by...
+                      </p>
+                      <div className="h-2 w-48 bg-neutral-900 border border-neutral-800 rounded-full overflow-hidden p-[1px] mt-1">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 1.8, ease: "easeInOut" }}
+                          className="h-full bg-amber-400 rounded-full"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* Reward Revealed State */
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <span className="text-[10px] text-[var(--accent-xp)] font-extrabold uppercase tracking-widest bg-[var(--accent-xp)]/10 border border-[var(--accent-xp)]/25 px-3 py-1 rounded">
+                        Loot Rolled successfully! 🎉
+                      </span>
+
+                      {/* Sparkles / Aura Glow for reward item */}
+                      <div 
+                        className={`w-24 h-24 rounded-full border-4 border-black flex items-center justify-center text-4xl shadow-[4px_4px_0px_black] mt-2 select-none ${
+                          openedTier === 'legendary' 
+                            ? 'bg-purple-950/40 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse'
+                            : openedTier === 'rare'
+                            ? 'bg-blue-950/40 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                            : 'bg-amber-950/40 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                        }`}
+                      >
+                        {openedReward.type === 'xp' ? '⚡' : 
+                         openedReward.type === 'consumable' ? '⏭️' : 
+                         openedReward.type === 'title' ? '👑' : '✨'}
+                      </div>
+
+                      <div className="flex flex-col gap-1 mt-2">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                          openedTier === 'legendary' ? 'text-purple-400' :
+                          openedTier === 'rare' ? 'text-blue-400' : 'text-amber-500'
+                        }`}>
+                          {openedTier} Reward
+                        </span>
+                        <h4 className="font-display font-black text-xl text-white uppercase tracking-tight leading-none mt-1 font-barlow">
+                          {openedReward.name}
+                        </h4>
+                        <p className="text-xs text-neutral-300 font-sans mt-2.5 px-4 leading-relaxed">
+                          {openedReward.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setOpenedReward(null);
+                          setOpeningChest(false);
+                          setChestOpeningType(null);
+                        }}
+                        className="w-full mt-4 bg-[var(--accent-xp)] hover:bg-[#a3f020] text-black font-display font-black text-sm uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-barlow"
+                      >
+                        Sweet! Claim Loot
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
           {/* ─── DURATION / RENTAL SELECTOR MODAL ──────────────────────────────── */}
           {selectedShopItem && (

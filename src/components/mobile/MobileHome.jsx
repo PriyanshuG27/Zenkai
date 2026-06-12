@@ -625,7 +625,7 @@ export const MobileHome = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-display text-base font-bold text-[var(--text-primary)] uppercase tracking-wide leading-none">
-                  {lastSession.planDayId === 'custom' || !lastSession.planDayId ? 'Custom Session' : `Day ${lastSession.planDayId} Session`}
+                  {lastSession.name || (lastSession.planDayId === 'custom' || !lastSession.planDayId ? 'Custom Session' : `Day ${lastSession.planDayId} Session`)}
                 </h3>
                 <span className="text-[10px] text-[var(--text-secondary)] font-mono">
                   {lastSession.date?.toDate
@@ -664,6 +664,35 @@ export const MobileHome = () => {
                 </span>
               </div>
             </div>
+
+            {lastSession.exercisesList && lastSession.exercisesList.length > 0 && (
+              <div className="text-[10px] text-[var(--text-secondary)] font-sans border-t border-[var(--border)] pt-3 mt-1 text-left">
+                <span className="font-bold text-white uppercase tracking-wider block font-mono text-[9px] mb-1">Movements:</span>
+                <div className="flex flex-wrap gap-1.5 mt-0.5">
+                  {lastSession.exercisesList.map((ex, idx) => (
+                    <span key={idx} className="bg-neutral-900 border border-neutral-800 px-2 py-0.5 rounded text-white text-[9px] font-mono">
+                      {ex.name} ({ex.setsCount}s)
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {lastSession.prsList && lastSession.prsList.length > 0 && (
+              <div className="text-[10px] text-[#33FF66] font-sans border-t border-[var(--border)] pt-3 mt-1 text-left bg-emerald-950/10 p-2.5 rounded border border-emerald-500/20 flex flex-col gap-1.5">
+                <span className="font-bold uppercase tracking-wider flex items-center gap-1 font-mono text-[9px] text-[#33FF66]">
+                  <Trophy size={10} />
+                  <span>Personal Records Smashed!</span>
+                </span>
+                <ul className="list-disc pl-3.5 text-[9px] font-mono flex flex-col gap-0.5 text-neutral-300">
+                  {lastSession.prsList.map((pr, idx) => (
+                    <li key={idx}>
+                      {pr.name}: {pr.weight === 'BW' ? 'BW' : `${pr.weight} kg`} x {pr.reps}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ) : (
           <div className="border border-dashed border-[var(--border-bright)] bg-[var(--surface)] p-5 rounded-lg text-center flex flex-col items-center gap-2">

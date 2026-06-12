@@ -29,8 +29,13 @@ export const DesktopLogEditor = () => {
         const snapMobile = await getDocs(qMobile);
         for (const docSnap of snapMobile.docs) {
           const sessData = docSnap.data();
-          const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
-          const exercisesList = exSnap.docs.map(exDoc => ({ id: exDoc.id, ...exDoc.data() }));
+          let exercisesList = [];
+          if (sessData.exercises && Array.isArray(sessData.exercises) && sessData.exercises.length > 0) {
+            exercisesList = sessData.exercises.map(ex => ({ id: ex.exerciseId || ex.id, ...ex }));
+          } else {
+            const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
+            exercisesList = exSnap.docs.map(exDoc => ({ id: exDoc.id, ...exDoc.data() }));
+          }
 
           const rawDate = sessData.date;
           let resolvedDate = new Date();
@@ -171,23 +176,40 @@ export const DesktopLogEditor = () => {
 
       if (session.source === 'mobile') {
         const sessRef = doc(db, 'users', uid, 'sessions', session.id);
-        batch.set(sessRef, {
+        const sessUpdates = {
           rpeScore: avgRpe,
           mmcScore: avgMmc,
           notes,
           editedAt: new Date()
-        }, { merge: true });
+        };
 
-        exercises.forEach((ex) => {
-          const exId = ex.id || ex.exerciseId || ex.exerciseKey;
-          if (exId) {
-            const exRef = doc(db, 'users', uid, 'sessions', session.id, 'exercises', exId);
-            batch.set(exRef, {
-              sets: ex.sets || [],
-              verbalCues: ex.verbalCues || []
-            }, { merge: true });
-          }
-        });
+        if (session.exercises && Array.isArray(session.exercises) && session.exercises.length > 0) {
+          sessUpdates.exercises = session.exercises.map(ex => {
+            const exId = ex.id || ex.exerciseId || ex.exerciseKey;
+            const match = exercises.find(e => (e.id || e.exerciseId || e.exerciseKey) === exId);
+            if (match) {
+              return {
+                ...ex,
+                sets: match.sets || [],
+                verbalCues: match.verbalCues || []
+              };
+            }
+            return ex;
+          });
+        } else {
+          exercises.forEach((ex) => {
+            const exId = ex.id || ex.exerciseId || ex.exerciseKey;
+            if (exId) {
+              const exRef = doc(db, 'users', uid, 'sessions', session.id, 'exercises', exId);
+              batch.set(exRef, {
+                sets: ex.sets || [],
+                verbalCues: ex.verbalCues || []
+              }, { merge: true });
+            }
+          });
+        }
+
+        batch.set(sessRef, sessUpdates, { merge: true });
       } else {
         const sessRef = doc(db, 'users', uid, 'executed_sessions', session.id);
         batch.set(sessRef, {

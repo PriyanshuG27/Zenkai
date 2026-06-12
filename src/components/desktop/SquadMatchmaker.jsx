@@ -21,16 +21,22 @@ export const SquadMatchmaker = () => {
   // Local state
   const [mySquadCode, setMySquadCode] = useState('');
   const [joinedSquads, setJoinedSquads] = useState([]);
-  const [activeSquad, setActiveSquad] = useState(null);
-  const [activeSquadCode, setActiveSquadCode] = useState(null);
-  const [activeSquadMembers, setActiveSquadMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Global Squad Store selectors
+  const activeSquad = useSquadStore((state) => state.activeSquad);
+  const activeSquadCode = useSquadStore((state) => state.activeSquadCode);
+  const activeSquadMembers = useSquadStore((state) => state.activeSquadMembers);
+  const presenceList = useSquadStore((state) => state.presenceList);
+  const pollsList = useSquadStore((state) => state.pollsList);
+  const activityList = useSquadStore((state) => state.activityList);
+
+  const setActiveSquadCode = (code) => useSquadStore.setState({ activeSquadCode: code });
 
   // Collaboration and Synergy states
   const mountTimeRef = useRef(Date.now());
-  const [presenceList, setPresenceList] = useState([]);
+  const lastPresenceWriteTimeRef = useRef(0);
   const [yesterdayWorkoutTime, setYesterdayWorkoutTime] = useState(null); // { hours: number, minutes: number }
-  const [pollsList, setPollsList] = useState([]);
   const [notificationsMuted, setNotificationsMuted] = useState(
     localStorage.getItem('zenkai_mute_squad_notifications') === 'true'
   );
@@ -39,8 +45,51 @@ export const SquadMatchmaker = () => {
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptionsInput, setPollOptionsInput] = useState('07:00, 17:30, 19:00');
   const [creatingPoll, setCreatingPoll] = useState(false);
-  const [activityList, setActivityList] = useState([]);
   const [floatingEmojis, setFloatingEmojis] = useState({}); // { [activityId]: [{ id, emoji, x, y }] }
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
+
+  // Browser notifications handling for new presence and poll items
+  const prevPresenceLengthRef = useRef(0);
+  useEffect(() => {
+    if (presenceList.length > prevPresenceLengthRef.current) {
+      presenceList.forEach(data => {
+        const createdTime = data.createdAt?.toDate 
+          ? data.createdAt.toDate().getTime() 
+          : (data.createdAt || Date.now());
+        if (createdTime > mountTimeRef.current && data.uid !== uid) {
+          sendBrowserNotification(
+            `Gym Status Update! 📣`,
+            data.time === 'Not Going'
+              ? `${data.name} is resting / not going to the gym today.`
+              : `${data.name} checked in to hit the gym today at ${data.time}!`
+          );
+        }
+      });
+    }
+    prevPresenceLengthRef.current = presenceList.length;
+  }, [presenceList, uid]);
+
+  const prevPollsLengthRef = useRef(0);
+  useEffect(() => {
+    if (pollsList.length > prevPollsLengthRef.current) {
+      pollsList.forEach(data => {
+        const createdTime = data.createdAt?.toDate 
+          ? data.createdAt.toDate().getTime() 
+          : (data.createdAt || Date.now());
+        if (createdTime > mountTimeRef.current && data.creatorUid !== uid) {
+          sendBrowserNotification(
+            `New Gym Poll! 🗳️`,
+            `${data.creatorName} started a new poll: "${data.question}"`
+          );
+        }
+      });
+    }
+    prevPollsLengthRef.current = pollsList.length;
+  }, [pollsList, uid]);
+
+  const selectedActivity = useMemo(() => {
+    return activityList.find(a => a.id === selectedActivityId);
+  }, [activityList, selectedActivityId]);
 
   const level = useMemo(() => {
     if (!profile?.xp) return 1;
@@ -85,6 +134,14 @@ export const SquadMatchmaker = () => {
   const [realFreeAgents, setRealFreeAgents] = useState([]);
   const [sentInvites, setSentInvites] = useState([]);
   const [incomingInvites, setIncomingInvites] = useState([]);
+
+  // Treasure Vault states
+  const [openingChest, setOpeningChest] = useState(false);
+  const [openedReward, setOpenedReward] = useState(null);
+  const [openedTier, setOpenedTier] = useState(null);
+  const [chestOpeningType, setChestOpeningType] = useState(null);
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
+  const [summoningTitan, setSummoningTitan] = useState(false);
 
   // 1. Initialise & Sync Squad Code for current user
   // Uses profile from useAuthStore (synced by App.jsx onSnapshot) — no extra getDoc.
@@ -207,193 +264,37 @@ export const SquadMatchmaker = () => {
     return () => unsubscribe();
   }, [uid, mySquadCode]);
 
-  // 3. Resolve active squad and sync roster stats in real-time
+  // 3. Resolve active squad code
   useEffect(() => {
     if (joinedSquads.length === 0) {
       if (!showOnboarding) {
-        setActiveSquad(null);
         setActiveSquadCode(null);
-        setActiveSquadMembers([]);
       }
       return;
     }
-
 
     let targetCode = activeSquadCode;
     if (!targetCode && !showOnboarding) {
       targetCode = joinedSquads[0].squadCode;
       setActiveSquadCode(targetCode);
     }
+  }, [joinedSquads, activeSquadCode, showOnboarding]);
 
-    if (!targetCode) {
-      setActiveSquad(null);
-      setActiveSquadMembers([]);
-      return;
-    }
-
-    const active = joinedSquads.find(s => s.squadCode === targetCode);
-    if (active) {
-      setActiveSquad(active);
-    } else {
-      // Check if targetCode exists and we are a member (handles Firestore sync lag)
-      const checkSquadValidity = async () => {
-        try {
-          const docSnap = await getDoc(doc(db, 'shared_squads', targetCode));
-          if (docSnap.exists() && docSnap.data().memberUids?.includes(uid)) {
-            setActiveSquad(docSnap.data());
-          } else {
-            // Either squad doesn't exist, or we were kicked/not a member anymore
-            if (joinedSquads.length > 0) {
-              const fallbackCode = joinedSquads[0].squadCode;
-              setActiveSquadCode(fallbackCode);
-              setActiveSquad(joinedSquads[0]);
-            } else {
-              setActiveSquadCode(null);
-              setActiveSquad(null);
-            }
-          }
-        } catch (err) {
-          console.error('[SquadMatchmaker] Error validating active squad:', err);
-          if (joinedSquads.length > 0) {
-            const fallbackCode = joinedSquads[0].squadCode;
-            setActiveSquadCode(fallbackCode);
-            setActiveSquad(joinedSquads[0]);
-          } else {
-            setActiveSquadCode(null);
-            setActiveSquad(null);
-          }
-        }
-      };
-
-      checkSquadValidity();
-      setActiveSquadMembers([]);
-      return;
-    }
-
-    // Set up real-time listener for each member's squad_codes
-    const membersList = [...active.members];
-    setActiveSquadMembers(membersList);
-
-    const unsubscribes = [];
-
-    membersList.forEach((m) => {
-      if (!m.squadCode) return;
-
-      const codeRef = doc(db, 'squad_codes', m.squadCode);
-      const unsub = onSnapshot(codeRef, (snap) => {
-        if (snap.exists()) {
-          const fresh = snap.data();
-          let memberName = fresh.name || m.name;
-          if (fresh.uid === uid || m.uid === uid) {
-            if (!memberName.endsWith(' (You)')) {
-              memberName = `${memberName} (You)`;
-            }
-          }
-
-          setActiveSquadMembers((prev) => {
-            const next = [...prev];
-            const idx = next.findIndex(item => item.squadCode === m.squadCode);
-            if (idx !== -1) {
-              next[idx] = {
-                ...next[idx],
-                ...fresh,
-                uid: next[idx].uid,
-                name: memberName,
-                checkIn: (fresh.streak || 0) > 0,
-                updatedAt: fresh.updatedAt ? (fresh.updatedAt.toDate ? fresh.updatedAt.toDate() : new Date(fresh.updatedAt)) : new Date(),
-              };
-            }
-            return next;
-          });
-        }
-      }, (err) => {
-        console.warn('[SquadMatchmaker] Member sync failed:', m.name, err);
-      });
-
-      unsubscribes.push(unsub);
-    });
-
-    return () => {
-      unsubscribes.forEach(unsub => unsub());
-    };
-  }, [joinedSquads, activeSquadCode, uid]);
-
-  // 3b. Real-time query for presence check-ins and polls of the active squad
+  // Subscribe to the active squad's data in the global Zustand store
   useEffect(() => {
-    if (!activeSquadCode) {
-      setPresenceList([]);
-      setPollsList([]);
-      return;
+    if (activeSquadCode && uid) {
+      useSquadStore.getState().subscribeSquad(activeSquadCode, uid);
+    } else if (activeSquadCode === null) {
+      useSquadStore.getState().clearSquad();
     }
-
-    // Request browser notification permission when squads workspace opens
-    requestNotificationPermission();
-
-    const presenceRef = collection(db, 'shared_squads', activeSquadCode, 'presence');
-    const unsubPresence = onSnapshot(presenceRef, (snap) => {
-      const list = [];
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
-        const createdTime = data.createdAt?.toDate 
-          ? data.createdAt.toDate().getTime() 
-          : (data.createdAt || Date.now());
-
-        if (createdTime >= todayStart.getTime()) {
-          list.push({ id: docSnap.id, ...data });
-
-          // Fire browser notification if new, not from current user
-          if (createdTime > mountTimeRef.current && data.uid !== uid) {
-            sendBrowserNotification(
-              `Gym Status Update! 📣`,
-              data.time === 'Not Going'
-                ? `${data.name} is resting / not going to the gym today.`
-                : `${data.name} checked in to hit the gym today at ${data.time}!`
-            );
-          }
-        }
-      });
-      setPresenceList(list);
-    }, (err) => {
-      console.error('[SquadMatchmaker] Error syncing presence:', err);
-    });
-
-    const pollsRef = collection(db, 'shared_squads', activeSquadCode, 'polls');
-    const unsubPolls = onSnapshot(pollsRef, (snap) => {
-      const list = [];
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
-        const createdTime = data.createdAt?.toDate 
-          ? data.createdAt.toDate().getTime() 
-          : (data.createdAt || Date.now());
-
-        if (createdTime >= todayStart.getTime()) {
-          list.push({ id: docSnap.id, ...data });
-
-          // Fire browser notification if new, not from current user
-          if (createdTime > mountTimeRef.current && data.creatorUid !== uid) {
-            sendBrowserNotification(
-              `New Gym Poll! 🗳️`,
-              `${data.creatorName} started a new poll: "${data.question}"`
-            );
-          }
-        }
-      });
-      setPollsList(list);
-    }, (err) => {
-      console.error('[SquadMatchmaker] Error syncing polls:', err);
-    });
-
-    return () => {
-      unsubPresence();
-      unsubPolls();
-    };
   }, [activeSquadCode, uid]);
+
+  // Request browser notification permission when squads workspace opens
+  useEffect(() => {
+    if (uid) {
+      requestNotificationPermission();
+    }
+  }, [uid]);
 
   // Fetch yesterday's workout time on mount / when uid changes
   useEffect(() => {
@@ -531,28 +432,7 @@ export const SquadMatchmaker = () => {
     return () => clearInterval(timer);
   }, [presenceList, uid, yesterdayWorkoutTime]);
 
-  // Live Activity Feed subscription
-  useEffect(() => {
-    if (!activeSquadCode) {
-      setActivityList([]);
-      return;
-    }
-    
-    const activityRef = collection(db, 'shared_squads', activeSquadCode, 'activity_feed');
-    const q = query(activityRef, orderBy('createdAt', 'desc'), limit(20));
-    
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const list = [];
-      snap.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setActivityList(list);
-    }, (err) => {
-      console.error('[SquadMatchmaker] Error syncing activity feed:', err);
-    });
-    
-    return () => unsubscribe();
-  }, [activeSquadCode]);
+  // Live Activity Feed subscription has been migrated to useSquadStore
 
   // 3c. Query real free agents at the same gym
   useEffect(() => {
@@ -654,18 +534,164 @@ export const SquadMatchmaker = () => {
     return () => unsubscribe();
   }, [uid]);
 
-  // 4. Sync active squad data with global useSquadStore
+  // Roster sync and multiplier calculations are handled automatically by useSquadStore
+
+  // Cooldown countdown timer effect
   useEffect(() => {
-    if (!activeSquad) return;
-    const activeCount = activeSquadMembers.filter(m => m.checkIn).length;
-    const mult = Math.min(1.5, 1.0 + activeCount * 0.06);
-    setSquadData({
-      id: activeSquad.squadCode,
-      squadName: activeSquad.squadName,
-      members: activeSquadMembers,
-      weeklyXPMultiplier: parseFloat(mult.toFixed(2))
-    });
-  }, [activeSquad, activeSquadMembers, setSquadData]);
+    const challenge = activeSquad?.activeChallenge;
+    if (!challenge || challenge.status !== 'completed' || !challenge.completedAt) {
+      setCooldownTimeLeft(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const completedAtMs = typeof challenge.completedAt.toDate === 'function'
+        ? challenge.completedAt.toDate().getTime()
+        : new Date(challenge.completedAt).getTime();
+      
+      const elapsed = Date.now() - completedAtMs;
+      const cooldownMs = 24 * 60 * 60 * 1000;
+      const remaining = Math.max(0, cooldownMs - elapsed);
+      setCooldownTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [activeSquad?.activeChallenge]);
+
+  const formatCooldownTime = (ms) => {
+    if (ms <= 0) return '';
+    const totalSecs = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSummonNextTitan = async () => {
+    if (!activeSquad || !uid) return;
+    const currentKeys = profile?.powerUps?.bossFightKey || 0;
+    const cost = cooldownTimeLeft > 0 ? 2 : 1;
+
+    if (currentKeys < cost) {
+      showAppAlert(`You need ${cost} Boss Keys to summon the next Titan. You only have ${currentKeys}.`, "Insufficient Keys");
+      return;
+    }
+
+    showAppConfirm(
+      `Are you sure you want to summon the next Titan Raid? This will spend ${cost} Boss Key${cost > 1 ? 's' : ''}.`,
+      async () => {
+        setSummoningTitan(true);
+        try {
+          const res = await callZenkaiAPI('summonNextTitan', { squadCode: activeSquad.squadCode });
+          if (res.data && res.data.success) {
+            // Update local profile keys
+            const currentProfile = useAuthStore.getState().profile || {};
+            useAuthStore.getState().setProfile({
+              ...currentProfile,
+              powerUps: {
+                ...currentProfile.powerUps,
+                bossFightKey: res.data.nextKeys
+              }
+            });
+            
+            setSuccessMsg("Titan successfully summoned! ⚔️");
+            setTimeout(() => setSuccessMsg(''), 4000);
+          }
+        } catch (err) {
+          console.error('[summonNextTitan] Error:', err);
+          showAppAlert(err.message || "Failed to summon next Titan.", "Summon Error");
+        } finally {
+          setSummoningTitan(false);
+        }
+      },
+      "Summon Next Titan"
+    );
+  };
+
+  const handleOpenChest = async (chestType) => {
+    if (!uid || openingChest) return;
+    
+    const cost = chestType === 'common' ? 1 : chestType === 'rare' ? 3 : 5;
+    const currentKeys = profile?.powerUps?.bossFightKey || 0;
+
+    if (currentKeys < cost) {
+      showAppAlert(`Insufficient Boss Keys. Opening a ${chestType} chest costs ${cost} keys, you have ${currentKeys}.`, "Insufficient Keys");
+      return;
+    }
+
+    setOpeningChest(true);
+    setChestOpeningType(chestType);
+    setOpenedReward(null);
+    setOpenedTier(null);
+
+    try {
+      const startTime = Date.now();
+      const res = await callZenkaiAPI('openTreasureChest', { chestType });
+      const elapsed = Date.now() - startTime;
+      const minDuration = 1800; // 1.8 seconds for premium opening feel
+      if (elapsed < minDuration) {
+        await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
+      }
+
+      if (res.data && res.data.success) {
+        const { reward, tier, nextKeys, nextXp, nextLevel } = res.data;
+        
+        // Update local profile immediately
+        const currentProfile = useAuthStore.getState().profile || {};
+        const nextPowerUps = { ...currentProfile.powerUps };
+        nextPowerUps.bossFightKey = nextKeys;
+
+        if (reward.type === 'consumable') {
+          nextPowerUps[reward.key] = (nextPowerUps[reward.key] || 0) + reward.value;
+        } else if (reward.type === 'title' || reward.type === 'aura') {
+          const dbKey = reward.type === 'title' 
+            ? `unlocked_title_${reward.key}_until` 
+            : `unlocked_aura_${reward.key}_until`;
+          
+          const currentUntil = nextPowerUps[dbKey];
+          let baseTime = Date.now();
+          if (currentUntil) {
+            const currentUntilMs = new Date(currentUntil).getTime();
+            if (currentUntilMs > Date.now()) {
+              baseTime = currentUntilMs;
+            }
+          }
+          const untilDate = new Date(baseTime + reward.days * 24 * 60 * 60 * 1000);
+          nextPowerUps[dbKey] = untilDate.toISOString();
+        }
+
+        // Apply changes to store
+        useAuthStore.getState().setProfile({
+          ...currentProfile,
+          xp: nextXp,
+          level: nextLevel,
+          powerUps: nextPowerUps
+        });
+
+        // Sync with squad_codes as well (if present)
+        if (mySquadCode) {
+          const { doc, setDoc } = await import('firebase/firestore');
+          const codeRef = doc(db, 'squad_codes', mySquadCode);
+          await setDoc(codeRef, {
+            xp: nextXp,
+            level: nextLevel,
+            powerUps: nextPowerUps,
+            updatedAt: new Date()
+          }, { merge: true }).catch(err => console.warn('[SquadMatchmaker] Sync keys error:', err));
+        }
+
+        setOpenedReward(reward);
+        setOpenedTier(tier);
+      }
+    } catch (err) {
+      console.error('[openTreasureChest] Error:', err);
+      showAppAlert(err.message || 'Failed to open treasure chest.', 'Vault Error');
+    } finally {
+      setOpeningChest(false);
+    }
+  };
 
   // Create Squad Action
   const handleCreateSquad = async (e) => {
@@ -883,6 +909,16 @@ export const SquadMatchmaker = () => {
     e.preventDefault();
     if (!activeSquad || !uid) return;
 
+    // Client-side rate limiting/throttle: 5 minutes
+    const now = Date.now();
+    const timeSinceLastWrite = now - lastPresenceWriteTimeRef.current;
+    if (timeSinceLastWrite < 5 * 60 * 1000) {
+      const remainingSeconds = Math.ceil((5 * 60 * 1000 - timeSinceLastWrite) / 1000);
+      const remainingMinutes = Math.ceil(remainingSeconds / 60);
+      showAppAlert(`You're updating status too quickly! Please wait ${remainingMinutes} minute(s) before checking in again.`, "Check-In Throttled");
+      return;
+    }
+
     try {
       let targetTimestamp = null;
       if (checkInTime !== 'Not Going') {
@@ -902,6 +938,7 @@ export const SquadMatchmaker = () => {
         personalNotified: false,
         teammatesNotified: false
       });
+      lastPresenceWriteTimeRef.current = Date.now();
 
       setSuccessMsg(
         checkInTime === 'Not Going'
@@ -1847,7 +1884,8 @@ export const SquadMatchmaker = () => {
                 {[
                   { id: 'synergy', label: '🗳️ Synergy & Scheduler' },
                   { id: 'warroom', label: '🛡️ Command War Room' },
-                  { id: 'draft', label: '💸 Moneyball Draft' }
+                  { id: 'draft', label: '💸 Moneyball Draft' },
+                  { id: 'vault', label: '💎 Treasure Vault' }
                 ].map(t => (
                   <button
                     key={t.id}
@@ -2048,23 +2086,64 @@ export const SquadMatchmaker = () => {
                         )}
 
                         {activeSquad.activeChallenge.status === 'completed' && (
-                          <div className="border border-dashed border-[#33FF66]/30 bg-[#33FF66]/5 p-3 rounded-lg flex flex-col items-center justify-center gap-3">
-                            <span className="text-xs font-mono text-[#33FF66] font-bold text-center">
-                              🎉 Challenge Completed! The squad has successfully synchronized!
-                            </span>
-                            {activeSquad.activeChallenge.claimedBy?.[uid] ? (
-                              <span className="text-xs font-mono text-[var(--accent-xp)] font-black uppercase border border-[var(--accent-xp)] px-3 py-1 rounded bg-[var(--accent-xp)]/10 flex items-center gap-1">
-                                <CheckCircle size={12} />
-                                <span>Reward Claimed</span>
+                          <div className="flex flex-col gap-3 w-full">
+                            <div className="border border-dashed border-[#33FF66]/30 bg-[#33FF66]/5 p-3 rounded-lg flex flex-col items-center justify-center gap-3">
+                              <span className="text-xs font-mono text-[#33FF66] font-bold text-center">
+                                🎉 Challenge Completed! The squad has successfully synchronized!
                               </span>
-                            ) : (
+                              {activeSquad.activeChallenge.claimedBy?.[uid] ? (
+                                <span className="text-xs font-mono text-[var(--accent-xp)] font-black uppercase border border-[var(--accent-xp)] px-3 py-1 rounded bg-[var(--accent-xp)]/10 flex items-center gap-1">
+                                  <CheckCircle size={12} />
+                                  <span>Reward Claimed</span>
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={handleClaimReward}
+                                  className="bg-[#33FF66] hover:bg-[#2ae058] text-black font-display font-black text-xs uppercase px-5 py-2.5 rounded-lg border-2 border-black shadow-[3px_3px_0px_black] active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Claim {activeSquad.activeChallenge.rewardName}!
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Summon Next Titan Card */}
+                            <div className="w-full border-2 border-black bg-neutral-950 p-4 rounded-xl shadow-[3px_3px_0px_black] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-mono text-purple-400 font-extrabold uppercase tracking-wider block">
+                                  🌌 Titan Summon Portal
+                                </span>
+                                <span className="text-xs text-white font-bold font-mono">
+                                  {cooldownTimeLeft > 0 ? (
+                                    <>
+                                      Portal Cooldown: <span className="text-red-500 font-extrabold">{formatCooldownTime(cooldownTimeLeft)}</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-green-500 font-extrabold">Portal Ready to Summon!</span>
+                                  )}
+                                </span>
+                                <span className="text-[9px] text-neutral-500 font-sans leading-normal mt-1">
+                                  {cooldownTimeLeft > 0 
+                                    ? "Bypassing the 24h cooldown costs 2 Boss Keys. Waiting out the cooldown costs 1 Boss Key."
+                                    : "Summoning the next Titan Raid costs 1 Boss Key."}
+                                </span>
+                              </div>
                               <button
-                                onClick={handleClaimReward}
-                                className="bg-[#33FF66] hover:bg-[#2ae058] text-black font-display font-black text-xs uppercase px-5 py-2.5 rounded-lg border-2 border-black shadow-[3px_3px_0px_black] active:scale-95 transition-all cursor-pointer"
+                                onClick={handleSummonNextTitan}
+                                disabled={summoningTitan}
+                                className={`px-4 py-2 border-2 border-black text-xs font-mono font-bold uppercase rounded shadow-[2px_2px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
+                                  cooldownTimeLeft > 0
+                                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                    : 'bg-green-500 text-black hover:bg-green-600'
+                                }`}
                               >
-                                Claim {activeSquad.activeChallenge.rewardName}!
+                                {summoningTitan ? "Summoning..." : (
+                                  <div className="flex items-center gap-1.5">
+                                    <Key size={12} />
+                                    <span>Summon Titan ({cooldownTimeLeft > 0 ? 2 : 1} Keys)</span>
+                                  </div>
+                                )}
                               </button>
-                            )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2309,12 +2388,12 @@ export const SquadMatchmaker = () => {
                               const hasHighFived = activity.highFives?.includes(uid);
                               const hasKudosed = activity.kudos?.includes(uid);
 
-                              let cardClass = "border border-neutral-800/80 bg-neutral-900/20 p-4 rounded-xl flex flex-col gap-3 relative overflow-hidden shadow-sm";
+                              let cardClass = "border border-neutral-800/80 bg-neutral-900/20 p-4 rounded-xl flex flex-col gap-3 relative shadow-sm hover:border-neutral-700/80 hover:scale-[1.01] transition-all duration-200 cursor-pointer";
                               let themeTitleColor = "text-white";
                               let themeBadge = null;
 
                               if (activity.cardTheme === 'pr_smash') {
-                                cardClass = "border-2 border-slate-300 bg-gradient-to-b from-[#1b1f24] to-[#0f1115] p-4 rounded-xl flex flex-col gap-3 relative overflow-hidden shadow-[0_0_12px_rgba(203,213,225,0.18)]";
+                                cardClass = "border-2 border-slate-300 bg-gradient-to-b from-[#1b1f24] to-[#0f1115] p-4 rounded-xl flex flex-col gap-3 relative shadow-[0_0_12px_rgba(203,213,225,0.18)] hover:border-slate-200 hover:scale-[1.01] transition-all duration-200 cursor-pointer";
                                 themeTitleColor = "text-slate-200";
                                 themeBadge = (
                                   <span className="text-[8px] bg-slate-200/20 text-slate-200 border border-slate-200/30 px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-0.5 shadow-[0_0_8px_rgba(203,213,225,0.4)]">
@@ -2322,7 +2401,7 @@ export const SquadMatchmaker = () => {
                                   </span>
                                 );
                               } else if (activity.cardTheme === 'titan_slayer') {
-                                cardClass = "border-2 border-red-600 bg-gradient-to-b from-[#1a0b0b] to-[#080202] p-4 rounded-xl flex flex-col gap-3 relative overflow-hidden shadow-[0_0_12px_rgba(239,68,68,0.2)]";
+                                cardClass = "border-2 border-red-600 bg-gradient-to-b from-[#1a0b0b] to-[#080202] p-4 rounded-xl flex flex-col gap-3 relative shadow-[0_0_12px_rgba(239,68,68,0.2)] hover:border-red-500 hover:scale-[1.01] transition-all duration-200 cursor-pointer";
                                 themeTitleColor = "text-red-400";
                                 themeBadge = (
                                   <span className="text-[8px] bg-red-600/20 text-red-400 border border-red-600/30 px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-0.5 shadow-[0_0_8px_rgba(239,68,68,0.4)] animate-pulse">
@@ -2332,12 +2411,19 @@ export const SquadMatchmaker = () => {
                               }
 
                               return (
-                                <div key={activity.id} className={cardClass}>
+                                <div 
+                                  key={activity.id} 
+                                  className={cardClass}
+                                  onClick={() => setSelectedActivityId(activity.id)}
+                                >
                                   {/* Top Row: User Avatar & Name */}
                                   <div className="flex items-center justify-between">
                                     <div 
                                       className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-all"
-                                      onClick={() => memberInfo && handleMemberClick(memberInfo)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (memberInfo) handleMemberClick(memberInfo);
+                                      }}
                                       title="Click to view profile & stats"
                                     >
                                       <div 
@@ -2375,26 +2461,28 @@ export const SquadMatchmaker = () => {
                                       )}
                                     </div>
                                     
-                                    <div className="flex flex-wrap gap-2 text-[10px] text-neutral-400 font-mono mt-1">
-                                      <span className="bg-black/45 px-2 py-0.5 rounded border border-[#222]/40">
-                                        Sets: <strong className="text-white">{activity.totalSets}</strong>
+                                    <div className="flex flex-wrap gap-3 text-[10px] text-neutral-400 font-mono mt-1">
+                                      <span>
+                                        Sets: <strong className="text-slate-200">{activity.totalSets}</strong>
                                       </span>
-                                      <span className="bg-black/45 px-2 py-0.5 rounded border border-[#222]/40">
-                                        Exercises: <strong className="text-white">{activity.exercisesCount}</strong>
+                                      <span className="text-neutral-700 select-none">•</span>
+                                      <span>
+                                        Exercises: <strong className="text-slate-200">{activity.exercisesCount}</strong>
                                       </span>
-                                      <span className="bg-black/45 px-2 py-0.5 rounded border border-[#222]/40">
-                                        Volume: <strong className="text-white">{Math.round(activity.totalVolume).toLocaleString()}kg</strong>
+                                      <span className="text-neutral-700 select-none">•</span>
+                                      <span>
+                                        Volume: <strong className="text-slate-200">{Math.round(activity.totalVolume).toLocaleString()}kg</strong>
                                       </span>
                                     </div>
 
                                     {activity.prNames && activity.prNames.length > 0 && (
-                                      <div className="mt-1 flex flex-col gap-1 text-[9px] font-mono">
-                                        <span className="text-amber-500 font-bold uppercase tracking-wider flex items-center gap-0.5">
-                                          🔥 PRs Broken:
+                                      <div className="mt-2 flex flex-col gap-1 text-[10px] font-mono">
+                                        <span className="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                                          🔥 PRs Smashed:
                                         </span>
-                                        <div className="flex flex-wrap gap-1 mt-0.5">
+                                        <div className="flex flex-wrap gap-1.5 mt-1">
                                           {activity.prNames.map((pr, prIdx) => (
-                                            <span key={prIdx} className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-extrabold text-[8px]">
+                                            <span key={prIdx} className="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-1 rounded-md uppercase font-extrabold text-[9px] tracking-wide shadow-sm">
                                               {pr}
                                             </span>
                                           ))}
@@ -2406,7 +2494,10 @@ export const SquadMatchmaker = () => {
                                   {/* Bottom Row: Kudos & High Five Reactions */}
                                   <div className="flex gap-2 relative mt-1">
                                     <button
-                                      onClick={() => handleSocialAction(activity.id, 'highFive')}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSocialAction(activity.id, 'highFive');
+                                      }}
                                       className={`flex items-center gap-1.5 font-display font-black text-[9px] px-3 py-1.5 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
                                         hasHighFived 
                                           ? 'bg-yellow-500 text-black' 
@@ -2418,7 +2509,10 @@ export const SquadMatchmaker = () => {
                                     </button>
 
                                     <button
-                                      onClick={() => handleSocialAction(activity.id, 'kudos')}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSocialAction(activity.id, 'kudos');
+                                      }}
                                       className={`flex items-center gap-1.5 font-display font-black text-[9px] px-3 py-1.5 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
                                         hasKudosed 
                                           ? 'bg-red-600 text-white' 
@@ -2822,6 +2916,169 @@ export const SquadMatchmaker = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Tab 4: Treasure Vault */}
+              {activeTab === 'vault' && (
+                <div className="flex flex-col gap-6 animate-fadeIn text-left">
+                  {/* Treasure Vault Intro Card */}
+                  <div className="border border-neutral-800 bg-neutral-900/30 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
+                    <div className="flex flex-col text-left">
+                      <h4 className="font-display font-black text-xl text-white uppercase tracking-wide flex items-center gap-2">
+                        <Key className="text-amber-400" size={24} />
+                        <span>Titan's Treasure Vault</span>
+                      </h4>
+                      <p className="text-xs text-neutral-300 font-sans leading-relaxed mt-1">
+                        Crack open legendary treasure chests using Boss Keys earned from weekly squad raids. 
+                        Each chest contains valuable loot including direct XP, consumable items, custom profiles title tags, or glowing avatar auras!
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 border-2 border-black bg-amber-400 px-4 py-2.5 rounded-xl text-sm font-mono text-black font-black uppercase shadow-[3px_3px_0px_black] shrink-0">
+                        <Key size={16} />
+                        <span>{profile?.powerUps?.bossFightKey || 0} Boss Keys Available</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Three Chests Rendering */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Common Chest */}
+                    <div className="border-2 border-black bg-amber-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-amber-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-amber-500 font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                            Common Chest
+                          </span>
+                        </div>
+                        <div className="w-36 h-36 mx-auto bg-amber-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
+                          Bronze Vault Box
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          A solid entry-level vault chest containing basic consumables and small chunks of XP.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-300">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">70%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">25%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">5%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenChest('common')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 1}
+                        className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
+                      >
+                        Open (1 Boss Key 🔑)
+                      </button>
+                    </div>
+
+                    {/* Rare Chest */}
+                    <div className="border-2 border-black bg-blue-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-blue-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-blue-400 font-bold uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
+                            Rare Chest
+                          </span>
+                        </div>
+                        <div className="w-36 h-36 mx-auto bg-blue-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
+                          Iron Vault Chest
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          A fortified chest with a significantly higher chance at rare title rewards, multiple skips, and high XP tiers.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-300">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">15%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">65%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">20%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenChest('rare')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 3}
+                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
+                      >
+                        Open (3 Boss Keys 🔑)
+                      </button>
+                    </div>
+
+                    {/* Legendary Chest */}
+                    <div className="border-2 border-black bg-purple-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-purple-900 text-left">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                            Legendary Chest
+                          </span>
+                        </div>
+                        <div className="w-36 h-36 mx-auto bg-purple-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
+                          <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                        </div>
+                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
+                          Obsidian Vault Relic
+                        </h5>
+                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
+                          The ultimate vault treasure. Guarantees 75% Legendary drops including glowing avatar auras and major XP boosts.
+                        </p>
+                        
+                        {/* Rarity rates */}
+                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
+                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
+                          <div className="flex justify-between text-neutral-300">
+                            <span>Common Reward:</span>
+                            <span className="font-bold text-white">0%</span>
+                          </div>
+                          <div className="flex justify-between text-blue-400">
+                            <span>Rare Reward:</span>
+                            <span className="font-bold">25%</span>
+                          </div>
+                          <div className="flex justify-between text-purple-400">
+                            <span>Legendary Reward:</span>
+                            <span className="font-bold">75%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenChest('legendary')}
+                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 5}
+                        className="w-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
+                      >
+                        Open (5 Boss Keys 🔑)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           )}
@@ -3035,6 +3292,152 @@ export const SquadMatchmaker = () => {
             )}
           </AnimatePresence>
 
+          {/* Workout Details Modal Overlay */}
+          <AnimatePresence>
+            {selectedActivity && (
+              <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="border-4 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[6px_6px_0px_black] w-full max-w-lg text-left flex flex-col gap-4 relative font-mono text-xs max-h-[85vh] overflow-y-auto"
+                >
+                  <button
+                    onClick={() => setSelectedActivityId(null)}
+                    className="absolute top-4 right-4 text-neutral-400 hover:text-white font-bold text-lg cursor-pointer"
+                  >
+                    ✕
+                  </button>
+
+                  <div className="border-b-2 border-black pb-3">
+                    <span className="text-[10px] text-[var(--accent-xp)] uppercase font-bold tracking-wider block">
+                      Workout Session Details
+                    </span>
+                    <h3 className="font-display font-black text-2xl text-white uppercase mt-1 tracking-wide leading-tight">
+                      {selectedActivity.workoutName}
+                    </h3>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-neutral-400 text-[10px]">
+                      <span>Logged by: <strong className="text-white">{selectedActivity.name}</strong></span>
+                      <span className="text-neutral-700">•</span>
+                      <span>Date: <strong className="text-white">{selectedActivity.createdAt ? new Date(selectedActivity.createdAt.toDate ? selectedActivity.createdAt.toDate() : selectedActivity.createdAt).toLocaleDateString() : 'Just now'}</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Summary Stats Row */}
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                      <span className="text-[8px] text-neutral-500 uppercase">Total Volume</span>
+                      <span className="text-[var(--primary)] font-bold text-sm mt-0.5">
+                        {Math.round(selectedActivity.totalVolume).toLocaleString()}kg
+                      </span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                      <span className="text-[8px] text-neutral-500 uppercase">Exercises</span>
+                      <span className="text-white font-bold text-sm mt-0.5">
+                        {selectedActivity.exercisesCount}
+                      </span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                      <span className="text-[8px] text-neutral-500 uppercase">Sets</span>
+                      <span className="text-white font-bold text-sm mt-0.5">
+                        {selectedActivity.totalSets}
+                      </span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                      <span className="text-[8px] text-neutral-500 uppercase">Duration</span>
+                      <span className="text-secondary font-bold text-sm mt-0.5">
+                        {selectedActivity.durationMinutes ? `${selectedActivity.durationMinutes}m` : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PRs Broken Section */}
+                  {selectedActivity.prNames && selectedActivity.prNames.length > 0 && (
+                    <div className="flex flex-col gap-1.5 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
+                      <span className="text-amber-400 font-bold uppercase text-[9px] tracking-wider flex items-center gap-1">
+                        🏆 Personal Records Broken:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5 mt-0.5">
+                        {selectedActivity.prNames.map((pr, prIdx) => (
+                          <span key={prIdx} className="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-1 rounded-md uppercase font-extrabold text-[9px] tracking-wide shadow-sm">
+                            {pr}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Exercises Details */}
+                  <div className="flex flex-col gap-2 mt-1">
+                    <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">
+                      Exercise Breakdown:
+                    </span>
+                    {selectedActivity.exercises && selectedActivity.exercises.length > 0 ? (
+                      <div className="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+                        {selectedActivity.exercises.map((ex, exIdx) => (
+                          <div key={exIdx} className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-3 flex flex-col gap-2">
+                            <div className="flex justify-between items-center border-b border-neutral-900/40 pb-1.5">
+                              <span className="text-white font-bold text-xs uppercase">{ex.name}</span>
+                              <span className="text-[8px] text-neutral-500 uppercase bg-neutral-900 px-1.5 py-0.5 rounded font-mono">
+                                {ex.muscleGroup || 'General'}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {ex.sets.map((set, setIdx) => (
+                                <span key={setIdx} className="text-[9px] bg-neutral-900/60 border border-neutral-800 text-neutral-300 px-2 py-1 rounded font-mono">
+                                  Set {setIdx + 1}: <strong className="text-white">{set.weight === 'BW' ? 'BW' : `${set.weight}kg`}</strong> x <strong className="text-white">{set.reps}</strong>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-neutral-500 text-[10px] italic py-2">
+                        Detailed exercise breakdown is only available for newly logged workouts.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Social Actions inside the Modal */}
+                  <div className="flex gap-2 justify-end border-t border-[#181818] pt-4 mt-2">
+                    <button
+                      onClick={() => handleSocialAction(selectedActivity.id, 'highFive')}
+                      className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
+                        selectedActivity.highFives?.includes(uid)
+                          ? 'bg-yellow-500 text-black border-yellow-500 shadow-sm'
+                          : 'bg-neutral-950 text-white hover:bg-neutral-900'
+                      }`}
+                    >
+                      <span>👏</span>
+                      <span>{selectedActivity.highFives?.length || 0} High-Fives</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSocialAction(selectedActivity.id, 'kudos')}
+                      className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
+                        selectedActivity.kudos?.includes(uid)
+                          ? 'bg-red-600 text-white border-red-600 shadow-sm'
+                          : 'bg-neutral-950 text-white hover:bg-neutral-900'
+                      }`}
+                    >
+                      <span>🔥</span>
+                      <span>{selectedActivity.kudos?.length || 0} Kudos</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedActivityId(null)}
+                      className="px-4 py-2 border-2 border-black text-xs font-bold text-white bg-black hover:bg-neutral-900 rounded shadow-[2px_2px_0px_black] uppercase cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Trade Modal Overlay */}
           <AnimatePresence>
             {tradeModalOpen && selectedAgent && (
@@ -3087,6 +3490,140 @@ export const SquadMatchmaker = () => {
                       Confirm Trade
                     </button>
                   </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+          {/* Treasure Chest Opening Modal */}
+          <AnimatePresence>
+            {(openingChest || openedReward) && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[150] p-4 backdrop-blur-md">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="border-4 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[8px_8px_0px_black] w-full max-w-sm text-center flex flex-col items-center gap-5 relative font-mono text-xs"
+                >
+                  {openingChest ? (
+                    /* Opening Animation State */
+                    <div className="py-8 flex flex-col items-center gap-4">
+                      <motion.div
+                        animate={{
+                          rotate: [0, -8, 8, -8, 8, -4, 4, 0],
+                          scaleX: [1, 1.15, 0.85, 1.1, 0.95, 1],
+                          scaleY: [1, 0.85, 1.15, 0.9, 1.05, 1],
+                          y: [0, -15, 0, -5, 0]
+                        }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 0.8,
+                          ease: "easeInOut"
+                        }}
+                        className="w-32 h-32 select-none flex items-center justify-center relative"
+                      >
+                        {/* Ambient glow background */}
+                        <div className={`absolute inset-2 rounded-full blur-2xl opacity-75 -z-10 ${
+                          chestOpeningType === 'legendary' 
+                            ? 'bg-purple-500/50 shadow-[0_0_40px_rgba(168,85,247,0.8)]' 
+                            : chestOpeningType === 'rare' 
+                            ? 'bg-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.8)]' 
+                            : 'bg-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.8)]'
+                        }`} />
+
+                        <img 
+                          src={
+                            chestOpeningType === 'common' ? '/common_chest.png' : 
+                            chestOpeningType === 'rare' ? '/rare_chest.png' : 
+                            '/legendary_chest.png'
+                          } 
+                          alt="Opening Chest" 
+                          className="w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10" 
+                        />
+
+                        {/* Sparkles / particle bursts during cracking */}
+                        <div className="absolute inset-0 pointer-events-none -z-10">
+                          <motion.span 
+                            animate={{ y: [-10, -40], x: [-5, -25], scale: [0, 1, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.2, delay: 0.1 }}
+                            className="absolute text-yellow-300 text-lg top-4 left-4"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [-15, -45], x: [5, 25], scale: [0, 1.2, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.0, delay: 0.3 }}
+                            className="absolute text-amber-300 text-base top-6 right-4"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [10, -20], x: [-15, -35], scale: [0, 0.8, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}
+                            className="absolute text-white text-sm bottom-8 left-2"
+                          >✨</motion.span>
+                          <motion.span 
+                            animate={{ y: [12, -25], x: [15, 35], scale: [0, 1.1, 0], opacity: [0, 1, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.3, delay: 0.2 }}
+                            className="absolute text-yellow-400 text-sm bottom-6 right-2"
+                          >✨</motion.span>
+                        </div>
+                      </motion.div>
+                      <h4 className="font-display font-black text-lg text-white uppercase tracking-wider animate-pulse mt-2">
+                        Cracking the Vault...
+                      </h4>
+                      <p className="text-[10px] text-neutral-400 font-sans px-4">
+                        Consulting the oracle ledger for rolled drops. Stand by...
+                      </p>
+                      <div className="h-2 w-48 bg-neutral-900 border border-neutral-800 rounded-full overflow-hidden p-[1px] mt-1">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 1.8, ease: "easeInOut" }}
+                          className="h-full bg-amber-400 rounded-full"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* Reward Revealed State */
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <span className="text-[10px] text-[var(--accent-xp)] font-extrabold uppercase tracking-widest bg-[var(--accent-xp)]/10 border border-[var(--accent-xp)]/25 px-3 py-1 rounded">
+                        Loot Rolled successfully! 🎉
+                      </span>
+
+                      {/* Sparkles / Aura Glow for reward item */}
+                      <div 
+                        className={`w-24 h-24 rounded-full border-4 border-black flex items-center justify-center text-4xl shadow-[4px_4px_0px_black] mt-2 select-none ${
+                          openedTier === 'legendary' 
+                            ? 'bg-purple-950/40 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse'
+                            : openedTier === 'rare'
+                            ? 'bg-blue-950/40 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                            : 'bg-amber-950/40 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                        }`}
+                      >
+                        {openedReward.type === 'xp' ? '⚡' : 
+                         openedReward.type === 'consumable' ? '⏭️' : 
+                         openedReward.type === 'title' ? '👑' : '✨'}
+                      </div>
+
+                      <div className="flex flex-col gap-1 mt-2">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                          openedTier === 'legendary' ? 'text-purple-400' :
+                          openedTier === 'rare' ? 'text-blue-400' : 'text-amber-500'
+                        }`}>
+                          {openedTier} Reward
+                        </span>
+                        <h4 className="font-display font-black text-xl text-white uppercase tracking-tight leading-none mt-1">
+                          {openedReward.name}
+                        </h4>
+                        <p className="text-xs text-neutral-300 font-sans mt-2.5 px-4 leading-relaxed">
+                          {openedReward.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setOpenedReward(null)}
+                        className="w-full mt-4 bg-[var(--accent-xp)] hover:bg-[#a3f020] text-black font-display font-black text-sm uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                      >
+                        Sweet! Claim Loot
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             )}

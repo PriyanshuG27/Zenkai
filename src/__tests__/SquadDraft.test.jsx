@@ -132,20 +132,29 @@ describe('SquadMatchmaker Draft & Invite System', () => {
 
       if (isDoc) {
         // Document reference
-        callback({
-          exists: () => true,
-          data: () => ({
-            uid: segments[segments.length - 1] === 'FIT-PRIY123' ? 'uid-test-123' : 'agent-bob',
-            name: segments[segments.length - 1] === 'FIT-PRIY123' ? 'Priyanshu (You)' : 'Bob Builder',
-            squadCode: segments[segments.length - 1],
-            streak: 5,
-            volume: 2000,
-            badges: [],
-            powerUps: {},
-            updatedAt: segments[segments.length - 1] === 'FIT-PRIY123' ? new Date() : new Date(Date.now() - 48 * 60 * 60 * 1000),
-          }),
-          id: segments[segments.length - 1],
-        });
+        if (segments[0] === 'shared_squads') {
+          const squad = mockSquads.find(s => s.data().squadCode === segments[1]) || mockSquads[0];
+          callback({
+            exists: () => !!squad,
+            data: () => squad ? squad.data() : null,
+            id: segments[1]
+          });
+        } else {
+          callback({
+            exists: () => true,
+            data: () => ({
+              uid: segments[segments.length - 1] === 'FIT-PRIY123' ? 'uid-test-123' : 'agent-bob',
+              name: segments[segments.length - 1] === 'FIT-PRIY123' ? 'Priyanshu (You)' : 'Bob Builder',
+              squadCode: segments[segments.length - 1],
+              streak: 5,
+              volume: 2000,
+              badges: [],
+              powerUps: {},
+              updatedAt: segments[segments.length - 1] === 'FIT-PRIY123' ? new Date() : new Date(Date.now() - 48 * 60 * 60 * 1000),
+            }),
+            id: segments[segments.length - 1],
+          });
+        }
       } else {
         // Collection / Query reference
         let docs = [];

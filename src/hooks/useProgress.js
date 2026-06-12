@@ -83,26 +83,27 @@ export function useStrengthData(uid, exerciseKey, rangeDays = 30) {
 
         if (signal.aborted) return;
 
-        // Fetch all exercises subcollections in PARALLEL (not serial) — major read time reduction
         const exerciseResults = await Promise.all(
           relevantDocs.map(async (docSnap) => {
+            const sessionData = docSnap.data();
+            if (sessionData.exercises && Array.isArray(sessionData.exercises) && sessionData.exercises.length > 0) {
+              return { docSnap, exercises: sessionData.exercises };
+            }
             const exSnap = await getDocs(
               collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises')
             );
-            return { docSnap, exSnap };
+            return { docSnap, exercises: exSnap.docs.map((d) => d.data()) };
           })
         );
 
         if (signal.aborted) return;
 
         const records = [];
-        for (const { docSnap, exSnap } of exerciseResults) {
+        for (const { docSnap, exercises } of exerciseResults) {
           const sessionData = docSnap.data();
           const sessionDate = sessionData.date?.toDate?.() ?? new Date(sessionData.date);
 
-          const targetExercise = exSnap.docs
-            .map((d) => d.data())
-            .find((ex) => ex.exerciseKey === exerciseKey);
+          const targetExercise = exercises.find((ex) => ex.exerciseKey === exerciseKey);
 
           if (targetExercise && targetExercise.sets) {
             let maxWeight = 0;

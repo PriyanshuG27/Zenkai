@@ -4,10 +4,12 @@ import { useUIStore } from '../../stores/useUIStore';
 import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc, collection, getDocs, deleteDoc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff, Trash2 } from 'lucide-react';
+import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useSquadStore } from '../../stores/useSquadStore';
+import { sendPushNotification } from '../../utils/notificationHelper';
 
 // Side widgets integrated into the profile layout
 import { AcademicBufferConfig } from './AcademicBufferConfig';
@@ -135,6 +137,27 @@ export const DesktopProfile = () => {
   const navigate = useNavigate();
   const { addToast } = useUIStore();
   const [activeTab, setActiveTab] = useState('equipment');
+  const activeSquadCode = useSquadStore((s) => s.activeSquadCode);
+  const [expandedVersion, setExpandedVersion] = useState('1.1.1');
+
+  useEffect(() => {
+    const hasSeenUpdate = localStorage.getItem('zenkai_seen_v1_1_1') === 'true';
+    if (!hasSeenUpdate) {
+      addToast('🚀 FitDesi updated to v1.1.1! Check out What\'s New in your Profile.', 'success');
+
+      if (activeSquadCode) {
+        sendPushNotification({
+          squadCode: activeSquadCode,
+          title: 'Zenkai Update: v1.1.1 is Live! 🚀',
+          body: 'Firestore optimizations, dynamic leaderboard cache timers, and force sync are now live.',
+          url: '/profile'
+        });
+      }
+
+      localStorage.setItem('zenkai_seen_v1_1_1', 'true');
+    }
+  }, [activeSquadCode, addToast]);
+
   const [hideWhatsNew, setHideWhatsNew] = useState(() => {
     return localStorage.getItem('zenkai_hide_whats_new_v1_1') === 'true';
   });
@@ -675,39 +698,87 @@ export const DesktopProfile = () => {
           {/* Trophy Cabinet Achievement list */}
           <TrophyCabinetView />
 
-           {/* What's New Widget */}
-          {!hideWhatsNew && (
-            <div className="border-2 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[5px_5px_0px_rgba(0,0,0,1)] text-left flex flex-col gap-4 relative">
-              <button
-                onClick={() => {
-                  localStorage.setItem('zenkai_hide_whats_new_v1_1', 'true');
-                  setHideWhatsNew(true);
-                }}
-                className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors"
-                title="Hide What's New"
-              >
-                <X size={16} />
-              </button>
-              <div className="flex items-center gap-2 border-b border-[#222] pb-3">
-                <Sparkles size={20} className="text-[var(--primary)] shrink-0" />
-                <div>
-                  <h3 className="font-display font-black text-lg text-white uppercase tracking-tight leading-none">
-                    What's New in v1.1
-                  </h3>
-                  <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-wider mt-1 block">Zenkai Desktop Build v1.1.0</span>
+            {/* What's New Widget */}
+            {!hideWhatsNew && (
+              <div className="border-2 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[5px_5px_0px_rgba(0,0,0,1)] text-left flex flex-col gap-4 relative">
+                <button
+                  onClick={() => {
+                    localStorage.setItem('zenkai_hide_whats_new_v1_1', 'true');
+                    setHideWhatsNew(true);
+                  }}
+                  className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors"
+                  title="Hide What's New"
+                >
+                  <X size={16} />
+                </button>
+                <div className="flex items-center gap-2 border-b border-[#222] pb-3">
+                  <Sparkles size={20} className="text-[var(--primary)] shrink-0" />
+                  <div>
+                    <h3 className="font-display font-black text-lg text-white uppercase tracking-tight leading-none">
+                      What's New in Zenkai
+                    </h3>
+                    <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-wider mt-1 block">Release Changelog & Updates</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {/* v1.1.1 Accordion */}
+                  <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-elevated)]">
+                    <button 
+                      onClick={() => setExpandedVersion(expandedVersion === '1.1.1' ? null : '1.1.1')}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-black/25 font-display text-xs font-black uppercase text-white hover:bg-black/40 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="bg-[var(--primary)] text-black px-1.5 py-0.5 rounded text-[8px] font-mono font-bold">LATEST</span>
+                        <span>v1.1.1 — Database & UI Optimizations</span>
+                      </div>
+                      <span className="text-neutral-500">
+                        {expandedVersion === '1.1.1' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </span>
+                    </button>
+                    
+                    {expandedVersion === '1.1.1' && (
+                      <div className="p-4 border-t border-[var(--border)]">
+                        <ul className="text-xs text-neutral-300 font-sans list-disc pl-4 space-y-2 leading-relaxed">
+                          <li><strong className="text-white">Firestore Write Flattening:</strong> Workout exercises are now saved as a flat array within the session document, saving ~50% database write quota.</li>
+                          <li><strong className="text-white">Global Zustand Listeners:</strong> Extracted active squad listeners to global Zustand state. Switching tabs now costs 0 additional database reads.</li>
+                          <li><strong className="text-white">Leaderboard Caching & Live Timer:</strong> Cached rankings for 15 minutes and added a live `Refreshes in MM:SS` countdown timer.</li>
+                          <li><strong className="text-white">Force Sync:</strong> Added a Neubrutalist sync button next to the leaderboard for on-demand live rank updates.</li>
+                          <li><strong className="text-white">Backward-Compatible Workouts:</strong> Added checks to seamlessly load both new flat-array workouts and legacy subcollection workouts.</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* v1.1.0 Accordion */}
+                  <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-elevated)]">
+                    <button 
+                      onClick={() => setExpandedVersion(expandedVersion === '1.1.0' ? null : '1.1.0')}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-black/25 font-display text-xs font-black uppercase text-white hover:bg-black/40 transition-all text-left"
+                    >
+                      <span>v1.1.0 — UI Reminders & Custom Dialogs</span>
+                      <span className="text-neutral-500">
+                        {expandedVersion === '1.1.0' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </span>
+                    </button>
+                    
+                    {expandedVersion === '1.1.0' && (
+                      <div className="p-4 border-t border-[var(--border)]">
+                        <ul className="text-xs text-neutral-300 font-sans list-disc pl-4 space-y-2 leading-relaxed">
+                          <li><strong className="text-white">Custom In-App Dialogs:</strong> Native browser popups have been fully replaced with custom-animated neubrutalist modals.</li>
+                          <li><strong className="text-white">Smart Workout Reminders:</strong> Sends in-app and browser notifications 1 hour prior to your teammate's scheduled workouts.</li>
+                          <li><strong className="text-white">Rest Days / Not Going:</strong> Added a "Not Going" (Rest Day 😴) option to Gym check-ins and scheduling polls.</li>
+                          <li><strong className="text-white">Midnight Clearing:</strong> Polls and check-ins now clear automatically at midnight local time to keep the board fresh.</li>
+                          <li><strong className="text-white">Weekly Challenge Regeneration Cooldown:</strong> Enforced a strict 48-hour rate-limit on weekly challenge rerolls.</li>
+                          <li><strong className="text-white">Tougher Boss HP:</strong> Boss raids now scale dynamically with a 12,000kg baseline per member to keep the battles competitive.</li>
+                          <li><strong className="text-white">Currency Separation:</strong> Spendable XP (Aura shop) is now separated from your Lifetime XP so buying cosmetics never decreases your level.</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <ul className="text-xs text-neutral-300 font-sans list-disc pl-5 space-y-2 leading-relaxed pr-4">
-                <li><strong className="text-white">Custom In-App Dialogs:</strong> Native browser popups have been fully replaced with custom-animated neubrutalist modals.</li>
-                <li><strong className="text-white">Smart Workout Reminders:</strong> Sends in-app and browser notifications 1 hour prior to your teammate's scheduled workouts.</li>
-                <li><strong className="text-white">Rest Days / Not Going:</strong> Added a "Not Going" (Rest Day 😴) option to Gym check-ins and scheduling polls.</li>
-                <li><strong className="text-white">Midnight Clearing:</strong> Polls and check-ins now clear automatically at midnight local time to keep the board fresh.</li>
-                <li><strong className="text-white">Weekly Challenge Regeneration Cooldown:</strong> Enforced a strict 48-hour rate-limit on weekly challenge rerolls.</li>
-                <li><strong className="text-white">Tougher Boss HP:</strong> Boss raids now scale dynamically with a 12,000kg baseline per member to keep the battles competitive.</li>
-                <li><strong className="text-white">Currency Separation:</strong> Spendable XP (Aura shop) is now separated from your Lifetime XP so buying cosmetics never decreases your level.</li>
-              </ul>
-            </div>
-          )}
+            )}
 
           {/* Push Notification Toggle */}
           <PushNotificationToggle />

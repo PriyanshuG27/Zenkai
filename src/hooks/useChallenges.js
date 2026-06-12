@@ -555,16 +555,27 @@ export function useChallenges() {
       const docs = sessSnap.docs || [];
       if (docs.length > 0) {
         const latestSessDoc = docs[0];
-        const exercisesRef = collection(db, 'users', uid, 'sessions', latestSessDoc.id, 'exercises');
-        const exSnap = await getDocs(exercisesRef);
-        loggedMuscleGroups = exSnap.docs.map(exDoc => {
-          const exData = exDoc.data();
-          const doneSets = (exData.sets || []).filter(s => s.done || s.completed);
-          return {
-            muscleGroup: (exData.muscleGroup || '').toLowerCase(),
-            count: doneSets.length
-          };
-        });
+        const latestSessData = latestSessDoc.data();
+        if (latestSessData.exercises && Array.isArray(latestSessData.exercises) && latestSessData.exercises.length > 0) {
+          loggedMuscleGroups = latestSessData.exercises.map(exData => {
+            const doneSets = (exData.sets || []).filter(s => s.done || s.completed);
+            return {
+              muscleGroup: (exData.muscleGroup || '').toLowerCase(),
+              count: doneSets.length
+            };
+          });
+        } else {
+          const exercisesRef = collection(db, 'users', uid, 'sessions', latestSessDoc.id, 'exercises');
+          const exSnap = await getDocs(exercisesRef);
+          loggedMuscleGroups = exSnap.docs.map(exDoc => {
+            const exData = exDoc.data();
+            const doneSets = (exData.sets || []).filter(s => s.done || s.completed);
+            return {
+              muscleGroup: (exData.muscleGroup || '').toLowerCase(),
+              count: doneSets.length
+            };
+          });
+        }
 
         if (docs.length >= 2) {
           const date0 = docs[0].data().date;

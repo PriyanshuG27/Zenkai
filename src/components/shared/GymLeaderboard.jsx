@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { Trophy, Dumbbell, Sparkles } from 'lucide-react';
+import { Trophy, Dumbbell, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useSquadStore } from '../../stores/useSquadStore';
 import { getAvatarStyle, isTitleActive } from '../../lib/xpHelpers';
 
 const RENTED_TITLES = {
@@ -18,48 +17,45 @@ const isTitleExpired = (titleName, powerUps) => {
 
 export const GymLeaderboard = ({ gymId = '', gymName = '' }) => {
   const { user } = useAuthStore();
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const leaderboard = useSquadStore((state) => state.leaderboard);
+  const loading = useSquadStore((state) => state.leaderboardLoading);
+  const error = useSquadStore((state) => state.leaderboardError);
+  const fetchLeaderboard = useSquadStore((state) => state.fetchLeaderboard);
+  const leaderboardCache = useSquadStore((state) => state.leaderboardCache);
+
+  const [timeRemaining, setTimeRemaining] = useState('');
 
   useEffect(() => {
-    if (!gymId) {
-      setLoading(false);
+    const cacheEntry = leaderboardCache[gymId];
+    if (!cacheEntry?.timestamp) {
+      setTimeRemaining('');
       return;
     }
 
-    const fetchLeaderboard = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const usersRef = collection(db, 'users');
-        const q = query(
-          usersRef,
-          where('gymId', '==', gymId),
-          orderBy('xp', 'desc'),
-          limit(20)
-        );
+    const updateTimer = () => {
+      const elapsed = Date.now() - cacheEntry.timestamp;
+      const ttl = 900000; // 15 mins
+      const remaining = ttl - elapsed;
 
-        const querySnapshot = await getDocs(q);
-        const usersData = [];
-        querySnapshot.forEach((docSnap) => {
-          usersData.push(docSnap.data());
-        });
-
-        // Fallback sorting in case Firestore index is building or query fails to sort
-        usersData.sort((a, b) => (b.xp || 0) - (a.xp || 0));
-
-        setLeaderboard(usersData);
-      } catch (err) {
-        console.error('[GymLeaderboard] Error fetching leaderboard:', err);
-        setError('Could not load leaderboard. Indexes might be setting up.');
-      } finally {
-        setLoading(false);
+      if (remaining <= 0) {
+        setTimeRemaining('');
+      } else {
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
       }
     };
 
-    fetchLeaderboard();
-  }, [gymId]);
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [leaderboardCache, gymId]);
+
+  useEffect(() => {
+    if (gymId) {
+      fetchLeaderboard(gymId);
+    }
+  }, [gymId, fetchLeaderboard]);
 
   if (!gymId) {
     return (
@@ -91,6 +87,31 @@ export const GymLeaderboard = ({ gymId = '', gymName = '' }) => {
           <Trophy size={18} />
         </div>
       </div>
+
+      {/* Status Bar / Cache Countdown */}
+      {gymId && !error && leaderboard.length > 0 && (
+        <div className="flex justify-between items-center bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-1.5 rounded-xl font-mono text-[10px] text-[var(--text-secondary)]">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+            <span>
+              {loading 
+                ? 'Syncing leaderboard...' 
+                : timeRemaining 
+                  ? `Refreshes in ${timeRemaining}` 
+                  : 'Live data'
+              }
+            </span>
+          </div>
+          <button
+            onClick={() => fetchLeaderboard(gymId, true)}
+            disabled={loading}
+            className="p-1 rounded hover:bg-[var(--surface)] text-[var(--text-muted)] hover:text-white transition-all disabled:opacity-50 flex items-center justify-center"
+            title="Force Sync"
+          >
+            <RefreshCw size={10} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col gap-2.5 py-4">

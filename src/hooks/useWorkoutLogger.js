@@ -56,6 +56,7 @@ import { evaluateStreak, deriveLevelFromXP } from '../lib/xpHelpers';
 import { getBWEffectiveFraction } from '../utils/bwEffectiveLoad';
 import { useChallenges } from './useChallenges';
 import { clearStrengthCache } from './useProgress';
+import { determineWorkoutName } from '../lib/firestoreUtils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,81 @@ function getGameCalculatedWeight(weight, exerciseKey, totalSessions, existingPR)
   }
   return w;
 }
+
+const formatExerciseName = (name, key) => {
+  if (name && name.trim() !== '') return name;
+  if (!key) return 'Unknown Exercise';
+  return key
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const getWorkoutSummaryName = (exerciseDocs) => {
+  if (!exerciseDocs || exerciseDocs.length === 0) return 'Custom Workout';
+
+  // Get muscle groups
+  const muscleGroups = exerciseDocs
+    .map(ex => {
+      const mg = (ex.muscleGroup || '').toLowerCase().trim();
+      // Map sub-groups to main groups
+      if (['quads', 'hamstrings', 'glutes', 'calves', 'legs', 'quad', 'hamstring', 'glute', 'calf'].includes(mg)) return 'legs';
+      if (['chest'].includes(mg)) return 'chest';
+      if (['back'].includes(mg)) return 'back';
+      if (['shoulders', 'shoulder', 'delts'].includes(mg)) return 'shoulders';
+      if (['biceps', 'triceps', 'forearms', 'bicep', 'tricep', 'arms'].includes(mg)) return 'arms';
+      if (['core', 'abs', 'obliques'].includes(mg)) return 'core';
+      return mg;
+    })
+    .filter(mg => mg !== '');
+
+  const uniqueGroups = [...new Set(muscleGroups)];
+
+  if (uniqueGroups.length === 0) return 'Workout Session';
+
+  // Check for Push/Pull/Legs patterns
+  const hasChest = uniqueGroups.includes('chest');
+  const hasShoulders = uniqueGroups.includes('shoulders');
+  const hasArms = uniqueGroups.includes('arms');
+  const hasBack = uniqueGroups.includes('back');
+  const hasLegs = uniqueGroups.includes('legs');
+
+  // Push: Chest, Shoulders, Arms (or any combination of them if no Back/Legs)
+  const isPush = (hasChest || hasShoulders || hasArms) && !hasBack && !hasLegs;
+  // Pull: Back, Arms (or combination if no Chest/Legs)
+  const isPull = (hasBack || hasArms) && !hasChest && !hasLegs && !hasShoulders;
+  const isLegsOnly = hasLegs && !hasChest && !hasBack && !hasShoulders && !hasArms;
+
+  if (isPush) {
+    const pushCount = [hasChest, hasShoulders, hasArms].filter(Boolean).length;
+    if (pushCount >= 2) return 'Push Workout';
+  }
+
+  if (isPull) {
+    const pullCount = [hasBack, hasArms].filter(Boolean).length;
+    if (pullCount >= 2) return 'Pull Workout';
+  }
+
+  if (isLegsOnly) return 'Legs Workout';
+
+  // Full Body check
+  if (uniqueGroups.length >= 3 && hasLegs && (hasChest || hasShoulders || hasBack)) {
+    return 'Full Body Workout';
+  }
+
+  // Capitalize muscle group names for display
+  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+  if (uniqueGroups.length === 1) {
+    return `${capitalize(uniqueGroups[0])} Workout`;
+  }
+
+  if (uniqueGroups.length === 2) {
+    return `${capitalize(uniqueGroups[0])} & ${capitalize(uniqueGroups[1])} Workout`;
+  }
+
+  return `${capitalize(uniqueGroups[0])} & ${capitalize(uniqueGroups[1])} Workout`;
+};
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -246,7 +322,7 @@ export function useWorkoutLogger() {
       // Build exercise sub-document
       exerciseDocs.push({
         exerciseId,
-        name:        ex.name,
+        name:        formatExerciseName(ex.name, exerciseKey),
         exerciseKey,
         muscleGroup: ex.muscleGroup ?? '',
         sets: doneSets.map((s) => ({
@@ -292,7 +368,7 @@ export function useWorkoutLogger() {
         newPRs.push({
           exerciseKey,
           exerciseId,
-          name:       ex.name,
+          name:       formatExerciseName(ex.name, exerciseKey),
           weight:     bestWeight,
           reps:       bestReps,
           best1RM,
@@ -372,6 +448,19 @@ export function useWorkoutLogger() {
     // ── h. Session document fields ─────────────────────────────────────────────
     const sessionDoc = {
       planDayId:       session.planDayId      ?? 'custom',
+      name:            (session.planDayId === 'custom' || !session.planDayId)
+                         ? determineWorkoutName(exercisesSnapshot)
+                         : (session.planDayId && String(session.planDayId).startsWith('boss_fight_')
+                            ? (session.name || 'Titan Raid')
+                            : `Day ${session.planDayId} Session`),
+      prsList:         newPRs.map(pr => ({ name: pr.name, weight: pr.weight, reps: pr.reps })),
+      exercisesList:   exercisesSnapshot.filter(ex => ex.sets.some(s => s.done || s.completed)).map(ex => ({
+        name: ex.name,
+        key: ex.exerciseKey || ex.exerciseId,
+        muscleGroup: ex.muscleGroup || '',
+        setsCount: ex.sets.filter(s => s.done || s.completed).length
+      })),
+      exercises:       exerciseDocs,
       date:            serverTimestamp(),
       dateString,
       moodTag:         session.moodTag        ?? 'average',
@@ -494,6 +583,7 @@ export function useWorkoutLogger() {
               if (currentHP - sessionDamage <= 0) {
                 updates["activeChallenge.status"] = "completed";
                 updates["activeChallenge.currentHP"] = 0; // clamp at 0
+                updates["activeChallenge.completedAt"] = Date.now();
               }
               
               squadChallengeUpdates.push({
@@ -525,6 +615,7 @@ export function useWorkoutLogger() {
               
               if (currentSets + matchingSets >= activeChall.targetSets) {
                 updates["activeChallenge.status"] = "completed";
+                updates["activeChallenge.completedAt"] = Date.now();
               }
               
               squadChallengeUpdates.push({
@@ -567,7 +658,7 @@ export function useWorkoutLogger() {
         durationMinutes,
         exerciseCount: exerciseDocs.length,
         prCount:       shouldDowngrade ? 0 : newPRs.length,
-        prNames:       shouldDowngrade ? [] : newPRs.map((p) => p.name),
+        prNames:       shouldDowngrade ? [] : newPRs.map((p) => `${p.name} (${p.weight === 'BW' ? 'BW' : p.weight + ' kg'} x ${p.reps})`),
         prs:           shouldDowngrade ? [] : newPRs,
         xpEarned,
         xpBreakdown: shouldDowngrade ? {
@@ -609,15 +700,9 @@ export function useWorkoutLogger() {
 
     const batch = writeBatch(db);
 
-    // Op 1 — Session document
+    // Op 1 — Session document (including embedded exercises)
     const sessionRef = doc(db, 'users', uid, 'sessions', sessionId);
     batch.set(sessionRef, sessionDoc);
-
-    // Op 2 — Exercise sub-documents
-    exerciseDocs.forEach((ex) => {
-      const exRef = doc(db, 'users', uid, 'sessions', sessionId, 'exercises', ex.exerciseId);
-      batch.set(exRef, ex);
-    });
 
     // Op 3 — PR documents (only exercises with new PRs)
     newPRs.forEach((pr) => {
@@ -683,21 +768,40 @@ export function useWorkoutLogger() {
 
     // Op 8 — Squad activity feed write
     if (teamSquadCodes && teamSquadCodes.length > 0) {
+      let workoutNameName = 'Workout Session';
+      if (isQuickLog) {
+        workoutNameName = 'Retroactive Log';
+      } else if (sessionDoc.planDayId && String(sessionDoc.planDayId).startsWith('boss_fight_')) {
+        workoutNameName = `Boss Fight: ${sessionDoc.name || 'Titan Finale'}`;
+      } else {
+        workoutNameName = getWorkoutSummaryName(exerciseDocs);
+      }
+
       teamSquadCodes.forEach((tCode) => {
         const activityRef = doc(db, 'shared_squads', tCode, 'activity_feed', sessionId);
         batch.set(activityRef, {
           uid,
           name: userName,
-          workoutName: isQuickLog ? 'Retroactive Log' : (sessionDoc.planDayId === 'custom' ? 'Custom Session' : `Workout: ${sessionDoc.planDayId}`),
+          workoutName: workoutNameName,
           isQuickLog: !!isQuickLog,
           exercisesCount: exerciseDocs.length,
           totalSets: sessionDoc.totalSets,
           totalVolume: totalVolume || 0,
-          prNames: newPRs.map((p) => p.name),
+          prNames: newPRs.map((p) => `${p.name} (${p.weight === 'BW' ? 'BW' : p.weight + ' kg'} x ${p.reps})`),
           cardTheme: newPRs.length >= 2 ? 'pr_smash' : (totalVolume > 10000 ? 'titan_slayer' : 'standard'),
           highFives: [],
           kudos: [],
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          durationMinutes: sessionDoc.durationMinutes || 0,
+          moodTag: sessionDoc.moodTag || 'average',
+          exercises: exerciseDocs.map((ex) => ({
+            name: ex.name,
+            muscleGroup: ex.muscleGroup || '',
+            sets: ex.sets.map((s) => ({
+              weight: s.weight,
+              reps: s.reps
+            }))
+          }))
         });
       });
     }

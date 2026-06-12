@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockGetDocs } from '../__mocks__/firebase';
 import { useSquadStore } from '../stores/useSquadStore';
 
 describe('useSquadStore', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     useSquadStore.setState({
       squadId: null,
       squadName: '',
@@ -11,6 +13,10 @@ describe('useSquadStore', () => {
       dailyCheckIns: {},
       loading: false,
       error: null,
+      leaderboard: [],
+      leaderboardLoading: false,
+      leaderboardError: null,
+      leaderboardCache: {},
     });
   });
 
@@ -71,5 +77,35 @@ describe('useSquadStore', () => {
     expect(state.dailyCheckIns).toEqual({});
     expect(state.loading).toBe(false);
     expect(state.error).toBeNull();
+  });
+
+  it('fetches leaderboard and caches results with bypass option', async () => {
+    const mockUsers = [
+      { uid: 'u1', name: 'User One', xp: 500 },
+      { uid: 'u2', name: 'User Two', xp: 300 }
+    ];
+    mockGetDocs.mockResolvedValue({
+      forEach: (cb) => {
+        mockUsers.forEach(u => cb({ data: () => u }));
+      }
+    });
+
+    const store = useSquadStore.getState();
+
+    // 1. Initial fetch
+    await store.fetchLeaderboard('gym-abc');
+    expect(mockGetDocs).toHaveBeenCalledTimes(1);
+    expect(useSquadStore.getState().leaderboard).toEqual(mockUsers);
+    
+    // Reset mock call count
+    mockGetDocs.mockClear();
+
+    // 2. Second fetch within TTL (should hit cache)
+    await store.fetchLeaderboard('gym-abc');
+    expect(mockGetDocs).not.toHaveBeenCalled();
+
+    // 3. Force fetch (should bypass cache)
+    await store.fetchLeaderboard('gym-abc', true);
+    expect(mockGetDocs).toHaveBeenCalledTimes(1);
   });
 });

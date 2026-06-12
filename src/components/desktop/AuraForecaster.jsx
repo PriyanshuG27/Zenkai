@@ -127,8 +127,13 @@ export const AuraForecaster = () => {
         const mobileList = [];
         for (const docSnap of mobileSnap.docs) {
           const s = docSnap.data();
-          const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
-          const exercises = exSnap.docs.map(exDoc => exDoc.data());
+          let exercises = [];
+          if (s.exercises && Array.isArray(s.exercises) && s.exercises.length > 0) {
+            exercises = s.exercises;
+          } else {
+            const exSnap = await getDocs(collection(db, 'users', uid, 'sessions', docSnap.id, 'exercises'));
+            exercises = exSnap.docs.map(exDoc => exDoc.data());
+          }
           mobileList.push({
             id: docSnap.id,
             source: 'mobile',
