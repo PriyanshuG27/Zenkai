@@ -29,10 +29,21 @@ import { writeSession, updateUserProfile } from '../lib/firestoreUtils';
 import { writeBatch } from 'firebase/firestore';
 
 // Mock writeBatch and its returned object
-const mockSet = vi.fn();
-const mockCommit = vi.fn().mockResolvedValue(undefined);
+const pendingBatchOps = [];
+const mockSet = vi.fn((docRef, data, options) => {
+  pendingBatchOps.push(Promise.resolve(mockSetDoc(docRef, data, options)));
+});
+const mockUpdate = vi.fn((docRef, data) => {
+  pendingBatchOps.push(Promise.resolve(mockUpdateDoc(docRef, data)));
+});
+const mockCommit = vi.fn(async () => {
+  const ops = [...pendingBatchOps];
+  pendingBatchOps.length = 0;
+  await Promise.all(ops);
+});
 vi.mocked(writeBatch).mockReturnValue({
   set: mockSet,
+  update: mockUpdate,
   commit: mockCommit,
 });
 
@@ -42,6 +53,7 @@ const wrapper = ({ children }) => <MemoryRouter>{children}</MemoryRouter>;
 describe('useOnboarding Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pendingBatchOps.length = 0;
     useAuthStore.setState({ uid: 'test-user-123', loading: false });
   });
 
@@ -133,14 +145,25 @@ describe('useOnboarding Hook', () => {
         await result.current.skip();
       });
 
-      expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-      expect(mockUpdateDoc).toHaveBeenCalledWith(
-        expect.objectContaining({ _path: 'users/test-user-123' }),
+      expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
+
+      // Verify public document update
+      const publicUpdateCall = mockUpdateDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123');
+      expect(publicUpdateCall).toBeDefined();
+      expect(publicUpdateCall[1]).toEqual(
         expect.objectContaining({
           userType: 'Beginner',
-          goal: 'Muscle Gain',
           onboardingComplete: true,
           onboardingSkipped: true
+        })
+      );
+
+      // Verify private document update
+      const privateUpdateCall = mockUpdateDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123/private/profile');
+      expect(privateUpdateCall).toBeDefined();
+      expect(privateUpdateCall[1]).toEqual(
+        expect.objectContaining({
+          goal: 'Muscle Gain'
         })
       );
       expect(mockNavigate).toHaveBeenCalledWith('/home', { replace: true });

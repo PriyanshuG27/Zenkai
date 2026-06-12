@@ -13,11 +13,16 @@ module.exports = [authGuard, async (req, res) => {
   try {
     validateUID(uid);
 
-    // 1. Fetch user profile to read goal and userType
-    const userSnap = await adminDb.doc(`users/${uid}`).get();
-    const userData = userSnap.exists ? userSnap.data() : {};
-    const userGoal = userData.goal || 'General Fitness';
-    const userType = userData.userType || 'Beginner';
+    // 1. Fetch user profile to read goal and userType (split across public and private documents)
+    const [userSnap, privateSnap] = await Promise.all([
+      adminDb.doc(`users/${uid}`).get(),
+      adminDb.doc(`users/${uid}/private/profile`).get()
+    ]);
+    const publicData = userSnap.exists ? userSnap.data() : {};
+    const privateData = privateSnap.exists ? privateSnap.data() : {};
+    const mergedUserData = { ...publicData, ...privateData };
+    const userGoal = mergedUserData.goal || 'General Fitness';
+    const userType = mergedUserData.userType || 'Beginner';
 
     // 2. Fetch user's last 15 sessions
     const sessionsSnap = await adminDb

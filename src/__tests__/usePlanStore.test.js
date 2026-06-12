@@ -17,7 +17,10 @@ describe('usePlanStore', () => {
       }
     };
 
-    usePlanStore.getState().setPlan(mockPlan);
+    expect(usePlanStore.getState().hasFetched).toBe(false);
+    expect(usePlanStore.getState().isNewUser).toBe(false);
+
+    usePlanStore.getState().setPlan(mockPlan, true);
 
     let state = usePlanStore.getState();
     expect(state.currentPlan).toEqual(mockPlan);
@@ -25,6 +28,8 @@ describe('usePlanStore', () => {
     expect(state.planDays[0].focus).toBe('Push');
     expect(state.generatedAt).toBe('2026-06-09T18:00:00Z');
     expect(state.planError).toBeNull();
+    expect(state.hasFetched).toBe(true);
+    expect(state.isNewUser).toBe(true);
 
     // Branch coverage: planDoc.days branch
     const altPlan = {
@@ -35,19 +40,23 @@ describe('usePlanStore', () => {
     state = usePlanStore.getState();
     expect(state.planDays.length).toBe(1);
     expect(state.planDays[0].focus).toBe('Pull');
+    expect(state.isNewUser).toBe(true); // preserved because it was not passed
 
     // Branch coverage: null planDoc
-    usePlanStore.getState().setPlan(null);
+    usePlanStore.getState().setPlan(null, false);
     state = usePlanStore.getState();
     expect(state.planDays).toEqual([]);
+    expect(state.isNewUser).toBe(false); // updated to false
   });
 
   it('sets loading and error states', () => {
+    expect(usePlanStore.getState().hasFetched).toBe(false);
     usePlanStore.getState().setPlanLoading(true);
     expect(usePlanStore.getState().planLoading).toBe(true);
 
     usePlanStore.getState().setPlanError('Network error loading weekly plan');
     expect(usePlanStore.getState().planError).toBe('Network error loading weekly plan');
+    expect(usePlanStore.getState().hasFetched).toBe(true);
   });
 
   it('clears plan state to defaults', () => {
@@ -57,6 +66,8 @@ describe('usePlanStore', () => {
       planLoading: true,
       planError: 'error',
       generatedAt: 'time',
+      hasFetched: true,
+      isNewUser: true,
     });
 
     usePlanStore.getState().clearPlan();
@@ -67,5 +78,7 @@ describe('usePlanStore', () => {
     expect(state.planLoading).toBe(false);
     expect(state.planError).toBeNull();
     expect(state.generatedAt).toBeNull();
+    expect(state.hasFetched).toBe(false);
+    expect(state.isNewUser).toBe(false);
   });
 });

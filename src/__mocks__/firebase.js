@@ -81,6 +81,43 @@ vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(() => mockAuth),
 }));
 
+// ─── writeBatch helper mock declarations at module level ─────────────────────
+export const mockBatchSet = vi.fn((docRef, data, options) => {
+  return mockSetDoc(docRef, data, options);
+});
+export const mockBatchUpdate = vi.fn((docRef, data) => {
+  return mockUpdateDoc(docRef, data);
+});
+export const mockBatchDelete = vi.fn((docRef) => {
+  return mockDeleteDoc(docRef);
+});
+
+const pendingOps = [];
+export const mockBatchCommit = vi.fn(async () => {
+  const ops = [...pendingOps];
+  pendingOps.length = 0;
+  await Promise.all(ops);
+});
+
+export const mockWriteBatch = vi.fn(() => {
+  const batch = {
+    set: vi.fn((docRef, data, options) => {
+      pendingOps.push(Promise.resolve(mockBatchSet(docRef, data, options)));
+      return batch;
+    }),
+    update: vi.fn((docRef, data) => {
+      pendingOps.push(Promise.resolve(mockBatchUpdate(docRef, data)));
+      return batch;
+    }),
+    delete: vi.fn((docRef) => {
+      pendingOps.push(Promise.resolve(mockBatchDelete(docRef)));
+      return batch;
+    }),
+    commit: mockBatchCommit,
+  };
+  return batch;
+});
+
 // Mock firebase/firestore
 vi.mock('firebase/firestore', () => ({
   doc: mockDoc,
@@ -94,7 +131,7 @@ vi.mock('firebase/firestore', () => ({
   serverTimestamp: mockServerTimestamp,
   runTransaction: mockRunTransaction,
   onSnapshot: mockOnSnapshot,
-  writeBatch: vi.fn(),
+  writeBatch: mockWriteBatch,
   getFirestore: vi.fn(() => mockDb),
   query: vi.fn((colRef) => colRef),
   orderBy: vi.fn(),

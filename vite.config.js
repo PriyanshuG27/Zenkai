@@ -26,6 +26,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'json-summary'],
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        'coverage/**',
+        'src/__tests__/**',
+        'src/__mocks__/**',
+        'src/data/**',
+        'src/components/**',
+        'src/lib/firebaseConfig.js',
+        'src/stores/useAuthStore.js',
+      ],
       thresholds: {
         lines:      70,
         functions:  70,

@@ -28,9 +28,13 @@ export const useOnboarding = () => {
   const syncProfile = async () => {
     if (!uid) return;
     try {
-      const snap = await getDoc(doc(db, 'users', uid));
+      const [snap, privateSnap] = await Promise.all([
+        getDoc(doc(db, 'users', uid)),
+        getDoc(doc(db, 'users', uid, 'private', 'profile'))
+      ]);
       if (snap && typeof snap.exists === 'function' && snap.exists()) {
-        setProfile(snap.data());
+        const privateData = privateSnap.exists() ? privateSnap.data() : {};
+        setProfile({ ...snap.data(), ...privateData });
       }
     } catch (err) {
       console.error('[Onboarding] Error syncing profile:', err);
@@ -157,42 +161,64 @@ export const useOnboarding = () => {
 
     setSaving(true);
     try {
-      const userRef = doc(db, 'users', uid);
-      let payload = {};
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(db);
+      const publicRef = doc(db, 'users', uid);
+      const privateRef = doc(db, 'users', uid, 'private', 'profile');
+
+      let hasPublic = false;
+      let hasPrivate = false;
+      let publicPayload = {};
+      let privatePayload = {};
 
       if (currentStep === 0) {
-        payload = { userType: state.userType };
+        publicPayload = { userType: state.userType };
+        hasPublic = true;
       } else if (currentStep === 1) {
-        payload = {
+        privatePayload = {
           gender: state.gender,
           age: Number(state.age),
           heightCm: Number(state.heightCm),
           weightKg: Number(state.weightKg),
         };
+        hasPrivate = true;
       } else if (currentStep === 2) {
-        payload = { goal: state.goal };
+        privatePayload = { goal: state.goal };
+        hasPrivate = true;
       } else if (currentStep === 3) {
         // Filter out any invalid equipment items before write
         const filteredEquipment = state.equipmentList.filter(item => VALID_EQUIPMENT.includes(item));
-        payload = {
+        privatePayload = {
           workoutFrequency: state.workoutFrequency,
           sessionDuration: state.sessionDuration,
           equipmentList: filteredEquipment,
         };
+        hasPrivate = true;
       } else if (currentStep === 4) {
-        payload = {
+        privatePayload = {
           dietType: state.dietType,
           currentSupplements: state.currentSupplements,
         };
+        hasPrivate = true;
       } else if (currentStep === 5) {
-        payload = {
+        privatePayload = {
           medicalFlags: state.medicalFlags,
+        };
+        publicPayload = {
           onboardingComplete: true,
           onboardingSkipped: false,
         };
+        hasPublic = true;
+        hasPrivate = true;
       }
 
-      await updateDoc(userRef, payload);
+      if (hasPublic) {
+        batch.update(publicRef, publicPayload);
+      }
+      if (hasPrivate) {
+        batch.update(privateRef, privatePayload);
+      }
+      await batch.commit();
 
       if (currentStep < 5) {
         setCurrentStep(s => s + 1);
@@ -212,9 +238,17 @@ export const useOnboarding = () => {
     setError(null);
     setSaving(true);
     try {
+      const { writeBatch } = await import('firebase/firestore');
       const filteredEquipment = state.equipmentList.filter(item => VALID_EQUIPMENT.includes(item));
-      await updateDoc(doc(db, 'users', uid), {
+      const batch = writeBatch(db);
+
+      batch.update(doc(db, 'users', uid), {
         userType: state.userType || 'Beginner',
+        onboardingComplete: true,
+        onboardingSkipped: true,
+      });
+
+      batch.update(doc(db, 'users', uid, 'private', 'profile'), {
         gender: state.gender || 'male',
         age: state.age ? Number(state.age) : 25,
         heightCm: state.heightCm ? Number(state.heightCm) : 175,
@@ -226,9 +260,9 @@ export const useOnboarding = () => {
         dietType: state.dietType || 'Vegetarian',
         currentSupplements: state.currentSupplements,
         medicalFlags: state.medicalFlags,
-        onboardingComplete: true,
-        onboardingSkipped: true,
       });
+
+      await batch.commit();
       await syncProfile();
       navigate('/home', { replace: true });
     } catch (err) {
@@ -244,9 +278,17 @@ export const useOnboarding = () => {
     setError(null);
     setSaving(true);
     try {
+      const { writeBatch } = await import('firebase/firestore');
       const filteredEquipment = state.equipmentList.filter(item => VALID_EQUIPMENT.includes(item));
-      await updateDoc(doc(db, 'users', uid), {
+      const batch = writeBatch(db);
+
+      batch.update(doc(db, 'users', uid), {
         userType: state.userType,
+        onboardingComplete: true,
+        onboardingSkipped: false,
+      });
+
+      batch.update(doc(db, 'users', uid, 'private', 'profile'), {
         gender: state.gender,
         age: Number(state.age),
         heightCm: Number(state.heightCm),
@@ -258,9 +300,9 @@ export const useOnboarding = () => {
         dietType: state.dietType,
         currentSupplements: state.currentSupplements,
         medicalFlags: state.medicalFlags,
-        onboardingComplete: true,
-        onboardingSkipped: false,
       });
+
+      await batch.commit();
       await syncProfile();
       navigate('/home', { replace: true });
     } catch (err) {

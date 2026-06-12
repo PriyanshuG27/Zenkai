@@ -29,15 +29,18 @@ export const AcademicBufferConfig = () => {
     if (!uid) return;
     const fetchExamConfig = async () => {
       try {
-        const userRef = doc(db, 'users', uid);
-        const snap = await getDoc(userRef);
+        const [snap, privateSnap] = await Promise.all([
+          getDoc(doc(db, 'users', uid)),
+          getDoc(doc(db, 'users', uid, 'private', 'profile'))
+        ]);
         if (snap.exists()) {
           const data = snap.data();
+          const privateData = privateSnap.exists() ? privateSnap.data() : {};
           if (data.examDeloadActive !== undefined) {
             setIsActive(data.examDeloadActive);
-            setStartDate(data.examStartDate || '');
-            setEndDate(data.examEndDate || '');
           }
+          setStartDate(privateData.examStartDate || '');
+          setEndDate(privateData.examEndDate || '');
         }
       } catch (err) {
         console.error('[AcademicBufferConfig] Error fetching config:', err);
@@ -63,17 +66,37 @@ export const AcademicBufferConfig = () => {
     setGeneratedWeeks([]);
 
     try {
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(db);
       const userRef = doc(db, 'users', uid);
+      const privateRef = doc(db, 'users', uid, 'private', 'profile');
       const isActivating = !isActive;
 
-      // 1. Save config directly in user profile
-      const configUpdates = {
+      // 1. Save config directly in user profile (split across public and private documents)
+      batch.update(userRef, {
         examDeloadActive: isActivating,
+        updatedAt: new Date()
+      });
+
+      batch.set(privateRef, {
         examStartDate: startDate,
         examEndDate: endDate,
         updatedAt: new Date()
-      };
-      await setDoc(userRef, configUpdates, { merge: true });
+      }, { merge: true });
+
+      await batch.commit();
+
+      // Update local auth store profile to prevent latency
+      const currentProfile = useAuthStore.getState().profile || {};
+      useAuthStore.setState({
+        profile: {
+          ...currentProfile,
+          examDeloadActive: isActivating,
+          examStartDate: startDate,
+          examEndDate: endDate
+        }
+      });
+
       setIsActive(isActivating);
 
       // If active, generate and push 1/9th Volume Flexible Deload plans for affected weeks

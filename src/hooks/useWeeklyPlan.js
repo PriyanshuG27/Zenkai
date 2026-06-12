@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { doc, getDoc }            from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, getDocs } from 'firebase/firestore';
 import { db }                     from '../lib/firebase';
 import { callZenkaiAPI }         from '../lib/apiClient';
 import { useAuthStore }           from '../stores/useAuthStore';
@@ -41,10 +41,15 @@ export function useWeeklyPlan() {
     setPlanLoading(true);
     try {
       const snap = await getDoc(doc(db, 'users', user.uid, 'weeklyPlans', weekId));
+      
+      const plansQ = query(collection(db, 'users', user.uid, 'weeklyPlans'), limit(1));
+      const plansSnap = await getDocs(plansQ);
+      const isNewUser = plansSnap.empty;
+
       if (snap.exists()) {
-        setPlan(snap.data());
+        setPlan(snap.data(), isNewUser);
       } else {
-        setPlan(null);
+        setPlan(null, isNewUser);
       }
     } catch (err) {
       setPlanError('Failed to load plan.');

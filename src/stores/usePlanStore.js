@@ -35,18 +35,22 @@ export const usePlanStore = create((set) => ({
   planError:    null,
   generatedAt:  null,
   weekId:       currentWeekId(),
+  hasFetched:   false,
+  isNewUser:    false,
 
-  setPlan: (planDoc) =>
-    set({
+  setPlan: (planDoc, isNewUser) =>
+    set((state) => ({
       currentPlan: planDoc,
       planDays:    planDoc?.plan?.days ?? planDoc?.days ?? [],
       generatedAt: planDoc?.generatedAt ?? null,
       planError:   null,
-    }),
+      hasFetched:  true,
+      isNewUser:   isNewUser !== undefined ? isNewUser : state.isNewUser,
+    })),
 
   setPlanLoading: (planLoading) => set({ planLoading }),
-  setPlanError:   (planError)   => set({ planError }),
+  setPlanError:   (planError)   => set({ planError, hasFetched: true }),
 
   clearPlan: () =>
-    set({ currentPlan: null, planDays: [], planLoading: false, planError: null, generatedAt: null }),
+    set({ currentPlan: null, planDays: [], planLoading: false, planError: null, generatedAt: null, hasFetched: false, isNewUser: false }),
 }));

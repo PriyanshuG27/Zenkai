@@ -51,19 +51,11 @@ service cloud.firestore {
       // or admin-set field (e.g. isAdmin) not in this whitelist.
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         // Identity
-        'uid', 'name', 'email', 'emailVerified', 'squadCode',
+        'uid', 'name', 'squadCode',
         // Onboarding
-        'userType', 'onboardingComplete',
-        // Body profile
-        'age', 'gender', 'heightCm', 'weightKg',
-        // Goals & schedule
-        'goal', 'workoutFrequency', 'sessionDuration',
-        // Lifestyle
-        'dietType', 'currentSupplements',
-        // Equipment & health
-        'equipmentList', 'medicalFlags',
+        'userType', 'onboardingComplete', 'onboardingSkipped',
         // Gamification — Phase 2
-        'xp', 'level', 'levelName',
+        'xp', 'cumulativeXP', 'level', 'levelName',
         'streak', 'streakLastDate',
         'powerUps', 'badges', 'xpBoosterUntil',
         // Gamification — Phase 5
@@ -71,7 +63,7 @@ service cloud.firestore {
         // New Profile Fields
         'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad', 'totalSessions', 'aura', 'activeTitle',
         // Academic Buffer & Prehab
-        'examDeloadActive', 'examStartDate', 'examEndDate', 'lastPrehabDate',
+        'examDeloadActive', 'lastPrehabDate',
         // Plan regeneration limits
         'dailyRegenCount', 'lastRegenDate', 'recentRegenTimes', 'recentGymVerifyTimes',
         // Overdrive Hour verification
@@ -80,6 +72,15 @@ service cloud.firestore {
         'createdAt', 'updatedAt',
         // Admin-set fields (written by backend only, but must not block reads of user docs containing them)
         'isAdmin'
+      ]);
+    }
+
+    function isValidPrivateUserData() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'email', 'emailVerified', 'age', 'gender', 'heightCm', 'weightKg',
+        'goal', 'workoutFrequency', 'sessionDuration', 'dietType',
+        'currentSupplements', 'equipmentList', 'medicalFlags',
+        'examStartDate', 'examEndDate', 'createdAt', 'updatedAt'
       ]);
     }
 
@@ -100,6 +101,13 @@ service cloud.firestore {
       return !('equipmentList' in request.resource.data) ||
         (request.resource.data.equipmentList is list &&
           request.resource.data.equipmentList.size() <= 50);
+    }
+
+    // Ensure the client cannot set or modify the isAdmin flag
+    function isNotModifyingAdmin() {
+      return !('isAdmin' in request.resource.data) ||
+        (resource != null && resource.data.get('isAdmin', false) == request.resource.data.get('isAdmin', false)) ||
+        (resource == null && request.resource.data.get('isAdmin', false) == false);
     }
 
     // ─── users/{uid} ─────────────────────────────────────────────────────────
@@ -125,14 +133,20 @@ service cloud.firestore {
         request.query.orderBy[0].field == 'xp';
 
       // Owner creates their own profile (signup — Phase 1)
-      allow create: if isOwner(uid);
+      allow create: if isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin();
 
       // Owner updates, or gym members updating powerUps for streak rescue
-      allow update: if (isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isValidEquipmentList())
+      allow update: if (isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin())
         || (isSameGym(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps']));
+
 
       // Profiles are never deleted from client
       allow delete: if false;
+
+      // Private profile storing PII
+      match /private/profile {
+        allow read, write: if isOwner(uid) && isValidPrivateUserData() && isValidEquipmentList();
+      }
 
       // ── sessions/{sessionId} — Phase 2 ──────────────────────────────────
       // Written atomically in a writeBatch by useWorkoutLogger.

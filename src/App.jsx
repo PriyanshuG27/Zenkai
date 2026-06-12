@@ -326,24 +326,74 @@ function App() {
           setUser(firebaseUser ?? null);
           if (firebaseUser) {
             setLoading(true);
-            unsubProfile = onSnapshot(
-              doc(db, 'users', firebaseUser.uid),
-              (snap) => {
-                if (snap.exists()) {
-                  const data = snap.data();
-                  setProfile(data);
-                  // Sync XP store with real-time profile data on mount & updates
-                  useXPStore.getState().setXP(data.xp ?? 0, data.cumulativeXP ?? data.xp ?? 0, data.streak ?? 0);
-                } else {
-                  setProfile(null);
-                }
-                setLoading(false);
-              },
-              (err) => {
-                console.error('[App] Error in real-time profile listener:', err);
+            
+            let publicData = null;
+            let privateData = null;
+            let publicLoaded = false;
+            let privateLoaded = false;
+
+            const updateMergedProfile = () => {
+              if (publicData) {
+                const merged = { ...publicData, ...(privateData || {}) };
+                setProfile(merged);
+                // Sync XP store with real-time profile data on mount & updates
+                useXPStore.getState().setXP(
+                  publicData.xp ?? 0,
+                  publicData.cumulativeXP ?? publicData.xp ?? 0,
+                  publicData.streak ?? 0
+                );
+              } else {
+                setProfile(null);
+              }
+              if (publicLoaded) {
                 setLoading(false);
               }
+            };
+
+            const publicRef = doc(db, 'users', firebaseUser.uid);
+            const privateRef = doc(db, 'users', firebaseUser.uid, 'private', 'profile');
+
+            const unsubPublic = onSnapshot(
+              publicRef,
+              (snap) => {
+                publicLoaded = true;
+                if (snap.exists()) {
+                  publicData = snap.data();
+                } else {
+                  publicData = null;
+                }
+                updateMergedProfile();
+              },
+              (err) => {
+                console.error('[App] Error in public profile listener:', err);
+                publicLoaded = true;
+                updateMergedProfile();
+              }
             );
+
+            const unsubPrivate = onSnapshot(
+              privateRef,
+              (snap) => {
+                privateLoaded = true;
+                if (snap.exists()) {
+                  privateData = snap.data();
+                } else {
+                  privateData = null;
+                }
+                updateMergedProfile();
+              },
+              (err) => {
+                console.error('[App] Error in private profile listener:', err);
+                privateLoaded = true;
+                privateData = null;
+                updateMergedProfile();
+              }
+            );
+
+            unsubProfile = () => {
+              unsubPublic();
+              unsubPrivate();
+            };
           } else {
             if (unsubProfile) {
               unsubProfile();

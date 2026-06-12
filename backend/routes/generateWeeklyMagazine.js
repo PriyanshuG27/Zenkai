@@ -23,15 +23,20 @@ module.exports = [authGuard, async (req, res) => {
   try {
     validateUID(uid);
 
-    // 1. Fetch user profile
-    const userSnap = await adminDb.doc(`users/${uid}`).get();
+    // 1. Fetch user profile (split across public and private documents)
+    const [userSnap, privateSnap] = await Promise.all([
+      adminDb.doc(`users/${uid}`).get(),
+      adminDb.doc(`users/${uid}/private/profile`).get()
+    ]);
     if (!userSnap.exists) {
       return res.status(404).json({ error: 'User profile not found' });
     }
-    const userData = userSnap.data();
-    const userName = userData.name || 'Anonymous Bro';
-    const userGoal = userData.goal || 'General Fitness';
-    const userStreak = userData.streak || 0;
+    const publicData = userSnap.data();
+    const privateData = privateSnap.exists ? privateSnap.data() : {};
+    const mergedUserData = { ...publicData, ...privateData };
+    const userName = mergedUserData.name || 'Anonymous Bro';
+    const userGoal = mergedUserData.goal || 'General Fitness';
+    const userStreak = mergedUserData.streak || 0;
 
     // Check if magazine for the current week already exists
     const weekId = getISOWeek(new Date());

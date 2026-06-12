@@ -85,11 +85,22 @@ module.exports = [authGuard, async (req, res) => {
     await checkRateLimit(adminDb, uid, req.body?.usePowerUp === true);
     rateLimitConsumed = true;
 
-    const userDoc = await adminDb.doc(`users/${uid}`).get();
+    const userDocRef = adminDb.doc(`users/${uid}`);
+    const privateProfileDocRef = adminDb.doc(`users/${uid}/private/profile`);
+
+    const [userDoc, privateProfileDoc] = await Promise.all([
+      userDocRef.get(),
+      privateProfileDocRef.get()
+    ]);
+
     if (!userDoc.exists) {
       return res.status(404).json({ error: 'User profile not found' });
     }
     
+    const userData = userDoc.data();
+    const privateData = privateProfileDoc.exists ? privateProfileDoc.data() : {};
+    const mergedUserData = { ...userData, ...privateData };
+
     const { 
       equipmentList = [], 
       medicalFlags = [], 
@@ -98,7 +109,7 @@ module.exports = [authGuard, async (req, res) => {
       workoutFrequency = '3-4 days/week',
       sessionDuration = '45-60 mins',
       dietType = 'Vegetarian'
-    } = userDoc.data();
+    } = mergedUserData;
 
     const mappedEquipment = new Set(mapAvailableEquipment(equipmentList));
     const mappedMedical = new Set(mapMedicalFlags(medicalFlags));

@@ -194,25 +194,34 @@ describe('useAuth — signup()', () => {
       await result.current.signup('Test User', 'new@zenkai.com', 'password123');
     });
 
-    expect(mockSetDoc).toHaveBeenCalledTimes(2);
+    expect(mockSetDoc).toHaveBeenCalledTimes(3);
 
-    // Get the second argument (the data object) from the first setDoc call
-    const docData = mockSetDoc.mock.calls[0][1];
+    // Get the public doc call
+    const publicDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/new-uid-123');
+    expect(publicDocCall).toBeDefined();
+    const docData = publicDocCall[1];
 
-    // Verify critical fields
+    // Verify critical public fields
     expect(docData.uid).toBe('new-uid-123');
     expect(docData.name).toBe('Test User');
-    expect(docData.email).toBe('new@zenkai.com');
     expect(docData.onboardingComplete).toBe(false);
     expect(docData.xp).toBe(0);
     expect(docData.level).toBe(1);
     expect(docData.levelName).toBe('Rookie');
     expect(docData.streak).toBe(0);
-    expect(docData.equipmentList).toEqual([]);
-    expect(docData.medicalFlags).toEqual([]);
-    expect(docData.currentSupplements).toEqual([]);
-    expect(docData.dietType).toBeNull();
-    expect(docData.goal).toBeNull();
+
+    // Get the private doc call
+    const privateDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/new-uid-123/private/profile');
+    expect(privateDocCall).toBeDefined();
+    const privateData = privateDocCall[1];
+
+    // Verify critical private fields
+    expect(privateData.email).toBe('new@zenkai.com');
+    expect(privateData.equipmentList).toEqual([]);
+    expect(privateData.medicalFlags).toEqual([]);
+    expect(privateData.currentSupplements).toEqual([]);
+    expect(privateData.dietType).toBeNull();
+    expect(privateData.goal).toBeNull();
   });
 
   it('if Firestore write fails, deletes the Auth user (orphan prevention)', async () => {
@@ -267,16 +276,24 @@ describe('useAuth — loginWithGoogle()', () => {
 
     expect(mockSignInWithPopup).toHaveBeenCalledTimes(1);
     expect(mockGetDoc).toHaveBeenCalledTimes(1);
-    // Writes user doc and squad_codes doc
-    expect(mockSetDoc).toHaveBeenCalledTimes(2);
+    // Writes public user doc, private doc and squad_codes doc
+    expect(mockSetDoc).toHaveBeenCalledTimes(3);
 
-    const userDocData = mockSetDoc.mock.calls[0][1];
+    const publicDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/google-uid-123');
+    expect(publicDocCall).toBeDefined();
+    const userDocData = publicDocCall[1];
     expect(userDocData.uid).toBe('google-uid-123');
-    expect(userDocData.email).toBe('google@zenkai.com');
     expect(userDocData.name).toBe('Goku Son');
     expect(userDocData.squadCode).toMatch(/^ZK-[A-Z]{4}\d{3}$/);
 
-    const squadDocData = mockSetDoc.mock.calls[1][1];
+    const privateDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/google-uid-123/private/profile');
+    expect(privateDocCall).toBeDefined();
+    const privateDocData = privateDocCall[1];
+    expect(privateDocData.email).toBe('google@zenkai.com');
+
+    const squadDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'squad_codes/' + userDocData.squadCode);
+    expect(squadDocCall).toBeDefined();
+    const squadDocData = squadDocCall[1];
     expect(squadDocData.uid).toBe('google-uid-123');
     expect(squadDocData.name).toBe('Goku Son');
     expect(squadDocData.squadCode).toBe(userDocData.squadCode);
@@ -394,8 +411,11 @@ describe('useAuth — Error mapping and Edge cases', () => {
     const userDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/google-no-fields');
     expect(userDocCall).toBeDefined();
     expect(userDocCall[1].name).toBe('');
-    expect(userDocCall[1].email).toBe('');
     expect(userDocCall[1].squadCode).toContain('ZK-ZENK');
+
+    const privateDocCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/google-no-fields/private/profile');
+    expect(privateDocCall).toBeDefined();
+    expect(privateDocCall[1].email).toBe('');
   });
 
   it('signup: does not call deleteUser if Firestore write fails with auth/email-already-in-use', async () => {

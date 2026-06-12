@@ -63,15 +63,17 @@ export function useAuth() {
       const userRef = doc(db, 'users', firebaseUser.uid);
       const snap = await getDoc(userRef);
       if (!snap.exists()) {
+        const { writeBatch } = await import('firebase/firestore');
         const cleanName = (firebaseUser.displayName || 'Zenkai').replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
         const padName = cleanName.padEnd(4, 'X');
         const randomDigits = Math.floor(100 + Math.random() * 900);
         const code = `ZK-${padName}${randomDigits}`;
 
-        await setDoc(userRef, {
+        const batch = writeBatch(db);
+
+        batch.set(userRef, {
           uid:              firebaseUser.uid,
           name:             firebaseUser.displayName || '',
-          email:            firebaseUser.email || '',
           squadCode:        code,
           userType:         null,
           onboardingComplete: false,
@@ -80,8 +82,6 @@ export function useAuth() {
           levelName:        'Rookie',
           streak:           0,
           streakLastDate:   null,
-          equipmentList:    [],
-          medicalFlags:     [],
           powerUps: {
             streakShield:   0,
             xpBooster:      0,
@@ -92,9 +92,17 @@ export function useAuth() {
           createdAt:        serverTimestamp(),
         });
 
+        batch.set(doc(db, 'users', firebaseUser.uid, 'private', 'profile'), {
+          email:            firebaseUser.email || '',
+          emailVerified:    firebaseUser.emailVerified || false,
+          equipmentList:    [],
+          medicalFlags:     [],
+          createdAt:        serverTimestamp(),
+        });
+
         // Write to public squad_codes collection
         const codeRef = doc(db, 'squad_codes', code);
-        await setDoc(codeRef, {
+        batch.set(codeRef, {
           uid: firebaseUser.uid,
           name: firebaseUser.displayName || 'Anonymous Bro',
           xp: 0,
@@ -104,6 +112,8 @@ export function useAuth() {
           squadCode: code,
           updatedAt: new Date()
         });
+
+        await batch.commit();
       }
       // onAuthStateChanged handles the rest
     } catch (err) {
@@ -122,7 +132,7 @@ export function useAuth() {
     try {
       const { auth, db } = await import('../lib/firebase');
       const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import('firebase/auth');
-      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+      const { doc, writeBatch, serverTimestamp } = await import('firebase/firestore');
 
       // 1. Create Firebase Auth account
       const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -139,15 +149,35 @@ export function useAuth() {
       const randomDigits = Math.floor(100 + Math.random() * 900);
       const code = `ZK-${padName}${randomDigits}`;
 
-      // 4. Write initial Firestore profile document
-      await setDoc(doc(db, 'users', newUser.uid), {
+      const batch = writeBatch(db);
+
+      // 4. Write initial Firestore profile document (public)
+      batch.set(doc(db, 'users', newUser.uid), {
         uid:                newUser.uid,
         name,
-        email,
         squadCode:          code,
         // Auth
         userType:           null,
         onboardingComplete: false,
+        // Gamification
+        xp:                 0,
+        level:              1,
+        levelName:          'Rookie',
+        streak:             0,
+        streakLastDate:     null,
+        powerUps: {
+          streakShield:   0,
+          xpBooster:      0,
+          challengeSkip:  0,
+          planRefresh:    0,
+        },
+        badges:             [],
+        createdAt:          serverTimestamp(),
+      });
+
+      // 5. Write private profile document
+      batch.set(doc(db, 'users', newUser.uid, 'private', 'profile'), {
+        email,
         emailVerified:      false,
         // Body
         age:                null,
@@ -165,25 +195,12 @@ export function useAuth() {
         equipmentList:      [],
         // Health
         medicalFlags:       [],
-        // Gamification
-        xp:                 0,
-        level:              1,
-        levelName:          'Rookie',
-        streak:             0,
-        streakLastDate:     null,
-        powerUps: {
-          streakShield:   0,
-          xpBooster:      0,
-          challengeSkip:  0,
-          planRefresh:    0,
-        },
-        badges:             [],
         createdAt:          serverTimestamp(),
       });
 
       // Write to public squad_codes collection
       const codeRef = doc(db, 'squad_codes', code);
-      await setDoc(codeRef, {
+      batch.set(codeRef, {
         uid: newUser.uid,
         name,
         xp: 0,
@@ -193,6 +210,8 @@ export function useAuth() {
         squadCode: code,
         updatedAt: new Date()
       });
+
+      await batch.commit();
 
       // onAuthStateChanged handles setUser + setLoading
     } catch (err) {

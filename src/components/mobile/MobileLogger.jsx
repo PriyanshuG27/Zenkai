@@ -155,43 +155,46 @@ export const MobileLogger = () => {
   }, [user, isActive]);
 
   const updateActivePresence = useCallback(async (status) => {
-    if (!user?.uid || !profile?.squadCode) return;
-    const squadCode = profile.squadCode;
-    if (!(squadCode.startsWith('ZK-') || squadCode.startsWith('SQ-') || squadCode.startsWith('FIT-'))) return;
+    if (!user?.uid) return;
     
     try {
-      const { doc, setDoc, deleteDoc, serverTimestamp } = await import('firebase/firestore');
-      const presenceRef = doc(db, 'shared_squads', squadCode, 'presence', user.uid);
-      if (status === 'active') {
-        await setDoc(presenceRef, {
-          status: 'active',
-          name: profile.name || 'Anonymous Bro',
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        await deleteDoc(presenceRef);
-      }
+      const { collection, query, where, getDocs, doc, setDoc, deleteDoc, serverTimestamp } = await import('firebase/firestore');
+      const q = query(
+        collection(db, 'shared_squads'),
+        where('memberUids', 'array-contains', user.uid)
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) return;
+
+      const promises = snap.docs.map(sdoc => {
+        const squadCode = sdoc.id;
+        const presenceRef = doc(db, 'shared_squads', squadCode, 'presence', user.uid);
+        if (status === 'active') {
+          return setDoc(presenceRef, {
+            status: 'active',
+            name: profile?.name || 'Anonymous Bro',
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          return deleteDoc(presenceRef);
+        }
+      });
+      await Promise.all(promises);
     } catch (err) {
       console.error('[MobileLogger] Failed to update presence:', err);
     }
-  }, [user?.uid, profile?.squadCode, profile?.name]);
+  }, [user?.uid, profile?.name]);
 
   useEffect(() => {
     if (isActive && activeSession && !activeSession.isQuickLog) {
       updateActivePresence('active');
     }
     return () => {
-      if (user?.uid && profile?.squadCode) {
-        const squadCode = profile.squadCode;
-        if (squadCode.startsWith('ZK-') || squadCode.startsWith('SQ-') || squadCode.startsWith('FIT-')) {
-          import('firebase/firestore').then(({ doc, deleteDoc }) => {
-            const presenceRef = doc(db, 'shared_squads', squadCode, 'presence', user.uid);
-            deleteDoc(presenceRef).catch(e => {});
-          });
-        }
+      if (user?.uid) {
+        updateActivePresence('inactive');
       }
     };
-  }, [isActive, activeSession?.isQuickLog, updateActivePresence, user?.uid, profile?.squadCode]);
+  }, [isActive, activeSession?.isQuickLog, updateActivePresence, user?.uid]);
 
   // ─── Screen Wake Lock API ──────────────────────────────────────────────────
   const wakeLockRef = React.useRef(null);
