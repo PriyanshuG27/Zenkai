@@ -1,14 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useUIStore } from '../../stores/useUIStore';
 import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X } from 'lucide-react';
+import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff } from 'lucide-react';
+import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion } from 'framer-motion';
 
 // Side widgets integrated into the profile layout
 import { AcademicBufferConfig } from './AcademicBufferConfig';
 import { TrophyCabinetView } from './TrophyCabinetView';
+
+// ─── Push Notification Toggle ─────────────────────────────────────────────────
+function PushNotificationToggle() {
+  const user = useAuthStore((s) => s.user);
+  const addToast = useUIStore((s) => s.addToast);
+  const [enabled, setEnabled] = useState(() => isPushEnabled());
+  const [loading, setLoading] = useState(false);
+  const browserBlocked = typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied';
+
+  const handleToggle = async () => {
+    if (loading || !user) return;
+    setLoading(true);
+    try {
+      if (enabled) {
+        await disablePushNotifications(user.uid);
+        setEnabled(false);
+        addToast('🔕 Push notifications turned off.', 'info');
+      } else {
+        const success = await enablePushNotifications(user.uid, addToast);
+        if (success) {
+          setEnabled(true);
+          addToast('🔔 Push notifications turned on!', 'success');
+        } else {
+          addToast('⚠️ Could not enable — check browser notification permissions.', 'warning');
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="border-2 border-black bg-[var(--surface)] p-5 rounded-2xl shadow-[5px_5px_0px_rgba(0,0,0,1)]">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          {enabled
+            ? <Bell size={18} className="text-[var(--primary)] shrink-0" />
+            : <BellOff size={18} className="text-neutral-500 shrink-0" />
+          }
+          <div className="flex flex-col">
+            <span className="font-display text-sm font-black uppercase tracking-wide text-white">
+              Push Notifications
+            </span>
+            <span className="text-[10px] text-neutral-400 font-sans mt-0.5">
+              {browserBlocked
+                ? 'Blocked in browser settings — reset to enable'
+                : enabled ? 'Squad updates, gym reminders & app news' : 'Currently off for this device'}
+            </span>
+          </div>
+        </div>
+
+        {/* Toggle */}
+        <button
+          onClick={handleToggle}
+          disabled={loading || browserBlocked}
+          aria-label={enabled ? 'Turn off push notifications' : 'Turn on push notifications'}
+          className={`relative w-14 h-7 rounded-full border-2 border-black transition-all duration-200 shrink-0 cursor-pointer
+            ${enabled ? 'bg-[var(--primary)]' : 'bg-neutral-700'}
+            ${(loading || browserBlocked) ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}
+          `}
+        >
+          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full border border-black shadow transition-all duration-200
+            ${enabled ? 'left-7' : 'left-0.5'}`}
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const EQUIPMENT_CATEGORIES = [
   { label: 'Chest & Push', items: ['Flat Bench', 'Incline Bench', 'Decline Bench', 'Chest Press Machine', 'Pec Deck', 'Dip Bars'] },
@@ -482,6 +553,9 @@ export const DesktopProfile = () => {
               </ul>
             </div>
           )}
+
+          {/* Push Notification Toggle */}
+          <PushNotificationToggle />
 
         </div>
 

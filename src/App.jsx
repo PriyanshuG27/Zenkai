@@ -4,6 +4,7 @@ import { useAuthStore } from './stores/authStore';
 import { useXPStore } from './stores/useXPStore';
 import { useDeviceLayout } from './hooks/useDeviceLayout';
 import { useUIStore } from './stores/useUIStore';
+import { useFCM } from './hooks/useFCM';
 
 
 // ─── Global Error Boundary ────────────────────────────────────────────────────
@@ -245,6 +246,9 @@ function App() {
   // Debounced resize listener inside the hook (100ms) prevents thrash.
   // Both layout trees share the same BrowserRouter context below.
   const layout = useDeviceLayout();
+
+  // FCM Web Push — requests permission after login & saves device token to Firestore
+  useFCM();
 
   // Show app version update toast
   useEffect(() => {

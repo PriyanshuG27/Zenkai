@@ -208,6 +208,14 @@ service cloud.firestore {
       match /personalTemplates/{templateId} {
         allow read, write: if isOwner(uid);
       }
+
+      // ── fcmTokens/{token} — Web Push Notifications ───────────────────────
+      // Each document stores a single FCM device token for this user.
+      // Multi-device supported: one document per token (token is the doc ID).
+      // Delete allowed so stale tokens can be cleaned up on logout.
+      match /fcmTokens/{token} {
+        allow read, write, delete: if isOwner(uid);
+      }
     }
 
     // ─── squads/{squadId} — Phase 6 ─────────────────────────────────────────────────
