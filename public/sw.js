@@ -1,3 +1,4 @@
+/* global importScripts, firebase, clients */
 // ─── Firebase Cloud Messaging (FCM) — Background Push Notifications ──────────
 // Firebase scripts must be imported at the top of the service worker.
 // This merges FCM handling into the single PWA service worker to avoid

@@ -58,6 +58,41 @@ const BoosterTimer = ({ until }) => {
   );
 };
 
+const WeeklyPlanSkeleton = () => {
+  return (
+    <div className="w-full flex flex-col gap-4 animate-pulse select-none">
+      <div className="flex justify-between items-center px-1">
+        <div className="w-24 h-4 bg-[var(--bg-elevated)] rounded border border-[var(--border)]" />
+        <div className="w-28 h-3 bg-[var(--bg-elevated)] rounded border border-[var(--border)]" />
+      </div>
+      <div className="w-full flex gap-4 overflow-hidden px-1 py-2">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 w-[85%] max-w-[310px] h-[260px] rounded-lg border-2 border-[var(--border-bright)] bg-[var(--surface)] p-5 shadow-[5px_5px_0px_rgba(0,0,0,0.15)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex flex-col gap-2">
+                  <div className="w-32 h-6 bg-[var(--bg-elevated)] rounded" />
+                  <div className="w-24 h-3 bg-[var(--bg-elevated)] rounded" />
+                </div>
+                <div className="w-9 h-9 bg-[var(--bg-elevated)] rounded border border-[var(--border)]" />
+              </div>
+              <div className="flex flex-col gap-2.5 my-4">
+                <div className="w-full h-4 bg-[var(--bg-elevated)] rounded" />
+                <div className="w-[90%] h-4 bg-[var(--bg-elevated)] rounded" />
+                <div className="w-[80%] h-4 bg-[var(--bg-elevated)] rounded" />
+              </div>
+            </div>
+            <div className="w-full h-10 bg-[var(--bg-elevated)] rounded-md border border-[var(--border)]" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const MobileHome = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -322,29 +357,6 @@ export const MobileHome = () => {
         </div>
       </div>
 
-      {/* ─── WEEKLY RECAP BANNER ────────────────────────────────────────────── */}
-      {isRecapDay && !hasSeen && recap && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border-2 border-[var(--secondary)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-between cursor-pointer hover:border-[var(--text-primary)] transition-all animate-pulse"
-          onClick={() => setShowRecapScreen(true)}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📊</span>
-            <div className="flex flex-col">
-              <span className="font-display font-extrabold text-sm uppercase tracking-wide text-[var(--secondary)]">
-                Your weekly recap is ready
-              </span>
-              <p className="text-[10px] text-[var(--text-secondary)] font-sans mt-0.5">
-                See your stats, PRs, and download your shareable card!
-              </p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-[var(--text-secondary)]" />
-        </motion.div>
-      )}
-
       {/* Weekly Recap Modal */}
       <WeeklyRecapScreen
         isOpen={showRecapScreen}
@@ -432,34 +444,9 @@ export const MobileHome = () => {
           <span>Weekly Schedule</span>
         </h2>
 
-        {/* Redo Onboarding warning prompt banner if profile?.onboardingSkipped === true */}
-        {profile?.onboardingSkipped === true && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="border-2 border-amber-500 bg-amber-950/10 p-4 rounded-lg shadow-[4px_4px_0px_rgba(245,158,11,0.25)] flex flex-col gap-3 mb-4 text-left"
-          >
-            <div className="flex gap-3 items-start">
-              <span className="text-2xl mt-0.5">⚠️</span>
-              <div className="flex flex-col">
-                <span className="font-display font-extrabold text-sm uppercase tracking-wide text-amber-500">
-                  Complete Your Onboarding Profile
-                </span>
-                <p className="text-[10px] text-neutral-300 font-sans leading-relaxed mt-1">
-                  You skipped onboarding. For accurate AI workout schedules, personalized goals, and the best training results, please finish setting up your profile.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/onboarding/type')}
-              className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-black font-display font-extrabold tracking-widest text-xs uppercase rounded border-2 border-black shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer font-bold"
-            >
-              <span>FINISH ONBOARDING PROFILE</span>
-            </button>
-          </motion.div>
-        )}
-
-        {currentPlan ? (
+        {!hasFetched ? (
+          <WeeklyPlanSkeleton />
+        ) : currentPlan ? (
           <WeeklyPlanView planDays={planDays} weekId={weekId} />
         ) : planLoading ? (
           <PlanGenerationLoader />
@@ -556,6 +543,56 @@ export const MobileHome = () => {
         )}
       </div>
 
+      {/* ─── WEEKLY RECAP BANNER (Moved here to prevent CLS above-the-fold) ────── */}
+      {isRecapDay && !hasSeen && recap && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border-2 border-[var(--secondary)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-between cursor-pointer hover:border-[var(--text-primary)] transition-all animate-pulse"
+          onClick={() => setShowRecapScreen(true)}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📊</span>
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-sm uppercase tracking-wide text-[var(--secondary)]">
+                Your weekly recap is ready
+              </span>
+              <p className="text-[10px] text-[var(--text-secondary)] font-sans mt-0.5">
+                See your stats, PRs, and download your shareable card!
+              </p>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-[var(--text-secondary)]" />
+        </motion.div>
+      )}
+
+      {/* Redo Onboarding warning prompt banner (Moved here to prevent CLS above-the-fold) */}
+      {profile?.onboardingSkipped === true && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border-2 border-amber-500 bg-amber-950/10 p-4 rounded-lg shadow-[4px_4px_0px_rgba(245,158,11,0.25)] flex flex-col gap-3 text-left animate-pulse"
+        >
+          <div className="flex gap-3 items-start">
+            <span className="text-2xl mt-0.5">⚠️</span>
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-sm uppercase tracking-wide text-amber-500">
+                Complete Your Onboarding Profile
+              </span>
+              <p className="text-[10px] text-neutral-300 font-sans leading-relaxed mt-1">
+                You skipped onboarding. For accurate AI workout schedules, personalized goals, and the best training results, please finish setting up your profile.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/onboarding/type')}
+            className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-black font-display font-extrabold tracking-widest text-xs uppercase rounded border-2 border-black shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer font-bold"
+          >
+            <span>FINISH ONBOARDING PROFILE</span>
+          </button>
+        </motion.div>
+      )}
+
       {/* ─── LAST SESSION TELEMETRY ──────────────────────────────────────────── */}
       <div>
         <h2 className="font-display text-xl font-extrabold uppercase tracking-wide text-[var(--text-primary)] mb-3 flex items-center gap-2">
@@ -564,7 +601,25 @@ export const MobileHome = () => {
         </h2>
 
         {lastSessionLoading ? (
-          <div className="w-full h-24 bg-[var(--surface)] border border-[var(--border)] rounded-lg animate-pulse" />
+          <div className="w-full h-[125px] border-2 border-[var(--border)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,0.15)] flex flex-col justify-between animate-pulse select-none">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1.5">
+                <div className="w-32 h-4 bg-[var(--bg-elevated)] rounded" />
+                <div className="w-20 h-3 bg-[var(--bg-elevated)] rounded" />
+              </div>
+              <div className="w-16 h-5 bg-[var(--bg-elevated)] rounded border border-[var(--border)]" />
+            </div>
+            <div className="grid grid-cols-2 gap-3 border-t border-[var(--border)] pt-3">
+              <div className="flex flex-col gap-1.5">
+                <div className="w-16 h-2 bg-[var(--bg-elevated)] rounded" />
+                <div className="w-12 h-4 bg-[var(--bg-elevated)] rounded" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="w-16 h-2 bg-[var(--bg-elevated)] rounded" />
+                <div className="w-12 h-4 bg-[var(--bg-elevated)] rounded" />
+              </div>
+            </div>
+          </div>
         ) : lastSession ? (
           <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-2">
             <div className="flex justify-between items-start">

@@ -141,10 +141,9 @@ import { ToastStack } from './components/shared/ToastStack';
 
 const OnboardingPage = safeLazy(() => import('./components/shared/OnboardingPage'));
 
-// Mobile Screens
-import { MobileHome }           from './components/mobile/MobileHome';
-import { MobileLogger }         from './components/mobile/MobileLogger';
-import { MobileSessionComplete } from './components/mobile/MobileSessionComplete';
+const MobileHome = safeLazy(() => import('./components/mobile/MobileHome').then(m => ({ default: m.MobileHome })));
+const MobileLogger = safeLazy(() => import('./components/mobile/MobileLogger').then(m => ({ default: m.MobileLogger })));
+const MobileSessionComplete = safeLazy(() => import('./components/mobile/MobileSessionComplete').then(m => ({ default: m.MobileSessionComplete })));
 
 const MobileProgress = safeLazy(() => import('./components/mobile/MobileProgress'));
 const MobilePlan = safeLazy(() => import('./components/mobile/MobilePlan'));
