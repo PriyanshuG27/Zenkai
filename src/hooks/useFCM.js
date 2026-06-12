@@ -72,6 +72,18 @@ export async function enablePushNotifications(uid, addToast) {
 
     // Use the active service worker via .ready — most reliable approach
     const swReg = await navigator.serviceWorker.ready;
+
+    // Clear any stale push subscription before requesting a new token.
+    // This fixes "push service error" caused by old subscriptions from
+    // previously unregistered service workers (e.g. firebase-messaging-sw.js).
+    try {
+      const staleSub = await swReg.pushManager.getSubscription();
+      if (staleSub) {
+        await staleSub.unsubscribe();
+        console.info('[FCM] Cleared stale push subscription.');
+      }
+    } catch (_) { /* ignore */ }
+
     const messaging = getMessaging(app);
     const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
     if (!token) return false;
@@ -145,6 +157,15 @@ export function useFCM() {
           console.warn('[FCM] Could not get service worker registration:', swErr);
           return;
         }
+
+        // Clear any stale push subscription before requesting a fresh token
+        try {
+          const staleSub = await swRegistration.pushManager.getSubscription();
+          if (staleSub) {
+            await staleSub.unsubscribe();
+            console.info('[FCM] Cleared stale push subscription.');
+          }
+        } catch (_) { /* ignore */ }
 
         // Get the FCM token
         const token = await getToken(messaging, {
