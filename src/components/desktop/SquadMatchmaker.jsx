@@ -1588,7 +1588,8 @@ export const SquadMatchmaker = () => {
   };
 
   return (
-    <div className="border border-neutral-800 bg-[var(--surface)] p-6 rounded-2xl shadow-xl flex flex-col gap-6 text-left backdrop-blur-md">
+    <>
+      <div className="border border-neutral-800 bg-[var(--surface)] p-6 rounded-2xl shadow-xl flex flex-col gap-6 text-left backdrop-blur-md">
       
       {/* Header */}
       <div className="border-b border-[var(--border)] pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1718,16 +1719,16 @@ export const SquadMatchmaker = () => {
           )}
            {/* Roster Switcher Dropdown */}
           {joinedSquads.length > 0 && (
-            <div className="flex flex-col gap-1.5 border-b border-[#111] pb-4">
-              <label className="text-[9px] font-mono text-[var(--text-secondary)] uppercase font-bold">Switch Accountability Squad</label>
-              <div className="flex gap-2">
+            <div className="border-2 border-black rounded-xl p-3 bg-neutral-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[4px_4px_0px_black] text-left pb-3 mb-1">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-[10px] font-mono text-[var(--text-secondary)] uppercase font-bold whitespace-nowrap">Squad:</span>
                 <select
                   value={activeSquadCode || ''}
                   onChange={(e) => {
                     setActiveSquadCode(e.target.value);
                     setShowOnboarding(false);
                   }}
-                  className="bg-black border border-[#222] px-3.5 py-1.5 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-[var(--primary)] w-full cursor-pointer"
+                  className="bg-black border-2 border-black px-3 py-1.5 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-[var(--primary)] w-full sm:w-64 cursor-pointer"
                 >
                   {joinedSquads.map(s => (
                     <option key={s.squadCode} value={s.squadCode}>
@@ -1735,31 +1736,31 @@ export const SquadMatchmaker = () => {
                     </option>
                   ))}
                 </select>
-
-                {!showOnboarding ? (
-                  <button
-                    onClick={() => {
-                      setShowOnboarding(true);
-                    }}
-                    className="bg-neutral-900 border border-[#222] hover:border-[var(--primary)] text-white font-mono text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer uppercase shrink-0 transition-all"
-                  >
-                    Create/Join New
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setShowOnboarding(false);
-                      if (!activeSquadCode && joinedSquads.length > 0) {
-                        setActiveSquadCode(joinedSquads[0].squadCode);
-                      }
-                    }}
-                    className="flex items-center gap-1.5 bg-neutral-900 border border-[#222] hover:border-[var(--primary)] text-white font-mono text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer uppercase shrink-0 transition-all"
-                  >
-                    <ArrowLeft size={10} />
-                    <span>Back to Squad</span>
-                  </button>
-                )}
               </div>
+
+              {!showOnboarding ? (
+                <button
+                  onClick={() => {
+                    setShowOnboarding(true);
+                  }}
+                  className="bg-[var(--primary)] text-black border-2 border-black font-display font-black text-xs px-4 py-2.5 rounded-xl cursor-pointer uppercase shadow-[3px_3px_0px_black] hover:bg-orange-500 hover:text-white transition-all shrink-0 w-full sm:w-auto text-center"
+                >
+                  Create / Join Squad
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowOnboarding(false);
+                    if (!activeSquadCode && joinedSquads.length > 0) {
+                      setActiveSquadCode(joinedSquads[0].squadCode);
+                    }
+                  }}
+                  className="flex items-center justify-center gap-1.5 bg-neutral-950 text-white border-2 border-black font-display font-black text-xs px-4 py-2.5 rounded-xl cursor-pointer uppercase shadow-[3px_3px_0px_black] hover:bg-neutral-900 transition-all shrink-0 w-full sm:w-auto text-center"
+                >
+                  <ArrowLeft size={12} className="text-[var(--primary)]" />
+                  <span>Back to Squad</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -1862,22 +1863,35 @@ export const SquadMatchmaker = () => {
             /* ACTIVE SQUAD VIEW */
             <div className="flex flex-col gap-6">
               
-              {/* Active Squad Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-neutral-950 to-neutral-900 border border-neutral-805 p-5 rounded-2xl shadow-inner">
-                <div>
-                  <span className="text-[9px] font-mono text-[var(--text-secondary)] uppercase font-bold tracking-wider">Active Squad</span>
-                  <h4 className="font-display font-black text-xl text-white uppercase tracking-wide mt-0.5">
+              {/* Active Squad Card */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--surface)] border-2 border-black p-5 rounded-2xl shadow-[4px_4px_0px_black]">
+                <div className="flex flex-col text-left gap-1">
+                  <span className="text-[9px] font-mono text-[var(--primary)] uppercase font-extrabold tracking-widest bg-[var(--primary)]/10 border border-[var(--primary)]/20 px-2 py-0.5 rounded w-max">Active Squad</span>
+                  <h4 className="font-display font-black text-2xl text-white uppercase tracking-tight mt-1">
                     {activeSquad.squadName}
                   </h4>
-                  <span className="text-[10px] font-mono text-neutral-500">
-                    Limit: {activeSquadMembers.length} / {activeSquad.memberLimit} members
-                  </span>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-neutral-400">
+                    <span className="flex items-center gap-1">
+                      👥 <strong className="text-white">{activeSquadMembers.length}</strong> / {activeSquad.memberLimit} members
+                    </span>
+                    <span>•</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(activeSquad.squadCode);
+                        setSuccessMsg('Squad code copied! Share it with friends.');
+                        setTimeout(() => setSuccessMsg(null), 3000);
+                      }}
+                      className="text-[var(--accent-xp)] hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                    >
+                      🔑 Code: {activeSquad.squadCode} (Copy)
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end mt-2 sm:mt-0">
                   <button
                     onClick={handleLeaveSquad}
-                    className="flex items-center gap-1.5 bg-red-950/10 border border-red-500/20 hover:border-red-500 hover:bg-red-500/10 text-red-500 font-mono text-[10px] font-bold px-3.5 py-2 rounded-xl cursor-pointer uppercase transition-all"
+                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-red-950/20 border-2 border-red-500/30 hover:border-red-500 text-red-500 hover:bg-red-500/10 font-mono text-[10px] font-black px-4 py-2.5 rounded-xl cursor-pointer uppercase transition-all shadow-[2px_2px_0px_rgba(239,68,68,0.2)]"
                   >
                     <LogOut size={12} />
                     <span>Leave Squad</span>
@@ -1886,25 +1900,29 @@ export const SquadMatchmaker = () => {
               </div>
 
               {/* Neubrutalist Tab Controls */}
-              <div className="flex flex-wrap border-b border-neutral-850 gap-2 mt-1 pb-3">
+              <div className="flex border-4 border-black bg-black p-1 rounded-2xl w-full max-w-2xl overflow-x-auto no-scrollbar shrink-0 select-none shadow-[4px_4px_0px_black] gap-1 mt-1">
                 {[
-                  { id: 'synergy', label: '🗳️ Synergy & Scheduler' },
-                  { id: 'warroom', label: '🛡️ Command War Room' },
-                  { id: 'draft', label: '💸 Moneyball Draft' },
-                  { id: 'vault', label: '💎 Treasure Vault' }
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveTab(t.id)}
-                    className={`px-4 py-2.5 font-display font-bold text-xs uppercase border border-neutral-800 rounded-xl transition-all duration-300 cursor-pointer ${
-                      activeTab === t.id
-                        ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-[0_0_12px_rgba(255,92,0,0.15)] font-bold'
-                        : 'bg-neutral-900/20 text-[var(--text-secondary)] hover:bg-neutral-800/40 hover:text-white'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+                  { id: 'synergy', label: 'Synergy & Scheduler', icon: Calendar },
+                  { id: 'warroom', label: 'Command War Room', icon: Sliders },
+                  { id: 'draft', label: 'Moneyball Draft', icon: TrendingUp }
+                ].map(t => {
+                  const Icon = t.icon;
+                  const active = activeTab === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setActiveTab(t.id)}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 font-display font-black text-[10px] md:text-xs uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                        active
+                          ? 'bg-[var(--primary)] text-black border-2 border-black shadow-[2px_2px_0px_black]'
+                          : 'text-neutral-400 hover:text-white border-2 border-transparent bg-transparent'
+                      }`}
+                    >
+                      <Icon size={14} className={active ? 'text-black' : 'text-neutral-500'} />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Tab 1: Synergy & Scheduler */}
@@ -1941,42 +1959,46 @@ export const SquadMatchmaker = () => {
                     {activeSquad.activeChallenge ? (
                       <div className="flex flex-col gap-4">
                         {activeSquad.activeChallenge.isTitanRaid ? (
-                          /* Titan Raid PvE Layout */
-                          <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-1.5 text-left relative z-10">
+                          <div className="flex flex-col gap-4 animate-fadeIn">
+                            <div className="flex flex-col gap-1 text-left relative z-10">
                               <span className="text-[10px] font-mono text-red-500 font-extrabold tracking-widest uppercase flex items-center gap-1 animate-pulse">
                                 💀 WEEKLY TITAN BOSS RAID 💀
                               </span>
-                              <h5 className="font-display font-black text-2xl text-red-500 uppercase mt-0.5 tracking-wider drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">
+                              <h5 className="font-display font-black text-xl text-red-500 uppercase mt-0.5 tracking-wider drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">
                                 {activeSquad.activeChallenge.title}
                               </h5>
-                              <p className="text-xs text-neutral-300 italic font-mono leading-relaxed mt-1 border-l-2 border-red-600/50 pl-2 bg-red-955/10 py-1 rounded-r-md">
-                                "{activeSquad.activeChallenge.description}"
-                              </p>
                             </div>
 
-                            {/* Weakness & Target HP Item-styled Cards */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                            {/* Grid combining Description, Weakness, and Loot */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+                              {/* Boss Details */}
+                              <div className="flex flex-col justify-center border-2 border-neutral-850 bg-black/40 p-3 rounded-xl text-left">
+                                <span className="text-[8.5px] text-neutral-500 uppercase font-bold tracking-wider">Boss Description</span>
+                                <p className="text-[10px] text-neutral-300 italic mt-1 leading-snug">
+                                  "{activeSquad.activeChallenge.description}"
+                                </p>
+                              </div>
+
                               {/* Weakness: Legendary Tier */}
-                              <div className="flex flex-col justify-between border-2 border-amber-500/50 bg-[#160f05]/90 p-3.5 rounded-xl text-left shadow-[0_0_10px_rgba(245,158,11,0.15)] relative overflow-hidden">
-                                <div className="absolute top-0 right-0 bg-amber-500 text-[8px] font-black text-black px-1.5 py-0.5 rounded-bl uppercase tracking-wider">
+                              <div className="flex flex-col justify-center border-2 border-amber-500/50 bg-[#160f05]/90 p-3 rounded-xl text-left relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-amber-500 text-[8px] font-black text-black px-1.5 py-0.5 rounded-bl uppercase tracking-wider scale-90 origin-top-right">
                                   Legendary
                                 </div>
-                                <span className="text-[8.5px] text-amber-500/60 uppercase font-bold tracking-wider">Target Weakness (1.5x DMG)</span>
-                                <span className="text-amber-400 font-extrabold uppercase flex items-center gap-1.5 mt-3 text-xs">
-                                  <Flame size={14} className="text-amber-400 animate-pulse fill-amber-400/20" />
-                                  <span>{activeSquad.activeChallenge.weakness}</span>
+                                <span className="text-[8.5px] text-amber-500/60 uppercase font-bold tracking-wider">Weakness (1.5x DMG)</span>
+                                <span className="text-amber-400 font-extrabold uppercase flex items-center gap-1.5 mt-1 text-xs">
+                                  <Flame size={12} className="text-amber-400 animate-pulse fill-amber-400/20 shrink-0" />
+                                  <span className="truncate">{activeSquad.activeChallenge.weakness}</span>
                                 </span>
                               </div>
 
                               {/* Loot: Mythic Tier */}
-                              <div className="flex flex-col justify-between border-2 border-red-500/50 bg-[#1c0505]/95 p-3.5 rounded-xl text-left shadow-[0_0_10px_rgba(239,68,68,0.15)] relative overflow-hidden">
-                                <div className="absolute top-0 right-0 bg-red-650 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl uppercase tracking-wider">
+                              <div className="flex flex-col justify-center border-2 border-red-500/50 bg-[#1c0505]/95 p-3 rounded-xl text-left relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-red-650 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl uppercase tracking-wider scale-90 origin-top-right">
                                   Mythic Loot
                                 </div>
-                                <span className="text-[8.5px] text-red-500/60 uppercase font-bold tracking-wider">Premium Loot Reward</span>
-                                <span className="text-red-400 font-extrabold uppercase mt-3 text-xs truncate flex items-center gap-1.5">
-                                  ⚔️ <span>{activeSquad.activeChallenge.rewardName}</span>
+                                <span className="text-[8.5px] text-red-500/60 uppercase font-bold tracking-wider">Loot Reward</span>
+                                <span className="text-red-400 font-extrabold uppercase mt-1 text-xs truncate flex items-center gap-1.5">
+                                  ⚔️ <span className="truncate">{activeSquad.activeChallenge.rewardName}</span>
                                 </span>
                               </div>
                             </div>
@@ -1996,7 +2018,7 @@ export const SquadMatchmaker = () => {
                                   </div>
                                   <div className="h-7 w-full bg-neutral-950 border-2 border-red-900/60 rounded-xl overflow-hidden relative p-[3px] shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
                                     {/* Pulsing Backlight */}
-                                    <div className="absolute inset-0 bg-red-950/20 animate-pulse" />
+                                    <div className="absolute inset-0 bg-red-955/20 animate-pulse" />
                                     {/* Health Progress with Striped Warning Pattern */}
                                     <div 
                                       className="h-full bg-red-650 rounded-lg transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(239,68,68,0.8)] relative overflow-hidden"
@@ -2019,39 +2041,33 @@ export const SquadMatchmaker = () => {
                               );
                             })()}
 
-                            {/* Individual Damage Contributions */}
-                            <div className="flex flex-col gap-2 text-left mt-1">
-                              <span className="text-[9.5px] font-mono text-red-500/70 uppercase font-bold tracking-widest flex items-center gap-1">
+                            {/* Individual Damage Contributions (Simplified flex badges) */}
+                            <div className="flex flex-col gap-1.5 text-left mt-1">
+                              <span className="text-[9px] font-mono text-red-500/70 uppercase font-black tracking-widest flex items-center gap-1">
                                 ⚔️ Squad Damage Ledger
                               </span>
-                              <div className="bg-neutral-950/70 border border-red-955/85 rounded-xl p-3.5 shadow-inner">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                                  {activeSquadMembers.map((m, idx) => {
-                                    const dmg = activeSquad.activeChallenge.progress?.[m.uid] || 0;
-                                    const maxDmg = Math.max(...activeSquadMembers.map(member => activeSquad.activeChallenge.progress?.[member.uid] || 0));
-                                    const isTopDamager = dmg > 0 && maxDmg === dmg;
-                                    return (
-                                      <div 
-                                        key={idx} 
-                                        className={`flex justify-between items-center bg-black/60 px-3 py-2 rounded-lg border transition-all ${
-                                          isTopDamager 
-                                            ? 'border-red-500/60 shadow-[0_0_8px_rgba(239,68,68,0.1)]' 
-                                            : 'border-neutral-900'
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-1.5 min-w-0">
-                                          <span className="shrink-0 text-red-500">
-                                            {isTopDamager ? '🔥' : '⚔️'}
-                                          </span>
-                                          <span className="text-neutral-300 font-bold truncate">{m.name}</span>
-                                        </div>
-                                        <span className={`font-black shrink-0 ${isTopDamager ? 'text-red-400 animate-pulse' : 'text-neutral-400'}`}>
-                                          {dmg.toLocaleString()} DMG
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
+                              <div className="flex flex-wrap gap-2 bg-neutral-950/40 border border-neutral-900 rounded-xl p-2.5">
+                                {activeSquadMembers.map((m, idx) => {
+                                  const dmg = activeSquad.activeChallenge.progress?.[m.uid] || 0;
+                                  const maxDmg = Math.max(...activeSquadMembers.map(member => activeSquad.activeChallenge.progress?.[member.uid] || 0));
+                                  const isTopDamager = dmg > 0 && maxDmg === dmg;
+                                  return (
+                                    <div 
+                                      key={idx} 
+                                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono transition-all ${
+                                        isTopDamager 
+                                          ? 'bg-red-950/30 border-red-500/50 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)]' 
+                                          : 'bg-black/40 border-neutral-805 text-neutral-400'
+                                      }`}
+                                    >
+                                      <span>{isTopDamager ? '🔥' : '⚔️'}</span>
+                                      <span className="font-bold">{m.name.replace(' (You)', '')}:</span>
+                                      <span className={isTopDamager ? 'text-white font-extrabold' : 'text-neutral-300 font-semibold'}>
+                                        {dmg.toLocaleString()} DMG
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           </div>
@@ -3019,168 +3035,6 @@ export const SquadMatchmaker = () => {
                 </div>
               )}
               
-              {/* Tab 4: Treasure Vault */}
-              {activeTab === 'vault' && (
-                <div className="flex flex-col gap-6 animate-fadeIn text-left">
-                  {/* Treasure Vault Intro Card */}
-                  <div className="border border-neutral-800 bg-neutral-900/30 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
-                    <div className="flex flex-col text-left">
-                      <h4 className="font-display font-black text-xl text-white uppercase tracking-wide flex items-center gap-2">
-                        <Key className="text-amber-400" size={24} />
-                        <span>Titan's Treasure Vault</span>
-                      </h4>
-                      <p className="text-xs text-neutral-300 font-sans leading-relaxed mt-1">
-                        Crack open legendary treasure chests using Boss Keys earned from weekly squad raids. 
-                        Each chest contains valuable loot including direct XP, consumable items, custom profiles title tags, or glowing avatar auras!
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="flex items-center gap-2 border-2 border-black bg-amber-400 px-4 py-2.5 rounded-xl text-sm font-mono text-black font-black uppercase shadow-[3px_3px_0px_black] shrink-0">
-                        <Key size={16} />
-                        <span>{profile?.powerUps?.bossFightKey || 0} Boss Keys Available</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Three Chests Rendering */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Common Chest */}
-                    <div className="border-2 border-black bg-amber-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-amber-900 text-left">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-mono text-amber-500 font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
-                            Common Chest
-                          </span>
-                        </div>
-                        <div className="w-36 h-36 mx-auto bg-amber-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                        </div>
-                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
-                          Bronze Vault Box
-                        </h5>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
-                          A solid entry-level vault chest containing basic consumables and small chunks of XP.
-                        </p>
-                        
-                        {/* Rarity rates */}
-                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
-                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
-                          <div className="flex justify-between text-neutral-300">
-                            <span>Common Reward:</span>
-                            <span className="font-bold text-white">70%</span>
-                          </div>
-                          <div className="flex justify-between text-blue-400">
-                            <span>Rare Reward:</span>
-                            <span className="font-bold">25%</span>
-                          </div>
-                          <div className="flex justify-between text-purple-400">
-                            <span>Legendary Reward:</span>
-                            <span className="font-bold">5%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleOpenChest('common')}
-                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 1}
-                        className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
-                      >
-                        Open (1 Boss Key 🔑)
-                      </button>
-                    </div>
-
-                    {/* Rare Chest */}
-                    <div className="border-2 border-black bg-blue-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-blue-900 text-left">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-mono text-blue-400 font-bold uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
-                            Rare Chest
-                          </span>
-                        </div>
-                        <div className="w-36 h-36 mx-auto bg-blue-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                        </div>
-                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
-                          Iron Vault Chest
-                        </h5>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
-                          A fortified chest with a significantly higher chance at rare title rewards, multiple skips, and high XP tiers.
-                        </p>
-                        
-                        {/* Rarity rates */}
-                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
-                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
-                          <div className="flex justify-between text-neutral-300">
-                            <span>Common Reward:</span>
-                            <span className="font-bold text-white">15%</span>
-                          </div>
-                          <div className="flex justify-between text-blue-400">
-                            <span>Rare Reward:</span>
-                            <span className="font-bold">65%</span>
-                          </div>
-                          <div className="flex justify-between text-purple-400">
-                            <span>Legendary Reward:</span>
-                            <span className="font-bold">20%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleOpenChest('rare')}
-                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 3}
-                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
-                      >
-                        Open (3 Boss Keys 🔑)
-                      </button>
-                    </div>
-
-                    {/* Legendary Chest */}
-                    <div className="border-2 border-black bg-purple-950/10 p-5 rounded-2xl shadow-[4px_4px_0px_black] flex flex-col justify-between gap-4 border-purple-900 text-left">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
-                            Legendary Chest
-                          </span>
-                        </div>
-                        <div className="w-36 h-36 mx-auto bg-purple-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
-                        </div>
-                        <h5 className="font-display font-black text-lg text-white uppercase tracking-wide">
-                          Obsidian Vault Relic
-                        </h5>
-                        <p className="text-[11px] text-neutral-400 font-sans leading-snug">
-                          The ultimate vault treasure. Guarantees 75% Legendary drops including glowing avatar auras and major XP boosts.
-                        </p>
-                        
-                        {/* Rarity rates */}
-                        <div className="bg-black/30 border border-neutral-900 rounded-lg p-3 flex flex-col gap-1 text-[10px] font-mono">
-                          <span className="text-neutral-500 uppercase font-bold text-[9px]">Loot Drop Rates:</span>
-                          <div className="flex justify-between text-neutral-300">
-                            <span>Common Reward:</span>
-                            <span className="font-bold text-white">0%</span>
-                          </div>
-                          <div className="flex justify-between text-blue-400">
-                            <span>Rare Reward:</span>
-                            <span className="font-bold">25%</span>
-                          </div>
-                          <div className="flex justify-between text-purple-400">
-                            <span>Legendary Reward:</span>
-                            <span className="font-bold">75%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleOpenChest('legendary')}
-                        disabled={openingChest || (profile?.powerUps?.bossFightKey || 0) < 5}
-                        className="w-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-display font-black text-xs uppercase py-3 border-2 border-black rounded-xl shadow-[3px_3px_0px_black] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-center"
-                      >
-                        Open (5 Boss Keys 🔑)
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
             </div>
           )}
@@ -3394,151 +3248,7 @@ export const SquadMatchmaker = () => {
             )}
           </AnimatePresence>
 
-          {/* Workout Details Modal Overlay */}
-          <AnimatePresence>
-            {selectedActivity && (
-              <div className="fixed inset-0 bg-black/75 z-50 p-4 backdrop-blur-sm overflow-y-auto flex justify-center items-start md:items-center">
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  className="border-4 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[6px_6px_0px_black] w-full max-w-lg text-left flex flex-col gap-4 relative font-mono text-xs my-auto md:my-0"
-                >
-                  <button
-                    onClick={() => setSelectedActivityId(null)}
-                    className="absolute top-4 right-4 text-neutral-400 hover:text-white font-bold text-lg cursor-pointer"
-                  >
-                    ✕
-                  </button>
-
-                  <div className="border-b-2 border-black pb-3">
-                    <span className="text-[10px] text-[var(--accent-xp)] uppercase font-bold tracking-wider block">
-                      Workout Session Details
-                    </span>
-                    <h3 className="font-display font-black text-2xl text-white uppercase mt-1 tracking-wide leading-tight">
-                      {selectedActivity.workoutName}
-                    </h3>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-neutral-400 text-[10px]">
-                      <span>Logged by: <strong className="text-white">{selectedActivity.name}</strong></span>
-                      <span className="text-neutral-700">•</span>
-                      <span>Date: <strong className="text-white">{selectedActivity.createdAt ? new Date(selectedActivity.createdAt.toDate ? selectedActivity.createdAt.toDate() : selectedActivity.createdAt).toLocaleDateString() : 'Just now'}</strong></span>
-                    </div>
-                  </div>
-
-                  {/* Summary Stats Row */}
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
-                      <span className="text-[8px] text-neutral-500 uppercase">Total Volume</span>
-                      <span className="text-[var(--primary)] font-bold text-sm mt-0.5">
-                        {Math.round(selectedActivity.totalVolume).toLocaleString()}kg
-                      </span>
-                    </div>
-                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
-                      <span className="text-[8px] text-neutral-500 uppercase">Exercises</span>
-                      <span className="text-white font-bold text-sm mt-0.5">
-                        {selectedActivity.exercisesCount}
-                      </span>
-                    </div>
-                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
-                      <span className="text-[8px] text-neutral-500 uppercase">Sets</span>
-                      <span className="text-white font-bold text-sm mt-0.5">
-                        {selectedActivity.totalSets}
-                      </span>
-                    </div>
-                    <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
-                      <span className="text-[8px] text-neutral-500 uppercase">Duration</span>
-                      <span className="text-secondary font-bold text-sm mt-0.5">
-                        {selectedActivity.durationMinutes ? `${selectedActivity.durationMinutes}m` : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* PRs Broken Section */}
-                  {selectedActivity.prNames && selectedActivity.prNames.length > 0 && (
-                    <div className="flex flex-col gap-1.5 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
-                      <span className="text-amber-400 font-bold uppercase text-[9px] tracking-wider flex items-center gap-1">
-                        🏆 Personal Records Broken:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5 mt-0.5">
-                        {selectedActivity.prNames.map((pr, prIdx) => (
-                          <span key={prIdx} className="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-1 rounded-md uppercase font-extrabold text-[9px] tracking-wide shadow-sm">
-                            {pr}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Exercises Details */}
-                  <div className="flex flex-col gap-2 mt-1">
-                    <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">
-                      Exercise Breakdown:
-                    </span>
-                    {selectedActivity.exercises && selectedActivity.exercises.length > 0 ? (
-                      <div className="flex flex-col gap-2.5 pr-1">
-                        {selectedActivity.exercises.map((ex, exIdx) => (
-                          <div key={exIdx} className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-3 flex flex-col gap-2">
-                            <div className="flex justify-between items-center border-b border-neutral-900/40 pb-1.5">
-                              <span className="text-white font-bold text-xs uppercase">{ex.name}</span>
-                              <span className="text-[8px] text-neutral-500 uppercase bg-neutral-900 px-1.5 py-0.5 rounded font-mono">
-                                {ex.muscleGroup || 'General'}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {ex.sets.map((set, setIdx) => (
-                                <span key={setIdx} className="text-[9px] bg-neutral-900/60 border border-neutral-800 text-neutral-300 px-2 py-1 rounded font-mono">
-                                  Set {setIdx + 1}: <strong className="text-white">{set.weight === 'BW' ? 'BW' : `${set.weight}kg`}</strong> x <strong className="text-white">{set.reps}</strong>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-neutral-500 text-[10px] italic py-2">
-                        Detailed exercise breakdown is only available for newly logged workouts.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Social Actions inside the Modal */}
-                  <div className="flex gap-2 justify-end border-t border-[#181818] pt-4 mt-2">
-                    <button
-                      onClick={() => handleSocialAction(selectedActivity.id, 'highFive')}
-                      className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
-                        selectedActivity.highFives?.includes(uid)
-                          ? 'bg-yellow-500 text-black border-yellow-500 shadow-sm'
-                          : 'bg-neutral-950 text-white hover:bg-neutral-900'
-                      }`}
-                    >
-                      <span>👏</span>
-                      <span>{selectedActivity.highFives?.length || 0} High-Fives</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleSocialAction(selectedActivity.id, 'kudos')}
-                      className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
-                        selectedActivity.kudos?.includes(uid)
-                          ? 'bg-red-600 text-white border-red-600 shadow-sm'
-                          : 'bg-neutral-950 text-white hover:bg-neutral-900'
-                      }`}
-                    >
-                      <span>🔥</span>
-                      <span>{selectedActivity.kudos?.length || 0} Kudos</span>
-                    </button>
-
-                    <button
-                      onClick={() => setSelectedActivityId(null)}
-                      className="px-4 py-2 border-2 border-black text-xs font-bold text-white bg-black hover:bg-neutral-900 rounded shadow-[2px_2px_0px_black] uppercase cursor-pointer"
-                    >
-                      Close
-                    </button>
-                  </div>
-
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
+          {/* Workout Details Modal moved to bottom */}
 
           {/* Trade Modal Overlay */}
           <AnimatePresence>
@@ -3795,5 +3505,152 @@ export const SquadMatchmaker = () => {
       )}
 
     </div>
+
+    {/* Workout Details Modal Overlay */}
+    <AnimatePresence>
+      {selectedActivity && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="my-auto w-full max-w-lg bg-[var(--surface)] border-4 border-black p-6 rounded-2xl shadow-[8px_8px_0px_black] text-left flex flex-col gap-4 relative font-mono text-xs max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => setSelectedActivityId(null)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white font-bold text-lg cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="border-b-2 border-black pb-3">
+              <span className="text-[10px] text-[var(--accent-xp)] uppercase font-bold tracking-wider block">
+                Workout Session Details
+              </span>
+              <h3 className="font-display font-black text-2xl text-white uppercase mt-1 tracking-wide leading-tight">
+                {selectedActivity.workoutName}
+              </h3>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-neutral-400 text-[10px]">
+                <span>Logged by: <strong className="text-white">{selectedActivity.name}</strong></span>
+                <span className="text-neutral-700">•</span>
+                <span>Date: <strong className="text-white">{selectedActivity.createdAt ? new Date(selectedActivity.createdAt.toDate ? selectedActivity.createdAt.toDate() : selectedActivity.createdAt).toLocaleDateString() : 'Just now'}</strong></span>
+              </div>
+            </div>
+
+            {/* Summary Stats Row */}
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                <span className="text-[8px] text-neutral-500 uppercase">Total Volume</span>
+                <span className="text-[var(--primary)] font-bold text-sm mt-0.5">
+                  {Math.round(selectedActivity.totalVolume).toLocaleString()}kg
+                </span>
+              </div>
+              <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                <span className="text-[8px] text-neutral-500 uppercase">Exercises</span>
+                <span className="text-white font-bold text-sm mt-0.5">
+                  {selectedActivity.exercisesCount}
+                </span>
+              </div>
+              <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                <span className="text-[8px] text-neutral-500 uppercase">Sets</span>
+                <span className="text-white font-bold text-sm mt-0.5">
+                  {selectedActivity.totalSets}
+                </span>
+              </div>
+              <div className="bg-black/30 p-2 rounded-lg border border-neutral-900 flex flex-col justify-center items-center">
+                <span className="text-[8px] text-neutral-500 uppercase">Duration</span>
+                <span className="text-secondary font-bold text-sm mt-0.5">
+                  {selectedActivity.durationMinutes ? `${selectedActivity.durationMinutes}m` : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* PRs Broken Section */}
+            {selectedActivity.prNames && selectedActivity.prNames.length > 0 && (
+              <div className="flex flex-col gap-1.5 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
+                <span className="text-amber-400 font-bold uppercase text-[9px] tracking-wider flex items-center gap-1">
+                  🏆 Personal Records Broken:
+                </span>
+                <div className="flex flex-wrap gap-1.5 mt-0.5">
+                  {selectedActivity.prNames.map((pr, prIdx) => (
+                    <span key={prIdx} className="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-1 rounded-md uppercase font-extrabold text-[9px] tracking-wide shadow-sm">
+                      {pr}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Exercises Details */}
+            <div className="flex flex-col gap-2 mt-1">
+              <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">
+                Exercise Breakdown:
+              </span>
+              {selectedActivity.exercises && selectedActivity.exercises.length > 0 ? (
+                <div className="flex flex-col gap-2.5 pr-1">
+                  {selectedActivity.exercises.map((ex, exIdx) => (
+                    <div key={exIdx} className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-3 flex flex-col gap-2">
+                      <div className="flex justify-between items-center border-b border-neutral-900/40 pb-1.5">
+                        <span className="text-white font-bold text-xs uppercase">{ex.name}</span>
+                        <span className="text-[8px] text-neutral-500 uppercase bg-neutral-900 px-1.5 py-0.5 rounded font-mono">
+                          {ex.muscleGroup || 'General'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {ex.sets.map((set, setIdx) => (
+                          <span key={setIdx} className="text-[9px] bg-neutral-900/60 border border-neutral-800 text-neutral-300 px-2 py-1 rounded font-mono">
+                            Set {setIdx + 1}: <strong className="text-white">{set.weight === 'BW' ? 'BW' : `${set.weight}kg`}</strong> x <strong className="text-white">{set.reps}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-neutral-500 text-[10px] italic py-2">
+                  Detailed exercise breakdown is only available for newly logged workouts.
+                </div>
+              )}
+            </div>
+
+            {/* Social Actions inside the Modal */}
+            <div className="flex gap-2 justify-end border-t border-[#181818] pt-4 mt-2">
+              <button
+                onClick={() => handleSocialAction(selectedActivity.id, 'highFive')}
+                className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
+                  selectedActivity.highFives?.includes(uid)
+                    ? 'bg-yellow-500 text-black border-yellow-500 shadow-sm'
+                    : 'bg-neutral-950 text-white hover:bg-neutral-900'
+                }`}
+              >
+                <span>👏</span>
+                <span>{selectedActivity.highFives?.length || 0} High-Fives</span>
+              </button>
+
+              <button
+                onClick={() => handleSocialAction(selectedActivity.id, 'kudos')}
+                className={`flex items-center gap-1.5 font-display font-black text-xs px-4 py-2 border border-neutral-800 rounded-lg uppercase cursor-pointer transition-all ${
+                  selectedActivity.kudos?.includes(uid)
+                    ? 'bg-red-600 text-white border-red-600 shadow-sm'
+                    : 'bg-neutral-950 text-white hover:bg-neutral-900'
+                }`}
+              >
+                <span>🔥</span>
+                <span>{selectedActivity.kudos?.length || 0} Kudos</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedActivityId(null)}
+                className="px-4 py-2 border-2 border-black text-xs font-bold text-white bg-black hover:bg-neutral-900 rounded shadow-[2px_2px_0px_black] uppercase cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  </>
   );
 };
