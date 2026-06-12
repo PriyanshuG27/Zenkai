@@ -163,6 +163,12 @@ const SetRowComponent = ({
     }
   };
 
+  // Keep a ref to the latest set object to avoid stale closures in handleSaveUncommitted
+  const latestSetRef = React.useRef(set);
+  useEffect(() => {
+    latestSetRef.current = set;
+  }, [set]);
+
   // Keep a ref to the latest input values to avoid re-registering unload listeners on every keystroke
   const latestValuesRef = React.useRef({ localWeight, localReps });
   useEffect(() => {
@@ -171,27 +177,36 @@ const SetRowComponent = ({
 
   useEffect(() => {
     const handleSaveUncommitted = () => {
+      const currentSet = latestSetRef.current;
       const { localWeight: w, localReps: r } = latestValuesRef.current;
       
-      // Commit Weight
+      // Normalize and compare weight
+      let normW = w;
       const trimmedW = typeof w === 'string' ? w.trim() : String(w);
       if (isBodyweight && /^bw$/i.test(trimmedW)) {
-        onUpdate(exerciseId, setIndex, 'weight', 'BW');
+        normW = 'BW';
       } else {
         let parsedW = parseFloat(w);
         if (isNaN(parsedW) || parsedW < 0) parsedW = 0;
         parsedW = parseFloat(parsedW.toFixed(2));
         if (isBodyweight && parsedW === 0) {
-          onUpdate(exerciseId, setIndex, 'weight', 'BW');
+          normW = 'BW';
         } else {
-          onUpdate(exerciseId, setIndex, 'weight', parsedW);
+          normW = parsedW;
         }
       }
 
-      // Commit Reps
+      // Normalize and compare reps
       let parsedR = parseInt(r, 10);
       if (isNaN(parsedR) || parsedR < 0) parsedR = 0;
-      onUpdate(exerciseId, setIndex, 'reps', parsedR);
+
+      // Only update if the values have actually changed
+      if (normW !== currentSet.weight) {
+        onUpdate(exerciseId, setIndex, 'weight', normW);
+      }
+      if (parsedR !== currentSet.reps) {
+        onUpdate(exerciseId, setIndex, 'reps', parsedR);
+      }
     };
 
     const handleVisibilityChange = () => {

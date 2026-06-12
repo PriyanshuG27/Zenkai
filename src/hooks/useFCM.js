@@ -219,6 +219,11 @@ export function useFCM() {
         unsubscribeForeground = onMessage(messaging, (payload) => {
           console.log('[FCM] Foreground message:', payload);
 
+          // Skip showing in-app toast for rest-timer notifications since the client-side timer handles foreground alerts
+          if (payload.data?.type === 'rest-timer') {
+            return;
+          }
+
           const title = payload.notification?.title ?? payload.data?.title ?? 'Zenkai';
           const body = payload.notification?.body ?? payload.data?.body ?? '';
 

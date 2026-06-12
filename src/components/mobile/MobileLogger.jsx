@@ -15,6 +15,8 @@ import { MobileSessionComplete } from './MobileSessionComplete';
 import { parseWorkoutText } from '../../utils/nlpParser';
 import { playRestTimerBeep } from '../../utils/audioBeep';
 import { NeubrutalistCalendar } from '../shared/NeubrutalistCalendar';
+import { callZenkaiAPI } from '../../lib/apiClient';
+import { isPushEnabled } from '../../hooks/useFCM';
 
 export const MobileLogger = () => {
   const navigate = useNavigate();
@@ -290,27 +292,33 @@ export const MobileLogger = () => {
 
         // 2. Trigger Push Notification
         if ('Notification' in window && Notification.permission === 'granted') {
-          const title = 'Zenkai Rest Timer';
-          const options = {
-            body: 'Rest over! Time for your next set. 💪',
-            icon: '/logos/zenkai_app_icon.png',
-            tag: 'zenkai-rest-timer',
-            requireInteraction: true
-          };
+          // If we are in the foreground, show the local notification.
+          // If we are in the background, only show it if FCM is NOT enabled.
+          const shouldShowLocal = document.visibilityState === 'visible' || !isPushEnabled();
+          if (shouldShowLocal) {
+            const title = 'Zenkai Rest Timer';
+            const options = {
+              body: 'Rest over! Time for your next set. 💪',
+              icon: '/logos/zenkai_app_icon.png',
+              tag: 'zenkai-rest-timer',
+              requireInteraction: true,
+              vibrate: [300, 100, 300]
+            };
 
-          try {
-            // Standard window Notification constructor (Desktop)
-            new Notification(title, options);
-          } catch (err) {
-            // Mobile PWA fallback (Safari iOS/Chrome Android)
-            if (navigator.serviceWorker) {
-              navigator.serviceWorker.ready.then((reg) => {
-                reg.showNotification(title, options);
-              }).catch((swErr) => {
-                console.error('Service worker notification failed:', swErr);
-              });
-            } else {
-              console.error('Standard notification failed and no service worker found:', err);
+            try {
+              // Standard window Notification constructor (Desktop)
+              new Notification(title, options);
+            } catch (err) {
+              // Mobile PWA fallback (Safari iOS/Chrome Android)
+              if (navigator.serviceWorker) {
+                navigator.serviceWorker.ready.then((reg) => {
+                  reg.showNotification(title, options);
+                }).catch((swErr) => {
+                  console.error('Service worker notification failed:', swErr);
+                });
+              } else {
+                console.error('Standard notification failed and no service worker found:', err);
+              }
             }
           }
         }
@@ -418,6 +426,13 @@ export const MobileLogger = () => {
       setRestTimerEndTimestamp(Date.now() + duration * 1000);
       setRestTimeRemaining(duration);
       toast(`Rest timer started: ${duration}s ⏳`, 'info');
+
+      // Schedule background push notification on the backend
+      if (isPushEnabled()) {
+        callZenkaiAPI('scheduleRestNotification', { seconds: duration }).catch(err => {
+          console.warn('[RestTimer] Failed to schedule background rest notification:', err);
+        });
+      }
     }
   }, [markSetDone, exercises, toast, profile?.disableRestTimer]);
 
@@ -974,7 +989,15 @@ export const MobileLogger = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setRestTimerEndTimestamp(null); setRestTimeRemaining(null); }}
+                    onClick={() => {
+                      setRestTimerEndTimestamp(null);
+                      setRestTimeRemaining(null);
+                      if (isPushEnabled()) {
+                        callZenkaiAPI('cancelRestNotification').catch(err => {
+                          console.warn('[RestTimer] Failed to cancel background rest notification:', err);
+                        });
+                      }
+                    }}
                     className="bg-black text-white hover:bg-neutral-900 border-2 border-black font-body font-extrabold text-xs uppercase px-3 py-1 rounded-lg shadow-[2px_2px_0px_black] transition-transform active:translate-y-0.5 shrink-0"
                   >
                     Skip

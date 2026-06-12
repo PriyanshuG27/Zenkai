@@ -30,6 +30,7 @@ try {
       badge: 'https://zenkaifit.vercel.app/logos/zenkai_official_logo.png',
       data: payload.data ?? {},
       actions: [{ action: 'open', title: '📱 Open App' }],
+      vibrate: [300, 100, 300]
     });
   });
 } catch (e) {

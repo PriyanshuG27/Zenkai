@@ -40,6 +40,8 @@ app.post('/api/getPRStats', require('./routes/getPRStats'));
 app.post('/api/generateSquadChallenge', require('./routes/generateSquadChallenge'));
 app.post('/api/generateWeeklyMagazine', require('./routes/generateWeeklyMagazine'));
 app.post('/api/sendNotification', require('./routes/sendNotification'));
+app.post('/api/scheduleRestNotification', require('./routes/scheduleRestNotification'));
+app.post('/api/cancelRestNotification', require('./routes/cancelRestNotification'));
 
 // Initialize automated weekly challenge background scheduler
 const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');
