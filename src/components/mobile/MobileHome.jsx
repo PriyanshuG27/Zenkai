@@ -212,13 +212,15 @@ export const MobileHome = () => {
 
   const xpPercentage = getXPPercentage();
 
-  // Find active joined challenge
+  // Find active joined challenge (campaign subtype only)
   const activeChallenge = challenges.find(
-    (c) => userProgress[c.id] && !userProgress[c.id].completed
+    (c) => (c.subtype || 'campaign') === 'campaign' && userProgress[c.id] && !userProgress[c.id].completed
   );
 
-  // If no active challenge, find one available to join
-  const availableChallenge = challenges.find((c) => !userProgress[c.id]);
+  // If no active challenge, find one available to join (campaign subtype only)
+  const availableChallenge = challenges.find(
+    (c) => (c.subtype || 'campaign') === 'campaign' && !userProgress[c.id]
+  );
 
   const firstName = profile?.name ? profile.name.split(' ')[0] : 'TRAINER';
 

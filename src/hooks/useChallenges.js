@@ -274,16 +274,16 @@ export function useChallenges() {
             id,
             ...data,
             subtype: data.subtype || 'campaign',
-            name: data.type === 'comeback'
+            name: data.name || (data.type === 'comeback'
               ? 'Comeback Challenge'
               : data.type === 'streak'
               ? 'Streak Challenge'
-              : (data.name || 'Weak Point Challenge'),
-            description: data.type === 'comeback'
+              : 'Weak Point Challenge'),
+            description: data.description || (data.type === 'comeback'
               ? 'Train 3x/week for 12 weeks to build your base'
               : data.type === 'streak'
               ? 'Train 3x/week for 8 weeks consecutively'
-              : (data.description || 'Target specific weak points'),
+              : 'Target specific weak points'),
             durationDays,
             weeksRemaining,
             progressPct: progressPercent,
@@ -519,16 +519,16 @@ export function useChallenges() {
         id,
         ...data,
         subtype: data.subtype || 'campaign',
-        name: data.type === 'comeback'
+        name: data.name || (data.type === 'comeback'
           ? 'Comeback Challenge'
           : data.type === 'streak'
           ? 'Streak Challenge'
-          : (data.name || 'Weak Point Challenge'),
-        description: data.type === 'comeback'
+          : 'Weak Point Challenge'),
+        description: data.description || (data.type === 'comeback'
           ? 'Train 3x/week for 12 weeks to build your base'
           : data.type === 'streak'
           ? 'Train 3x/week for 8 weeks consecutively'
-          : (data.description || 'Target specific weak points'),
+          : 'Target specific weak points'),
         durationDays,
         weeksRemaining,
         progressPct,
@@ -896,15 +896,25 @@ export function useChallenges() {
       if (challengeData && challengeData.templateId) {
         const templateId = challengeData.templateId;
         const personalTemplateRef = doc(db, 'users', user.uid, 'personalTemplates', templateId);
+        const newTemplate = {
+          type: challengeData.type,
+          subtype: challengeData.subtype || 'campaign',
+          name: challengeData.name || null,
+          description: challengeData.description || null,
+          durationDays: challengeData.durationDays || 28,
+          goal: challengeData.goal || null,
+          rewardXP: challengeData.rewardXP || null
+        };
         try {
-          await setDoc(personalTemplateRef, {
-            type: challengeData.type,
-            subtype: challengeData.subtype || 'campaign',
-            name: challengeData.name,
-            description: challengeData.description,
-            durationDays: challengeData.durationDays || 28,
-            goal: challengeData.goal || null,
-            rewardXP: challengeData.rewardXP || null
+          await setDoc(personalTemplateRef, newTemplate);
+          
+          // Re-populate in local state so it appears in the Available list instantly
+          setPersonalTemplates((prev) => {
+            const hasIt = prev.some((t) => t.id === templateId);
+            if (!hasIt) {
+              return [...prev, { id: templateId, ...newTemplate }];
+            }
+            return prev;
           });
         } catch (recreateErr) {
           console.error('[useChallenges] Failed to recreate personal template:', recreateErr);
