@@ -40,6 +40,7 @@ vi.mock('recharts', async (importOriginal) => {
 vi.mock('../utils/notificationHelper', () => ({
   requestNotificationPermission: vi.fn(),
   sendBrowserNotification: vi.fn(),
+  sendPushNotification: vi.fn(),
 }));
 
 // Mock API client

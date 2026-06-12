@@ -7,7 +7,7 @@ import { deriveLevelFromXP, getAvatarStyle, isTitleActive, isAuraActive } from '
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useSquadStore } from '../../stores/useSquadStore';
 import { callZenkaiAPI } from '../../lib/apiClient';
-import { requestNotificationPermission, sendBrowserNotification } from '../../utils/notificationHelper';
+import { requestNotificationPermission, sendBrowserNotification, sendPushNotification } from '../../utils/notificationHelper';
 import { LineChart, Line, XAxis as ReXAxis, YAxis as ReYAxis, CartesianGrid, Tooltip as ReTooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -884,19 +884,42 @@ export const SquadMatchmaker = () => {
     if (!activeSquad || !uid) return;
 
     try {
+      let targetTimestamp = null;
+      if (checkInTime !== 'Not Going') {
+        const today = new Date();
+        const [h, m] = checkInTime.split(':').map(Number);
+        today.setHours(h, m, 0, 0);
+        targetTimestamp = today;
+      }
+
       const presenceDocRef = doc(db, 'shared_squads', activeSquad.squadCode, 'presence', uid);
       await setDoc(presenceDocRef, {
         uid,
         name: profile?.name || 'Anonymous Bro',
         time: checkInTime,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        targetTimestamp,
+        personalNotified: false,
+        teammatesNotified: false
       });
+
       setSuccessMsg(
         checkInTime === 'Not Going'
           ? 'Recorded your rest day status ❌'
           : `Checked in for gym today at ${checkInTime}! 🏋️‍♂️`
       );
       setTimeout(() => setSuccessMsg(''), 3000);
+
+      // Trigger instant push notification to other squad members
+      const userName = profile?.name || 'A teammate';
+      await sendPushNotification({
+        squadCode: activeSquad.squadCode,
+        title: `Gym Status Update! 📣`,
+        body: checkInTime === 'Not Going'
+          ? `${userName} is resting / not going to the gym today.`
+          : `${userName} checked in to hit the gym today at ${checkInTime}!`,
+        url: '/squad'
+      });
     } catch (err) {
       console.error('[SquadMatchmaker] Check-In failed:', err);
       showAppAlert('Failed to check in.', "Error");
@@ -918,6 +941,17 @@ export const SquadMatchmaker = () => {
       });
       
       triggerFloatingEmoji(activityId, actionType === 'highFive' ? '👏' : '🔥');
+
+      // Send push notification to target user (owner of the activity doc)
+      if (activityDoc && activityDoc.uid !== uid && !alreadyReacted) {
+        const actionName = actionType === 'highFive' ? 'a High Five 👏' : 'Kudos 🔥';
+        await sendPushNotification({
+          recipientUids: [activityDoc.uid],
+          title: `Workout Reaction!`,
+          body: `${profile?.name || 'A teammate'} gave you ${actionName} for your workout!`,
+          url: '/squad'
+        });
+      }
     } catch (err) {
       console.error('[SquadMatchmaker] Social action failed:', err);
     }
@@ -1049,6 +1083,14 @@ export const SquadMatchmaker = () => {
           });
 
           showAppAlert(`Streak rescue successful! Gifted a Streak Shield to ${targetMember.name.replace(' (You)', '')}.`, "Rescue Successful");
+
+          // Trigger instant push notification to the rescued teammate
+          await sendPushNotification({
+            recipientUids: [targetMember.uid],
+            title: `Streak Rescued! 🛡️`,
+            body: `${profile?.name || 'A teammate'} rescued your streak with a Streak Shield!`,
+            url: '/squad'
+          });
         } catch (err) {
           console.error('[SquadMatchmaker] Streak Rescue failed:', err);
           showAppAlert(err.message || 'Failed to gift Streak Shield.', "Rescue Failed");
@@ -1090,6 +1132,14 @@ export const SquadMatchmaker = () => {
         creatorName: profile?.name || 'Anonymous Bro',
         createdAt: serverTimestamp(),
         status: 'active'
+      });
+
+      // Trigger instant push notification to squad
+      await sendPushNotification({
+        squadCode: activeSquad.squadCode,
+        title: `New Gym Poll! 🗳️`,
+        body: `${profile?.name || 'A teammate'} started a new poll: "${pollQuestion.trim()}"`,
+        url: '/squad'
       });
 
       setPollQuestion('');
@@ -1315,6 +1365,14 @@ export const SquadMatchmaker = () => {
       });
       setSuccessMsg(`Draft Invite Sent to ${agent.name}!`);
       setTimeout(() => setSuccessMsg(''), 4000);
+
+      // Trigger push notification to invitee
+      await sendPushNotification({
+        recipientUids: [agent.uid],
+        title: `Squad Invite! 🎟️`,
+        body: `${profile?.name || 'Someone'} invited you to join their squad: ${activeSquad.squadName}!`,
+        url: '/squad'
+      });
     } catch (err) {
       console.error('[SquadMatchmaker] Draft failed:', err);
       showAppAlert('Draft invite failed.', 'Error');
@@ -1355,6 +1413,14 @@ export const SquadMatchmaker = () => {
       setSelectedAgent(null);
       setSuccessMsg(`Released ${targetMemberName} and sent invite to ${selectedAgent.name}!`);
       setTimeout(() => setSuccessMsg(''), 4000);
+
+      // Trigger push notification to invitee
+      await sendPushNotification({
+        recipientUids: [selectedAgent.uid],
+        title: `Squad Invite! 🎟️`,
+        body: `${profile?.name || 'Someone'} invited you to join their squad: ${activeSquad.squadName}!`,
+        url: '/squad'
+      });
     } catch (err) {
       console.error('[SquadMatchmaker] Trade failed:', err);
       showAppAlert('Trade execution failed.', 'Error');

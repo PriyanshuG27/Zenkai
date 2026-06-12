@@ -39,10 +39,15 @@ app.post('/api/generateChallenge', require('./routes/generateChallenge'));
 app.post('/api/getPRStats', require('./routes/getPRStats'));
 app.post('/api/generateSquadChallenge', require('./routes/generateSquadChallenge'));
 app.post('/api/generateWeeklyMagazine', require('./routes/generateWeeklyMagazine'));
+app.post('/api/sendNotification', require('./routes/sendNotification'));
 
 // Initialize automated weekly challenge background scheduler
 const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');
 initWeeklyChallengeScheduler();
+
+// Initialize automated 1-hour gym time reminder background scheduler
+const { initReminderScheduler } = require('./lib/reminderScheduler');
+initReminderScheduler();
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Zenkai Engine operational on port ${PORT}`));
