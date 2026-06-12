@@ -3349,11 +3349,12 @@ export const SquadMatchmaker = () => {
 
                         <img 
                           src={
-                            chestOpeningType === 'common' ? '/common_chest.png' : 
-                            chestOpeningType === 'rare' ? '/rare_chest.png' : 
-                            '/legendary_chest.png'
+                            chestOpeningType === 'common' ? '/common_chest.webp' : 
+                            chestOpeningType === 'rare' ? '/rare_chest.webp' : 
+                            '/legendary_chest.webp'
                           } 
                           alt="Opening Chest" 
+                          loading="lazy"
                           className="w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10" 
                         />
 

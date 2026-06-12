@@ -1677,7 +1677,7 @@ export const MobileChallenges = () => {
                           </span>
                         </div>
                         <div className="w-36 h-36 mx-auto bg-amber-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/common_chest.png" alt="Common Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                          <img src="/common_chest.webp" alt="Common Chest" loading="lazy" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
                         </div>
                         <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
                           Bronze Vault Box
@@ -1722,7 +1722,7 @@ export const MobileChallenges = () => {
                           </span>
                         </div>
                         <div className="w-36 h-36 mx-auto bg-blue-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/rare_chest.png" alt="Rare Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                          <img src="/rare_chest.webp" alt="Rare Chest" loading="lazy" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
                         </div>
                         <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
                           Iron Vault Chest
@@ -1767,7 +1767,7 @@ export const MobileChallenges = () => {
                           </span>
                         </div>
                         <div className="w-36 h-36 mx-auto bg-purple-950/20 border-2 border-black rounded-xl flex items-center justify-center relative select-none shadow-[2px_2px_0px_black]">
-                          <img src="/legendary_chest.png" alt="Legendary Chest" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
+                          <img src="/legendary_chest.webp" alt="Legendary Chest" loading="lazy" className="h-32 w-32 object-contain hover:scale-[1.1] transition-transform duration-300" />
                         </div>
                         <h5 className="font-display font-black text-lg text-white uppercase tracking-wide font-barlow">
                           Obsidian Vault Relic
@@ -1902,11 +1902,12 @@ export const MobileChallenges = () => {
 
                         <img 
                           src={
-                            chestOpeningType === 'common' ? '/common_chest.png' : 
-                            chestOpeningType === 'rare' ? '/rare_chest.png' : 
-                            '/legendary_chest.png'
+                            chestOpeningType === 'common' ? '/common_chest.webp' : 
+                            chestOpeningType === 'rare' ? '/rare_chest.webp' : 
+                            '/legendary_chest.webp'
                           } 
                           alt="Opening Chest" 
+                          loading="lazy"
                           className="w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10" 
                         />
 
