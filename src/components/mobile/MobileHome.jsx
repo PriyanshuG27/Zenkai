@@ -186,33 +186,11 @@ export const MobileHome = () => {
   }, [uid, location.key]);
 
 
-  // Calculate XP percentage inside current level for any given XP value
-  const getLevelPercentage = (xpValue) => {
-    if (level < 6) {
-      // Rookie: 200 XP per level (thresholds: L1=0, L2=200, L3=400, etc.)
-      const levelStart = (level - 1) * 200;
-      const progress = xpValue - levelStart;
-      return Math.min(100, Math.max(0, (progress / 200) * 100));
-    } else if (level < 16) {
-      // Challenger: 600 XP per level (1000 to 7000)
-      const levelStart = 1000 + (level - 6) * 600;
-      const progress = xpValue - levelStart;
-      return Math.min(100, Math.max(0, (progress / 600) * 100));
-    } else if (level < 31) {
-      // Athlete: 1533 XP per level (7000 to 30000)
-      const levelStart = 7000 + (level - 16) * 1533.3;
-      const progress = xpValue - levelStart;
-      return Math.min(100, Math.max(0, (progress / 1533.3) * 100));
-    } else {
-      // Elite: 2000 XP per level
-      const levelStart = 30000 + (level - 31) * 2000;
-      const progress = xpValue - levelStart;
-      return Math.min(100, Math.max(0, (progress / 2000) * 100));
-    }
-  };
-
-  const spendablePercentage = getLevelPercentage(xp);
-  const lifetimePercentage = getLevelPercentage(totalXP);
+  // Calculate XP percentage scaled from 0 to next level's lifetime threshold
+  const nextLevelThreshold = totalXP + xpToNextLevel;
+  const spendablePercentage = nextLevelThreshold > 0 ? Math.min(100, Math.max(0, (xp / nextLevelThreshold) * 100)) : 0;
+  const lifetimePercentage = nextLevelThreshold > 0 ? Math.min(100, Math.max(0, (totalXP / nextLevelThreshold) * 100)) : 0;
+  const displayXpToNextLevel = nextLevelThreshold - xp;
 
   // Find active joined challenge (campaign subtype only)
   const activeChallenge = challenges.find(
@@ -411,7 +389,7 @@ export const MobileHome = () => {
             </span>
           </div>
           <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">
-            {xp} <span className="text-[var(--text-secondary)]">/ {xp + xpToNextLevel} XP</span>
+            {xp} <span className="text-[var(--text-secondary)]">/ {nextLevelThreshold} XP</span>
           </span>
         </div>
 
@@ -436,7 +414,7 @@ export const MobileHome = () => {
         <div className="flex justify-between items-center mt-2">
           {xpToNextLevel > 0 ? (
             <p className="text-[10px] text-[var(--text-secondary)] font-sans">
-              🔥 Just <span className="font-mono font-bold text-[var(--accent-xp)]">{xpToNextLevel} XP</span> to reach Level {level + 1}!
+              🔥 Just <span className="font-mono font-bold text-[var(--accent-xp)]">{displayXpToNextLevel} XP</span> to reach Level {level + 1}!
             </p>
           ) : (
             <p className="text-[10px] text-[var(--accent-xp)] font-sans font-bold uppercase tracking-wider">
