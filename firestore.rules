@@ -61,7 +61,7 @@ service cloud.firestore {
         // Gamification — Phase 5
         'cooldowns', 'skills',
         // New Profile Fields
-        'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad', 'totalSessions', 'aura', 'activeTitle',
+        'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad', 'totalSessions', 'aura', 'activeTitle', 'strengthScore',
         // Academic Buffer & Prehab
         'examDeloadActive', 'lastPrehabDate',
         // Plan regeneration limits

@@ -57,6 +57,8 @@ import { getBWEffectiveFraction } from '../utils/bwEffectiveLoad';
 import { useChallenges } from './useChallenges';
 import { clearStrengthCache } from './useProgress';
 import { determineWorkoutName } from '../lib/firestoreUtils';
+import { calculateDetailedMuscleStrength } from '../utils/strengthCalculator';
+
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -628,6 +630,29 @@ export function useWorkoutLogger() {
       });
     }
 
+    // Merge existing PRs with new PRs to get the absolute latest PRs list
+    const updatedPRsMap = { ...existingPRsMap };
+    newPRs.forEach((pr) => {
+      updatedPRsMap[pr.exerciseKey] = {
+        exerciseKey: pr.exerciseKey,
+        exerciseId: pr.exerciseId,
+        name: pr.name,
+        weight: pr.weight,
+        reps: pr.reps,
+      };
+    });
+    const allLatestPRsList = Object.values(updatedPRsMap);
+
+    const strengthRes = calculateDetailedMuscleStrength(allLatestPRsList, userData);
+    const generalAvg = strengthRes.general || {};
+    const overallStrengthScore = Math.round(
+      ((generalAvg.chest || 30) +
+       (generalAvg.back || 30) +
+       (generalAvg.shoulders || 30) +
+       (generalAvg.arms || 30) +
+       (generalAvg.legs || 30)) / 5
+    );
+
     return {
       uid,
       userRef,
@@ -651,6 +676,8 @@ export function useWorkoutLogger() {
       isQuickLog,
       totalVolume,
       teamSquadCodes: squadsSnap.docs.map(d => d.id),
+      strengthScore: overallStrengthScore,
+
       summary: {
         sessionId,
         totalVolume,
@@ -695,7 +722,7 @@ export function useWorkoutLogger() {
       newPRs, xpEarned, newXP, newDerived, newStreak,
       powerUps, latestLiftsMap, latestRestTimesMap,
       squadCode, userName, weeklyVolume, squadChallengeUpdates,
-      isQuickLog, totalVolume, teamSquadCodes
+      isQuickLog, totalVolume, teamSquadCodes, strengthScore
     } = payload;
 
     const batch = writeBatch(db);
@@ -737,6 +764,7 @@ export function useWorkoutLogger() {
       totalSessions:      increment(1),
       latestLiftsMap:     latestLiftsMap || {}, // flat cache map update
       latestRestTimesMap: latestRestTimesMap || {}, // flat cache map update
+      strengthScore:      strengthScore || 30,
     };
     if (powerUps) {
       userUpdates.powerUps = powerUps;
@@ -754,6 +782,7 @@ export function useWorkoutLogger() {
         streak: newStreak,
         volume: weeklyVolume,
         squadCode: squadCode,
+        strengthScore: strengthScore || 30,
         updatedAt: serverTimestamp()
       }, { merge: true });
     }

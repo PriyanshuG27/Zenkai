@@ -191,7 +191,7 @@ export function calculateStrengthScore(ratio, multipliers) {
  * Compiles 0-100 scores for all 14 detailed muscle groups based on user PRs.
  */
 export function calculateDetailedMuscleStrength(prs = [], profile = {}) {
-  const bw = parseFloat(profile.weight) || 75; // Default bodyweight
+  const bw = parseFloat(profile.weightKg) || parseFloat(profile.weight) || 75; // Default bodyweight
   const gender = (profile.gender || 'male').toLowerCase();
 
   // Create mappings of exercise keys to muscle groups

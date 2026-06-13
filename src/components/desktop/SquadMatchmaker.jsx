@@ -10,6 +10,8 @@ import { callZenkaiAPI } from '../../lib/apiClient';
 import { requestNotificationPermission, sendBrowserNotification, sendPushNotification } from '../../utils/notificationHelper';
 import { LineChart, Line, XAxis as ReXAxis, YAxis as ReYAxis, CartesianGrid, Tooltip as ReTooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import { calculateDetailedMuscleStrength } from '../../utils/strengthCalculator';
+
 
 
 
@@ -204,13 +206,25 @@ export const SquadMatchmaker = () => {
         const consSnap = await getDocs(consQ);
         const consistency = Math.min(100, Math.round((consSnap.size / 6) * 100));
 
-        // Fetch PRs (only 2 specific docs, not a collection scan)
-        const benchRef = doc(db, 'users', uid, 'prs', 'barbell_bench_press');
-        const squatRef = doc(db, 'users', uid, 'prs', 'barbell_squat');
-        const [benchSnap, squatSnap] = await Promise.all([getDoc(benchRef), getDoc(squatRef)]);
+        // Fetch all PRs to calculate hypertrophy-based strength index
+        const prsCol = collection(db, 'users', uid, 'prs');
+        const prsSnap = await getDocs(prsCol);
+        const prs = prsSnap.docs.map(doc => doc.data());
         
-        const benchPR = benchSnap.exists() ? (parseFloat(benchSnap.data().weight) || 0) : 0;
-        const squatPR = squatSnap.exists() ? (parseFloat(squatSnap.data().weight) || 0) : 0;
+        const strengthRes = calculateDetailedMuscleStrength(prs, profile);
+        const generalAvg = strengthRes.general || {};
+        const strengthScore = Math.round(
+          ((generalAvg.chest || 30) +
+           (generalAvg.back || 30) +
+           (generalAvg.shoulders || 30) +
+           (generalAvg.arms || 30) +
+           (generalAvg.legs || 30)) / 5
+        );
+
+        const benchDoc = prs.find(p => p.exerciseKey === 'barbell_bench_press');
+        const squatDoc = prs.find(p => p.exerciseKey === 'barbell_squat');
+        const benchPR = benchDoc ? (parseFloat(benchDoc.weight) || 0) : 0;
+        const squatPR = squatDoc ? (parseFloat(squatDoc.weight) || 0) : 0;
         
         // Sync public squad_codes document with latest stats
         const codeRef = doc(db, 'squad_codes', code);
@@ -230,6 +244,7 @@ export const SquadMatchmaker = () => {
           gymName: profile.gymName || '',
           benchPR,
           squatPR,
+          strengthScore,
           consistency,
           goal: profile.goal || 'Fitness',
           avatarUrl: profile.avatarUrl || '',
@@ -472,7 +487,7 @@ export const SquadMatchmaker = () => {
             goal: data.goal || 'Fitness',
             streak: data.streak || 0,
             attributes: [
-              { subject: 'Strength', A: Math.min(100, Math.round(((data.benchPR || 0) + (data.squatPR || 0)) / 3)), B: 100, fullMark: 100 },
+              { subject: 'Strength', A: data.strengthScore !== undefined ? data.strengthScore : Math.min(100, Math.round(((data.benchPR || 0) + (data.squatPR || 0)) / 3)), B: 100, fullMark: 100 },
               { subject: 'Volume', A: Math.min(100, Math.round((data.volume || 0) / 100)), B: 100, fullMark: 100 },
               { subject: 'Consistency', A: data.consistency || 0, B: 100, fullMark: 100 },
               { subject: 'Level', A: Math.min(100, (data.level || 1) * 5), B: 100, fullMark: 100 },
@@ -1050,7 +1065,7 @@ export const SquadMatchmaker = () => {
       const streak = parseInt(merged.streak, 10) || 0;
       
       merged.attributes = [
-        { subject: 'Strength', A: Math.min(100, Math.round((bench + squat) / 3)), B: 100, fullMark: 100 },
+        { subject: 'Strength', A: merged.strengthScore !== undefined ? merged.strengthScore : Math.min(100, Math.round((bench + squat) / 3)), B: 100, fullMark: 100 },
         { subject: 'Volume', A: Math.min(100, Math.round(volume / 100)), B: 100, fullMark: 100 },
         { subject: 'Consistency', A: consistency, B: 100, fullMark: 100 },
         { subject: 'Level', A: Math.min(100, level * 5), B: 100, fullMark: 100 },
@@ -1069,7 +1084,7 @@ export const SquadMatchmaker = () => {
       const streak = parseInt(member.streak, 10) || 0;
       
       member.attributes = [
-        { subject: 'Strength', A: Math.min(100, Math.round((bench + squat) / 3)), B: 100, fullMark: 100 },
+        { subject: 'Strength', A: member.strengthScore !== undefined ? member.strengthScore : Math.min(100, Math.round((bench + squat) / 3)), B: 100, fullMark: 100 },
         { subject: 'Volume', A: Math.min(100, Math.round(volume / 100)), B: 100, fullMark: 100 },
         { subject: 'Consistency', A: consistency, B: 100, fullMark: 100 },
         { subject: 'Level', A: Math.min(100, level * 5), B: 100, fullMark: 100 },
@@ -1366,7 +1381,7 @@ export const SquadMatchmaker = () => {
 
   const inactiveMembers = useMemo(() => {
     return activeSquadMembers.filter(m => {
-      if (!m.updatedAt) return false;
+      if (!m.updatedAt || new Date(m.updatedAt).getTime() === 0) return true;
       const hrs = (Date.now() - new Date(m.updatedAt).getTime()) / (1000 * 60 * 60);
       return hrs > 24 && m.uid !== uid;
     });

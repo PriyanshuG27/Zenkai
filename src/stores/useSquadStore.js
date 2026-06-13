@@ -153,7 +153,7 @@ export const useSquadStore = create((set, get) => {
                     uid: nextMembers[idx].uid,
                     name: memberName,
                     checkIn: (fresh.streak || 0) > 0,
-                    updatedAt: fresh.updatedAt ? (fresh.updatedAt.toDate ? fresh.updatedAt.toDate() : new Date(fresh.updatedAt)) : new Date(),
+                    updatedAt: fresh.updatedAt ? (fresh.updatedAt.toDate ? fresh.updatedAt.toDate() : new Date(fresh.updatedAt)) : new Date(0),
                   };
                 } else {
                   nextMembers.push({
@@ -162,7 +162,7 @@ export const useSquadStore = create((set, get) => {
                     uid: m.uid,
                     name: memberName,
                     checkIn: (fresh.streak || 0) > 0,
-                    updatedAt: fresh.updatedAt ? (fresh.updatedAt.toDate ? fresh.updatedAt.toDate() : new Date(fresh.updatedAt)) : new Date(),
+                    updatedAt: fresh.updatedAt ? (fresh.updatedAt.toDate ? fresh.updatedAt.toDate() : new Date(fresh.updatedAt)) : new Date(0),
                   });
                 }
 
