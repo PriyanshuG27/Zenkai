@@ -5,6 +5,7 @@ import { useXPStore } from './stores/useXPStore';
 import { useDeviceLayout } from './hooks/useDeviceLayout';
 import { useUIStore } from './stores/useUIStore';
 import { useFCM } from './hooks/useFCM';
+import { deriveLevelFromXP } from './lib/xpHelpers';
 
 
 // ─── Global Error Boundary ────────────────────────────────────────────────────
@@ -361,7 +362,38 @@ function App() {
               (snap) => {
                 publicLoaded = true;
                 if (snap.exists()) {
-                  publicData = snap.data();
+                  const data = snap.data();
+                  publicData = data;
+                  
+                  // Auto-initialize / heal cumulativeXP and correct any past level corruption
+                  if (data.cumulativeXP === undefined) {
+                    (async () => {
+                      try {
+                        const { getDocs, collection, updateDoc } = await import('firebase/firestore');
+                        const xpLogCol = collection(db, 'users', firebaseUser.uid, 'xpLog');
+                        const xpLogSnap = await getDocs(xpLogCol);
+                        
+                        let calculatedCumulative = 0;
+                        xpLogSnap.forEach((logDoc) => {
+                          calculatedCumulative += (logDoc.data().amount || 0);
+                        });
+                        
+                        // Fallback to current xp if calculated is lower (e.g. legacy user with incomplete logs)
+                        const finalCumulative = Math.max(data.xp || 0, calculatedCumulative);
+                        const derived = deriveLevelFromXP(finalCumulative);
+                        
+                        await updateDoc(publicRef, {
+                          cumulativeXP: finalCumulative,
+                          level: derived.level,
+                          levelName: derived.levelName
+                        });
+                        
+                        console.log(`[App] Initialized cumulativeXP to ${finalCumulative} (Level ${derived.level}) for user ${firebaseUser.uid}`);
+                      } catch (migrationErr) {
+                        console.warn('[App] Failed to migrate/initialize cumulativeXP:', migrationErr);
+                      }
+                    })();
+                  }
                 } else {
                   publicData = null;
                 }
