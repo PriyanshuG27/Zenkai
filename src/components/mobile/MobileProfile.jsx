@@ -139,7 +139,7 @@ export const MobileProfile = () => {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
   const uid = auth.currentUser?.uid;
-  const { totalXP, level, levelName, streak } = useXPStore();
+  const { xp, totalXP, level, levelName, streak } = useXPStore();
   const { isStandalone, openModal, addToast } = useUIStore();
   const activeSquadCode = useSquadStore((s) => s.activeSquadCode);
   const [expandedVersion, setExpandedVersion] = useState('1.1.1');
@@ -549,23 +549,32 @@ export const MobileProfile = () => {
       </div>
 
       {/* ─── QUICK METRICS GRID ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-3 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-1">
-          <span className="text-[9px] font-mono text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-            <Flame size={12} className="text-[var(--primary)]" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="border border-[var(--border-bright)] bg-[var(--surface)] p-2 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] flex flex-col gap-0.5 items-center text-center">
+          <span className="text-[8px] font-mono text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-0.5">
+            <Flame size={10} className="text-[var(--primary)]" />
             STREAK
           </span>
-          <span className="font-mono text-xl font-bold text-white">
-            {streak} <span className="text-xs text-[var(--text-secondary)] font-sans">days</span>
+          <span className="font-mono text-base font-bold text-white">
+            {streak} <span className="text-[10px] text-[var(--text-secondary)] font-sans">days</span>
           </span>
         </div>
-        <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-3 rounded-lg shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col gap-1">
-          <span className="text-[9px] font-mono text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-            <Trophy size={12} className="text-[var(--accent-xp)]" />
-            TOTAL XP
+        <div className="border border-[var(--border-bright)] bg-[var(--surface)] p-2 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] flex flex-col gap-0.5 items-center text-center">
+          <span className="text-[8px] font-mono text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-0.5">
+            <Trophy size={10} className="text-[var(--accent-xp)]" />
+            BALANCE
           </span>
-          <span className="font-mono text-xl font-bold text-white">
-            {totalXP} <span className="text-xs text-[var(--text-secondary)] font-sans">XP</span>
+          <span className="font-mono text-base font-bold text-white">
+            {xp} <span className="text-[10px] text-[var(--text-secondary)] font-sans">XP</span>
+          </span>
+        </div>
+        <div className="border border-[var(--border-bright)] bg-[var(--surface)] p-2 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] flex flex-col gap-0.5 items-center text-center">
+          <span className="text-[8px] font-mono text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-0.5">
+            <Award size={10} className="text-[#3b82f6]" />
+            LIFETIME
+          </span>
+          <span className="font-mono text-base font-bold text-white">
+            {totalXP} <span className="text-[10px] text-[var(--text-secondary)] font-sans">XP</span>
           </span>
         </div>
       </div>

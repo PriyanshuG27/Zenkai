@@ -124,7 +124,7 @@ export const MobileHome = () => {
     }
   };
   const { planLoading, currentPlan, planDays, weekId, planError, hasFetched, isNewUser } = usePlanStore();
-  const { totalXP, level, levelName, xpToNextLevel, streak, setXP } = useXPStore();
+  const { xp, totalXP, level, levelName, xpToNextLevel, streak, setXP } = useXPStore();
   const { challenges, userProgress } = useChallenges();
   const {
     recap,
@@ -409,7 +409,7 @@ export const MobileHome = () => {
             </span>
           </div>
           <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">
-            {totalXP} <span className="text-[var(--text-secondary)]">/ {totalXP + xpToNextLevel} XP</span>
+            {xp} <span className="text-[var(--text-secondary)]">/ {totalXP + xpToNextLevel} XP</span>
           </span>
         </div>
 
@@ -423,15 +423,20 @@ export const MobileHome = () => {
           />
         </div>
 
-        {xpToNextLevel > 0 ? (
-          <p className="text-[10px] text-[var(--text-secondary)] font-sans mt-2">
-            🔥 Just <span className="font-mono font-bold text-[var(--accent-xp)]">{xpToNextLevel} XP</span> to reach Level {level + 1}!
+        <div className="flex justify-between items-center mt-2">
+          {xpToNextLevel > 0 ? (
+            <p className="text-[10px] text-[var(--text-secondary)] font-sans">
+              🔥 Just <span className="font-mono font-bold text-[var(--accent-xp)]">{xpToNextLevel} XP</span> to reach Level {level + 1}!
+            </p>
+          ) : (
+            <p className="text-[10px] text-[var(--accent-xp)] font-sans font-bold uppercase tracking-wider">
+              🏆 MAX LEVEL ACHIEVED
+            </p>
+          )}
+          <p className="text-[10px] text-[var(--text-secondary)] font-sans flex items-center gap-1">
+            🌟 Lifetime Best: <span className="font-mono font-bold text-[var(--text-primary)]">{totalXP} XP</span>
           </p>
-        ) : (
-          <p className="text-[10px] text-[var(--accent-xp)] font-sans mt-2 font-bold uppercase tracking-wider">
-            🏆 MAX LEVEL ACHIEVED
-          </p>
-        )}
+        </div>
       </div>
 
       {/* ─── TODAY'S MISSION OR PLAN GENERATION ──────────────────────────────── */}
