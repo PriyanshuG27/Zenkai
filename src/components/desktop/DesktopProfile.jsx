@@ -4,6 +4,7 @@ import { useUIStore } from '../../stores/useUIStore';
 import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc, collection, getDocs, deleteDoc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
+import { useAuth } from '../../hooks/useAuth';
 import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -134,6 +135,7 @@ const MEDICAL_CATEGORIES = [
 
 export const DesktopProfile = () => {
   const { uid, profile } = useAuthStore();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useUIStore();
   const [activeTab, setActiveTab] = useState('equipment');
@@ -288,7 +290,7 @@ export const DesktopProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
     } catch (err) {
       console.error('[Profile] Sign out failed:', err);
     }

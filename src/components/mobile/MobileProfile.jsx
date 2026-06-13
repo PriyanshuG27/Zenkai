@@ -11,6 +11,7 @@ import { Smartphone, LogOut, Info, Sparkles, User, Flame, Trophy, Award, Check, 
 import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWeeklyRecap } from '../../hooks/useWeeklyRecap';
+import { useAuth } from '../../hooks/useAuth';
 import { WeeklyRecapScreen } from '../shared/WeeklyRecapScreen';
 import { GymLeaderboard } from '../shared/GymLeaderboard';
 import { compressGymImage } from '../../utils/imageCompressor';
@@ -137,6 +138,7 @@ function PushNotificationToggle() {
 export const MobileProfile = () => {
 
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const { profile } = useAuthStore();
   const uid = auth.currentUser?.uid;
   const { xp, totalXP, level, levelName, streak } = useXPStore();
@@ -409,7 +411,7 @@ export const MobileProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
       addToast('Successfully signed out!', 'info');
     } catch (err) {
       console.error('Error logging out:', err);

@@ -197,7 +197,9 @@ function AppRoutes({ layout }) {
           path="/onboarding/type"
           element={
             <ProtectedRoute>
-              <OnboardingScreen />
+              <OnboardingGuard>
+                <OnboardingScreen />
+              </OnboardingGuard>
             </ProtectedRoute>
           }
         />
@@ -241,7 +243,7 @@ function AppRoutes({ layout }) {
 
 // ─── App root ─────────────────────────────────────────────────────────────────
 function App() {
-  const { setUser, setLoading, setProfile } = useAuthStore();
+  const { setUser, setLoading, setProfile, clearAuth } = useAuthStore();
   const { setPwaDeferredPrompt, setIsStandalone, setIsIOS, addToast } = useUIStore();
 
   // layout is detected ONCE at root — 'mobile' | 'desktop'
@@ -444,8 +446,7 @@ function App() {
               unsubProfile();
               unsubProfile = null;
             }
-            setProfile(null);
-            setLoading(false);
+            clearAuth();
           }
         });
       } catch (err) {
