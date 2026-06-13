@@ -1618,7 +1618,7 @@ export const SquadMatchmaker = () => {
         <div className="flex items-center gap-3">
           {/* Small Zenkai Logo on Mobile */}
           <div className="w-7 h-7 rounded bg-black border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0 select-none block lg:hidden">
-            <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
+            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <h3 className="font-display font-black text-xl text-white uppercase tracking-tight flex items-center gap-2">
             <Users className="text-[var(--primary)]" size={22} />

@@ -21,7 +21,26 @@
 
 import { create } from 'zustand';
 
+
+// ── Synchronous PWA detection ──────────────────────────────────────────────
+// Detect standalone/iOS at module load time (before React renders a single
+// frame). This prevents the PWA install card from appearing for one frame
+// and then disappearing, which causes a large Cumulative Layout Shift (CLS).
+// The typeof matchMedia guard keeps this safe inside jsdom (Vitest) which
+// does not implement matchMedia.
+const _isStandalone =
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  (window.matchMedia('(display-mode: standalone)').matches ||
+    !!window.navigator.standalone);
+const _isIOS =
+  typeof navigator !== 'undefined' &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  !window.MSStream;
+
+
 let toastCounter = 0;
+
 
 export const useUIStore = create((set) => ({
   toasts:       [],
@@ -31,11 +50,12 @@ export const useUIStore = create((set) => ({
   mobileTab:    'home',
   sidebarOpen:  true,
 
-  // PWA states
+  // PWA states — pre-populated synchronously to avoid layout shifts on first render
   pwaDeferredPrompt: null,
   pwaInstallable: false,
-  isStandalone: false,
-  isIOS: false,
+  isStandalone: _isStandalone,
+  isIOS: _isIOS,
+
 
   addToast: (message, type = 'info', duration = 3500) => {
     const id = ++toastCounter;

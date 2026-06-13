@@ -13,7 +13,7 @@ export const AuthSpinner = ({ label = 'Securing Access...' }) => (
       <div className="absolute w-full h-full rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
       {/* Inner Zenkai logo badge */}
       <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
-        <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-1" />
+        <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-1" />
       </div>
     </div>
     <span className="font-mono text-xs text-text-secondary uppercase tracking-widest animate-pulse">

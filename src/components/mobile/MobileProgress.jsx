@@ -481,7 +481,7 @@ export const MobileProgress = () => {
         <div className="flex items-center gap-3">
           {/* Small Zenkai Logo - only visible on mobile (hidden on lg) */}
           <div className="lg:hidden w-8 h-8 rounded bg-black border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0 select-none">
-            <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
+            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <div>
             <h1 className="font-display text-2xl font-extrabold tracking-tight uppercase leading-none font-barlow text-white">

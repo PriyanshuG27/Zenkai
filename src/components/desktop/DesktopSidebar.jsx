@@ -47,7 +47,7 @@ export const DesktopSidebar = () => {
         {/* Logo Header */}
         <div className="h-16 flex items-center gap-3 px-6 border-b border-[var(--border)] shrink-0">
           <div className="w-8 h-8 rounded bg-black border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0">
-            <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
+            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <span className="font-display text-2xl font-bold tracking-wider text-[var(--primary)]">
             ZENKAI

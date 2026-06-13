@@ -1,6 +1,6 @@
 import React from 'react';
-import mannequinFront from '../../assets/mannequin_front.png';
-import mannequinBack from '../../assets/mannequin_back.png';
+import mannequinFront from '../../assets/mannequin_front.webp';
+import mannequinBack from '../../assets/mannequin_back.webp';
 
 const VIEW_BOX = "0 0 240 420";
 

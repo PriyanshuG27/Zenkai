@@ -238,8 +238,9 @@ export const DesktopProfile = () => {
       const privateProfileRef = doc(db, 'users', uid, 'private', 'profile');
       await deleteDoc(privateProfileRef);
 
-      // Clear the local weekly plan store since we deleted weeklyPlans
-      const { usePlanStore } = await import('../../stores/usePlanStore');
+      // Clear the local weekly plan store (Zustand) + localStorage SWR cache
+      const { usePlanStore, clearPlanCache } = await import('../../stores/usePlanStore');
+      clearPlanCache(uid); // wipe all week caches for this user
       usePlanStore.getState().clearPlan();
 
       // Trigger profile sync so useAuthStore gets the updated values

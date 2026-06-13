@@ -131,7 +131,7 @@ const DesktopApp = safeLazy(() => import('./components/desktop/DesktopApp'));
 import { GuestRoute }      from './components/shared/GuestRoute';
 import { ProtectedRoute, AuthSpinner }  from './components/shared/ProtectedRoute';
 import { OnboardingGuard } from './components/shared/OnboardingGuard';
-import { writeProfileCache } from './stores/authStore';
+import { writeProfileCache, readProfileCache } from './stores/authStore';
 
 // Shared Screens — lazy-loaded so they don't inflate the main JS chunk
 // that every logged-in user downloads on every page visit.
@@ -327,7 +327,17 @@ function App() {
         unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
           setUser(firebaseUser ?? null);
           if (firebaseUser) {
+          // ── SWR fast-path ──────────────────────────────────────────────
+          // If we already have a cached profile in localStorage we can skip
+          // setLoading(true) entirely.  The Firestore onSnapshot below will
+          // update the store in the background (Stale-While-Revalidate).
+          // Without this, every returning user sees a full-screen AuthSpinner
+          // for ~3s while Firebase resolves — the #1 LCP killer.
+          const hasCachedProfile = readProfileCache() !== null;
+          if (!hasCachedProfile) {
             setLoading(true);
+          }
+
             
             let publicData = null;
             let privateData = null;

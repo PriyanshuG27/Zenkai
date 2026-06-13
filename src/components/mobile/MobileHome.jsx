@@ -393,7 +393,7 @@ export const MobileHome = () => {
         <div className="flex items-center gap-3">
           {/* Small Zenkai Logo */}
           <div className="w-8 h-8 rounded bg-black border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0 select-none">
-            <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
+            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-mono text-[var(--text-secondary)] uppercase tracking-widest leading-none">
@@ -468,7 +468,7 @@ export const MobileHome = () => {
           <div className="flex gap-3 items-center">
             {/* App Icon */}
             <div className="w-12 h-12 bg-black rounded-2xl border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,0.2)] shrink-0 select-none overflow-hidden">
-              <img src="/logos/zenkai_official_logo.png" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
+              <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" />
             </div>
             <div className="flex flex-col">
               <span className="font-display font-extrabold text-sm uppercase tracking-wide">

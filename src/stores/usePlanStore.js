@@ -28,13 +28,59 @@ function currentWeekId() {
   return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
+// ── SWR plan cache helpers ─────────────────────────────────────────────────
+// Persist the plan in localStorage so returning users see the weekly schedule
+// instantly on mount — before the Firestore getDoc resolves.
+const PLAN_CACHE_PREFIX = 'zenkai_plan_cache_';
+
+export function writePlanCache(uid, weekId, planDoc) {
+  try {
+    if (uid && weekId && planDoc) {
+      localStorage.setItem(
+        `${PLAN_CACHE_PREFIX}${uid}_${weekId}`,
+        JSON.stringify(planDoc)
+      );
+    }
+  } catch {
+    // Ignore storage quota errors silently
+  }
+}
+
+export function readPlanCache(uid, weekId) {
+  try {
+    const raw = localStorage.getItem(`${PLAN_CACHE_PREFIX}${uid}_${weekId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPlanCache(uid, weekId) {
+  try {
+    if (uid && weekId) {
+      localStorage.removeItem(`${PLAN_CACHE_PREFIX}${uid}_${weekId}`);
+    } else if (uid) {
+      // Clear all weeks for this user
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith(`${PLAN_CACHE_PREFIX}${uid}_`)) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
+const _weekId = currentWeekId();
+
 export const usePlanStore = create((set) => ({
   currentPlan:  null,
   planDays:     [],
   planLoading:  false,
   planError:    null,
   generatedAt:  null,
-  weekId:       currentWeekId(),
+  weekId:       _weekId,
   hasFetched:   false,
   isNewUser:    false,
 

@@ -3,6 +3,10 @@
  *
  * Fetches the current week's AI plan and triggers Gemini plan generation.
  * Modifies the global Zustand store (usePlanStore) rather than holding local state.
+ *
+ * SWR strategy: on mount, reads the cached plan from localStorage (if any) and
+ * hydrates the store immediately — before the Firestore network call resolves.
+ * This eliminates the "Weekly Schedule skeleton" flash (CLS) for returning users.
  */
 
 import { useEffect, useCallback } from 'react';
@@ -10,7 +14,7 @@ import { doc, getDoc, collection, query, limit, getDocs } from 'firebase/firesto
 import { db }                     from '../lib/firebase';
 import { callZenkaiAPI }         from '../lib/apiClient';
 import { useAuthStore }           from '../stores/useAuthStore';
-import { usePlanStore }           from '../stores/usePlanStore';
+import { usePlanStore, writePlanCache, readPlanCache } from '../stores/usePlanStore';
 import { useUIStore }             from '../stores/useUIStore';
 
 // Maps error message substrings to user-friendly messages.
@@ -47,7 +51,10 @@ export function useWeeklyPlan() {
       const isNewUser = plansSnap.empty;
 
       if (snap.exists()) {
-        setPlan(snap.data(), isNewUser);
+        const planData = snap.data();
+        setPlan(planData, isNewUser);
+        // Write the fresh plan back to localStorage so next mount is instant
+        writePlanCache(user.uid, weekId, planData);
       } else {
         setPlan(null, isNewUser);
       }
@@ -58,13 +65,23 @@ export function useWeeklyPlan() {
     }
   }, [user?.uid, weekId, setPlan, setPlanLoading, setPlanError]);
 
-  // Fetch existing plan on mount if not already loaded for this week
-  // Also re-fetch when weekId changes (week rollover in long-running PWA sessions)
+  // Fetch existing plan on mount if not already loaded for this week.
+  // SWR: hydrate from localStorage first so the UI paints without a skeleton,
+  // then re-fetch from Firestore to pick up any server-side changes.
+  // Also re-fetch when weekId changes (week rollover in long-running PWA sessions).
   useEffect(() => {
-    if (user && !currentPlan) {
-      getCurrentPlan();
+    if (!user) return;
+    // If we have no plan in the store yet, try to hydrate from the local cache first
+    if (!currentPlan) {
+      const cached = readPlanCache(user.uid, weekId);
+      if (cached) {
+        // Hydrate immediately — no spinner, no skeleton
+        setPlan(cached, false);
+      }
     }
-  }, [user?.uid, weekId, currentPlan, getCurrentPlan]);
+    // Always re-validate from Firestore in the background
+    getCurrentPlan();
+  }, [user?.uid, weekId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const generatePlan = useCallback(async (personalRequirements = '', usePowerUp = false) => {
     if (!user) return;

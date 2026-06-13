@@ -299,7 +299,7 @@ export const MobileLogger = () => {
             const title = 'Zenkai Rest Timer';
             const options = {
               body: 'Rest over! Time for your next set. 💪',
-              icon: '/logos/zenkai_app_icon.png',
+              icon: '/logos/zenkai_app_icon.webp',
               tag: 'zenkai-rest-timer',
               requireInteraction: true,
               vibrate: [300, 100, 300]
