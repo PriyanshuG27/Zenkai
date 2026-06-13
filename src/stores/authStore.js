@@ -4,7 +4,19 @@ import { create } from 'zustand';
 // Persist the merged public+private profile in localStorage so we can hydrate
 // the store instantly on the next page load — before Firebase Auth resolves.
 // This eliminates the full-screen AuthSpinner for returning users.
+//
+// SECURITY: Private/PII fields (from /private/profile) are stripped before
+// caching. Only non-sensitive public profile fields are persisted.
 const PROFILE_CACHE_KEY = 'zenkai_profile_cache';
+
+// Fields sourced from users/{uid}/private/profile — must never be cached in
+// localStorage (shared-device risk: data persists after the user walks away).
+const PII_FIELDS = [
+  'email', 'emailVerified', 'age', 'gender', 'heightCm', 'weightKg',
+  'goal', 'workoutFrequency', 'sessionDuration', 'dietType',
+  'currentSupplements', 'equipmentList', 'medicalFlags',
+  'examStartDate', 'examEndDate',
+];
 
 export function readProfileCache() {
   try {
@@ -18,7 +30,10 @@ export function readProfileCache() {
 export function writeProfileCache(profile) {
   try {
     if (profile) {
-      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+      // Strip PII before writing to localStorage
+      const safeProfile = { ...profile };
+      PII_FIELDS.forEach((key) => delete safeProfile[key]);
+      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(safeProfile));
     }
   } catch {
     // Ignore storage quota errors silently

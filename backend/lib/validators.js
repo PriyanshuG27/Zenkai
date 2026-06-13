@@ -29,6 +29,9 @@ const UID_MAX_LEN = 128;
 // The only keys allowed in a generatePlan request body.
 const ALLOWED_PLAN_KEYS = new Set(['weekId', 'personalRequirements', 'usePowerUp']);
 
+// Max characters allowed in personalRequirements to prevent prompt injection / token abuse.
+const PERSONAL_REQUIREMENTS_MAX_LEN = 300;
+
 /**
  * Validates a Firebase UID.
  */
@@ -66,6 +69,21 @@ function validatePlanRequest(data) {
     const weekId = data.weekId;
     if (typeof weekId !== 'string' || !/^\d{4}-W\d{2}$/.test(weekId)) {
       throw new HttpsError('invalid-argument', 'Invalid weekId format.');
+    }
+  }
+
+  // Validate personalRequirements: must be a string under the max length.
+  // This prevents prompt injection attacks where a user could embed adversarial
+  // instructions into the AI workout-plan prompt.
+  if ('personalRequirements' in data) {
+    if (typeof data.personalRequirements !== 'string') {
+      throw new HttpsError('invalid-argument', 'personalRequirements must be a string.');
+    }
+    if (data.personalRequirements.length > PERSONAL_REQUIREMENTS_MAX_LEN) {
+      throw new HttpsError(
+        'invalid-argument',
+        `personalRequirements must be ${PERSONAL_REQUIREMENTS_MAX_LEN} characters or fewer.`
+      );
     }
   }
 }

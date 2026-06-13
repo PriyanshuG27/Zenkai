@@ -396,10 +396,12 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
       }
 
       const isTimeout = errors.some(e => e.error === 'deadline-exceeded');
+      // Log the full model error details server-side only
+      console.error('[generatePlan] All models failed:', JSON.stringify(errors));
       if (isTimeout) {
         return res.status(504).json({ error: 'Plan generation timed out. Please try again.' });
       }
-      return res.status(500).json({ error: `Plan generation failed. All models failed: ${JSON.stringify(errors)}` });
+      return res.status(500).json({ error: 'Plan generation failed. Please try again.' });
     }
 
     const plan = parseGeminiJSON(rawText);
@@ -451,14 +453,16 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
     console.error('[generatePlan] error:', error.message);
     const status = error.status || 500;
     
-    if (rateLimitConsumed) {
+    if (rateLimitConsumed && status >= 500) {
+      // Only rollback rate limit on server errors, not on validation errors (4xx)
       const { rollbackRateLimit } = require('../middleware/rateLimiter');
       await rollbackRateLimit(adminDb, uid, req.body?.usePowerUp === true).catch(() => {});
     }
 
-    if (error.message === 'plan_parse_failed') {
-      return res.status(status).json({ error: 'Plan generation failed. Please try again.' });
+    if (status >= 400 && status < 500) {
+      // Validation / client errors (HttpsError) — safe to surface the message
+      return res.status(status).json({ error: error.message });
     }
-    return res.status(status).json({ error: error.message || 'Plan generation failed. Please try again.' });
+    return res.status(500).json({ error: 'Plan generation failed. Please try again.' });
   }
 }];

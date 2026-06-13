@@ -249,8 +249,13 @@ export const SquadMatchmaker = () => {
           avatarUrl: profile.avatarUrl || '',
           aura: profile.aura || '',
           activeTitle: profile.activeTitle || '',
-          workoutFrequency: profile.workoutFrequency || 'Not set',
-          dietType: profile.dietType || 'Not set',
+          // Only write these PII-derived fields when the live Firestore profile has loaded.
+          // They are stripped from the SWR localStorage cache, so on cold-start they will
+          // be undefined. Omitting them here preserves the existing Firestore value until
+          // the live snapshot arrives and the effect re-runs with real values.
+          ...(profile.goal !== undefined && { goal: profile.goal }),
+          ...(profile.workoutFrequency !== undefined && { workoutFrequency: profile.workoutFrequency }),
+          ...(profile.dietType !== undefined && { dietType: profile.dietType }),
           totalSessions: profile.totalSessions || 0
         }, { merge: true });
         
@@ -260,7 +265,7 @@ export const SquadMatchmaker = () => {
     };
     
     syncMySquadCode();
-  }, [uid, profile?.squadCode, profile?.lookingForSquad, profile?.avatarUrl, profile?.aura, profile?.activeTitle, profile?.xp, profile?.level, profile?.streak]); // Only re-run when these specific fields change
+  }, [uid, profile?.squadCode, profile?.lookingForSquad, profile?.avatarUrl, profile?.aura, profile?.activeTitle, profile?.xp, profile?.level, profile?.streak, profile?.workoutFrequency, profile?.dietType, profile?.goal]); // Re-run when private fields become available
 
 
   // 2. Real-time query for joined squads
@@ -1011,6 +1016,7 @@ export const SquadMatchmaker = () => {
       if (activityDoc && activityDoc.uid !== uid && !alreadyReacted) {
         const actionName = actionType === 'highFive' ? 'a High Five 👏' : 'Kudos 🔥';
         await sendPushNotification({
+          squadCode: activeSquad.squadCode,
           recipientUids: [activityDoc.uid],
           title: `Workout Reaction!`,
           body: `${profile?.name || 'A teammate'} gave you ${actionName} for your workout!`,
@@ -1151,6 +1157,7 @@ export const SquadMatchmaker = () => {
 
           // Trigger instant push notification to the rescued teammate
           await sendPushNotification({
+            squadCode: activeSquad.squadCode,
             recipientUids: [targetMember.uid],
             title: `Streak Rescued! 🛡️`,
             body: `${profile?.name || 'A teammate'} rescued your streak with a Streak Shield!`,
@@ -1433,6 +1440,7 @@ export const SquadMatchmaker = () => {
 
       // Trigger push notification to invitee
       await sendPushNotification({
+        squadCode: activeSquad.squadCode,
         recipientUids: [agent.uid],
         title: `Squad Invite! 🎟️`,
         body: `${profile?.name || 'Someone'} invited you to join their squad: ${activeSquad.squadName}!`,
@@ -1481,6 +1489,7 @@ export const SquadMatchmaker = () => {
 
       // Trigger push notification to invitee
       await sendPushNotification({
+        squadCode: activeSquad.squadCode,
         recipientUids: [selectedAgent.uid],
         title: `Squad Invite! 🎟️`,
         body: `${profile?.name || 'Someone'} invited you to join their squad: ${activeSquad.squadName}!`,

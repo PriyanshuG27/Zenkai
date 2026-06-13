@@ -146,12 +146,14 @@ module.exports = [authGuard, async (req, res) => {
     // If all models failed, rollback the attempt count
     const { rollbackGymCheckinRateLimit } = require('../middleware/rateLimiter');
     await rollbackGymCheckinRateLimit(adminDb, uid).catch(() => {});
-    return res.status(500).json({ error: `Failed to analyze the image. All models failed: ${JSON.stringify(errors)}` });
+    // Log full error details server-side only
+    console.error('[verifyGymImage] All models failed:', JSON.stringify(errors));
+    return res.status(500).json({ error: 'Failed to analyze the image. Please try again.' });
 
   } catch (error) {
     console.error('[verifyGymImage] Error:', error.message);
     const { rollbackGymCheckinRateLimit } = require('../middleware/rateLimiter');
     await rollbackGymCheckinRateLimit(adminDb, uid).catch(() => {});
-    return res.status(500).json({ error: error.message || 'Failed to analyze the image.' });
+    return res.status(500).json({ error: 'Failed to analyze the image. Please try again.' });
   }
 }];

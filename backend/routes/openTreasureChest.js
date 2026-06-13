@@ -1,5 +1,6 @@
 'use strict';
 
+const { randomInt } = require('crypto');
 const authGuard = require('../middleware/authGuard');
 const { adminDb } = require('../lib/firebaseAdmin');
 
@@ -72,10 +73,13 @@ module.exports = [
         });
       }
 
-      // Roll rarity tier
-      const rand = Math.random();
+      // Roll rarity tier using a cryptographically secure RNG.
+      // Math.random() is predictable given V8's PRNG seed; crypto.randomInt
+      // prevents timing-based manipulation of loot outcomes.
+      const PRECISION = 10000;
+      const rand = randomInt(0, PRECISION) / PRECISION; // [0, 1) with uniform distribution
       let tier = 'common';
-      const [pCommon, pRare, pLegendary] = config.rates;
+      const [pCommon, pRare] = config.rates;
 
       if (rand < pCommon) {
         tier = 'common';
@@ -85,9 +89,9 @@ module.exports = [
         tier = 'legendary';
       }
 
-      // Pick random reward from the rolled tier
+      // Pick a random reward from the rolled tier using secure RNG
       const tierRewards = REWARDS[tier];
-      const rolledReward = tierRewards[Math.floor(Math.random() * tierRewards.length)];
+      const rolledReward = tierRewards[randomInt(0, tierRewards.length)];
 
       // Apply rewards to user profile
       const nextPowerUps = { ...currentPowerUps };
@@ -147,7 +151,7 @@ module.exports = [
 
     } catch (err) {
       console.error('[openTreasureChest] Error:', err);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Failed to open chest. Please try again.' });
     }
   }
 ];

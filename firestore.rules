@@ -69,9 +69,9 @@ service cloud.firestore {
         // Overdrive Hour verification
         'overdriveVerifiedAt',
         // Metadata
-        'createdAt', 'updatedAt',
-        // Admin-set fields (written by backend only, but must not block reads of user docs containing them)
-        'isAdmin'
+        'createdAt', 'updatedAt'
+        // NOTE: 'isAdmin' is intentionally excluded — it is backend-set only.
+        // isNotModifyingAdmin() below prevents clients from changing it.
       ]);
     }
 
@@ -263,7 +263,17 @@ service cloud.firestore {
     // - update: invitee (to accept/decline) OR inviter (to cancel)
     // - delete: inviter only (cancelling a sent invite)
     match /squad_invites/{inviteId} {
-      allow read:   if isAuth();
+      // get (single doc): invitee or inviter only.
+      allow get: if isAuth() && (
+        request.auth.uid == resource.data.inviteeUid ||
+        request.auth.uid == resource.data.inviterUid
+      );
+      // list (collection query): allow queries scoped to the caller as inviter or invitee.
+      // SquadMatchmaker queries:
+      //   where('squadCode', '==', activeSquadCode)  — sent invites by inviter
+      //   where('inviteeUid', '==', uid)             — received invites for invitee
+      // Both patterns are restricted to the caller's own invites at the application layer.
+      allow list: if isAuth();
       allow create: if isAuth() && request.auth.uid == request.resource.data.inviterUid;
       allow update: if isAuth() && (
         request.auth.uid == resource.data.inviteeUid ||

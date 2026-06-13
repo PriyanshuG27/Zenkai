@@ -4,40 +4,71 @@ const authGuard = require('../middleware/authGuard');
 const { adminDb } = require('../lib/firebaseAdmin');
 const { sendPushNotification } = require('../lib/fcmSender');
 
+// Max lengths for notification content to prevent abuse
+const TITLE_MAX_LEN = 100;
+const BODY_MAX_LEN = 300;
+
 module.exports = [
   authGuard,
   async (req, res) => {
     const senderUid = req.user.uid;
-    const { recipientUids, squadCode, title, body, data } = req.body;
+    const { squadCode, recipientUids, title, body, data } = req.body;
+
+    // squadCode is always required — all notifications must be squad-scoped.
+    // recipientUids (optional) allows targeting specific members within the squad
+    // for directed notifications (kudos, streak rescue, squad invite).
+    // Recipients are validated against squad membership — no cross-squad targeting.
+    if (!squadCode) {
+      return res.status(400).json({ error: 'squadCode is required.' });
+    }
 
     if (!title || !body) {
-      return res.status(400).json({ error: 'Title and body are required' });
+      return res.status(400).json({ error: 'Title and body are required.' });
+    }
+
+    if (typeof title !== 'string' || title.length > TITLE_MAX_LEN) {
+      return res.status(400).json({ error: `Title must be a string under ${TITLE_MAX_LEN} characters.` });
+    }
+
+    if (typeof body !== 'string' || body.length > BODY_MAX_LEN) {
+      return res.status(400).json({ error: `Body must be a string under ${BODY_MAX_LEN} characters.` });
+    }
+
+    // Validate recipientUids type if provided
+    if (recipientUids !== undefined && (!Array.isArray(recipientUids) || recipientUids.length > 50)) {
+      return res.status(400).json({ error: 'recipientUids must be an array of at most 50 UIDs.' });
     }
 
     try {
-      let uids = [];
-
-      // Add explicit UIDs if provided
-      if (recipientUids && Array.isArray(recipientUids)) {
-        uids = [...recipientUids];
+      // Fetch squad and verify sender is a member
+      const squadSnap = await adminDb.doc(`shared_squads/${squadCode}`).get();
+      if (!squadSnap.exists) {
+        return res.status(404).json({ error: 'Squad not found.' });
       }
 
-      // Add squad member UIDs (except the sender) if squadCode is provided
-      if (squadCode) {
-        const squadSnap = await adminDb.doc(`shared_squads/${squadCode}`).get();
-        if (squadSnap.exists) {
-          const squadData = squadSnap.data();
-          const memberUids = squadData.memberUids || [];
-          const filteredMembers = memberUids.filter(uid => uid !== senderUid);
-          uids = [...new Set([...uids, ...filteredMembers])];
-        }
+      const squadData = squadSnap.data();
+      const memberUids = squadData.memberUids || [];
+
+      // Sender must be a member of this squad
+      if (!memberUids.includes(senderUid)) {
+        return res.status(403).json({ error: 'You are not a member of this squad.' });
+      }
+
+      let uids;
+      if (recipientUids && recipientUids.length > 0) {
+        // Filter recipientUids to only include verified squad members (excluding sender).
+        // This prevents targeting any user outside this squad.
+        uids = recipientUids.filter(uid => uid !== senderUid && memberUids.includes(uid));
+      } else {
+        // Default: broadcast to all other squad members
+        uids = memberUids.filter(uid => uid !== senderUid);
       }
 
       if (uids.length === 0) {
-        return res.status(200).json({ success: true, message: 'No recipients resolved.' });
+        return res.status(200).json({ success: true, message: 'No eligible recipients.' });
       }
 
-      // Send the push notification asynchronously (non-blocking)
+      // Send asynchronously (non-blocking)
       sendPushNotification({
         recipientUids: uids,
         title,
@@ -51,7 +82,7 @@ module.exports = [
       return res.status(200).json({ success: true, message: 'Push notifications queued.' });
     } catch (err) {
       console.error('[sendNotification Route] Error:', err);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Failed to send notification.' });
     }
   }
 ];
