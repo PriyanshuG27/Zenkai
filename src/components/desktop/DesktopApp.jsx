@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { DesktopSidebar } from './DesktopSidebar';
+import { NeubrutalistSkeleton } from '../shared/NeubrutalistSkeleton';
 
 export const DesktopApp = () => {
   return (
@@ -10,7 +11,9 @@ export const DesktopApp = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 p-8 overflow-y-auto">
-        <Outlet />
+        <Suspense fallback={<NeubrutalistSkeleton />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );
