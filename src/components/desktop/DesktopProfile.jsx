@@ -145,7 +145,7 @@ export const DesktopProfile = () => {
   useEffect(() => {
     const hasSeenUpdate = localStorage.getItem('zenkai_seen_v1_1_1') === 'true';
     if (!hasSeenUpdate) {
-      addToast('🚀 FitDesi updated to v1.1.1! Check out What\'s New in your Profile.', 'success');
+      addToast('🚀 Zenkai updated to v1.1.1! Check out What\'s New in your Profile.', 'success');
 
       if (activeSquadCode) {
         sendPushNotification({

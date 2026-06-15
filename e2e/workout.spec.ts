@@ -12,7 +12,7 @@
  *
  * Selector map (derived from MobileLogger.jsx + SetRow.jsx):
  *  - Mood buttons:    getByRole('button', { name: /locked in|average|low energy/i })
- *  - Start session:   getByRole('button', { name: /let's go/i })
+ *  - Start session:   getByRole('button', { name: /start session/i })
  *  - Exercise search: getByRole('textbox') inside ExerciseSearch (label="Add Exercise")
  *  - Weight input:    data-testid="weight-{exIndex}-{setIndex}"
  *  - Reps input:      data-testid="reps-{exIndex}-{setIndex}"
@@ -96,7 +96,7 @@ async function openWorkoutLogger(page: Page) {
 /** Select mood and start the session */
 async function startSession(page: Page, mood: 'Locked In' | 'Average' | 'Low Energy' = 'Average') {
   await page.getByRole('button', { name: new RegExp(mood, 'i') }).click();
-  await page.getByRole('button', { name: /let's go/i }).click();
+  await page.getByRole('button', { name: /start session/i }).click();
   // After starting, the header with END button appears
   await expect(page.getByRole('button', { name: /^end$/i })).toBeVisible({ timeout: 8_000 });
 }

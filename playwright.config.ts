@@ -26,7 +26,7 @@ export default defineConfig({
     : [['list'], ['html', { open: 'on-failure' }]],
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5183',
     // iPhone 14 Pro viewport — matches the mobile layout breakpoint
     ...devices['iPhone 14 Pro'],
     defaultBrowserType: 'chromium',
@@ -58,9 +58,9 @@ export default defineConfig({
 
   // Start the Vite dev server before running tests
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run dev -- --port 5183',
+    url: 'http://localhost:5183',
+    reuseExistingServer: false,
     timeout: 60_000,
     env: {
       // Tell firebase.js to connect to emulators, not production

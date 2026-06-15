@@ -147,9 +147,12 @@ test.describe('Auth journeys', () => {
 
     // Now log out by clearing storage (simulates a fresh login session)
     await page.evaluate(() => {
-      // Firebase Auth persists in IndexedDB; clearing localStorage forces re-auth
       localStorage.clear();
       sessionStorage.clear();
+      // Clear IndexedDB Firebase keys (best-effort)
+      try {
+        indexedDB.deleteDatabase('firebaseLocalStorageDb');
+      } catch {}
     });
     await page.reload();
     // Should redirect to landing (GuestRoute / auth state = null)
@@ -170,11 +173,11 @@ test.describe('Auth journeys', () => {
     await page.waitForURL('**/home', { timeout: 15_000 });
     expect(page.url()).toContain('/home');
 
-    // Bottom nav has 5 items: Home, Progress, Workout, Challenges, Profile
+    // Bottom nav has 5 items: Home, Progress, Workout, Squads, Arena
     // At least one must be visible (confirms BottomNav rendered)
     await expect(page.getByRole('link', { name: /^home$/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /challenges/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /profile/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /squads/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /arena/i })).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -233,7 +236,14 @@ test.describe('Auth journeys', () => {
     await page.waitForURL('**/home', { timeout: 15_000 });
 
     // Clear auth to simulate logout
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      // Clear IndexedDB Firebase keys (best-effort)
+      try {
+        indexedDB.deleteDatabase('firebaseLocalStorageDb');
+      } catch {}
+    });
     await page.reload();
     await page.waitForURL(url => !url.pathname.startsWith('/home'), { timeout: 8_000 });
 

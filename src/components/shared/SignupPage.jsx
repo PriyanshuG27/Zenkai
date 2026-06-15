@@ -138,7 +138,7 @@ export const SignupPage = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-block font-display text-3xl font-extrabold uppercase tracking-wide mb-2 hover:scale-105 transition-transform">
-            FIT<span className="text-primary">DESI</span>
+            ZEN<span className="text-primary">KAI</span>
           </Link>
           <p className="text-sm text-text-secondary">Create your athletic profile and begin today.</p>
         </div>
