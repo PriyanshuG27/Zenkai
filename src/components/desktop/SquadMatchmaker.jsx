@@ -1143,7 +1143,8 @@ export const SquadMatchmaker = () => {
 
             transaction.update(myUserRef, { xp: myXP - 50 });
             transaction.update(targetUserRef, { 
-              'powerUps.streakShield': currentShields + 1 
+              'powerUps.streakShield': currentShields + 1,
+              'lastRescuedBySquad': activeSquad.squadCode
             });
             
             const xpLogRef = doc(collection(db, 'users', uid, 'xpLog'));

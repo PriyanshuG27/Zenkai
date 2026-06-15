@@ -35,15 +35,6 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(targetUid)).data.get('gymId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('gymId', '');
     }
 
-    // Are the signed-in user and the target user in the same squad?
-    function isSameSquad(targetUid) {
-      return isAuth() &&
-        exists(/databases/$(database)/documents/users/$(targetUid)) &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(targetUid)).data.get('squadCode', '') != '' &&
-        get(/databases/$(database)/documents/users/$(targetUid)).data.get('squadCode', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('squadCode', '');
-    }
-
     // ── Field-level validation helpers for users/{uid} ────────────────────────
 
     // Whitelist of every field written across all phases.
@@ -76,7 +67,7 @@ service cloud.firestore {
         // Gamification — Phase 5
         'cooldowns', 'skills',
         // New Profile Fields
-        'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad', 'totalSessions', 'aura', 'activeTitle', 'strengthScore',
+        'latestLiftsMap', 'latestRestTimesMap', 'gymId', 'gymName', 'disableRestTimer', 'lookingForSquad', 'totalSessions', 'aura', 'activeTitle', 'strengthScore', 'lastRescuedBySquad',
         // Academic Buffer & Prehab
         'examDeloadActive', 'lastPrehabDate',
         // Plan regeneration limits
@@ -155,7 +146,16 @@ service cloud.firestore {
 
       // Owner updates, or gym/squad members updating powerUps for streak rescue
       allow update: if (isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin())
-        || ((isSameGym(uid) || isSameSquad(uid)) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps']));
+        || (
+          (isSameGym(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps'])) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps', 'lastRescuedBySquad']) &&
+            request.resource.data.get('lastRescuedBySquad', '') != '' &&
+            exists(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)) &&
+            request.auth.uid in get(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)).data.memberUids &&
+            uid in get(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)).data.memberUids
+          )
+        );
 
 
       // Profiles are never deleted from client
