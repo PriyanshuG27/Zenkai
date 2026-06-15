@@ -196,32 +196,4 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  # ─── Job 4: Deploy Production (main push only) ───────────────────────────
-  deploy-production:
-    name: Deploy Production
-    runs-on: ubuntu-latest
-    needs: build
-    # Only run on direct pushes to main — not on PRs
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: https://zenkai.vercel.app
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # ── Deploy Firebase Rules ───────────────────────────────────────────
-      - name: Deploy Firestore security rules
-        run: npx firebase-tools deploy --only firestore:rules --project production --token ${{ secrets.FIREBASE_TOKEN }} --non-interactive
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Deployment summary
-        run: |
-          echo "## ✅ Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Firestore Rules   | ✅ Deployed |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY

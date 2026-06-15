@@ -35,6 +35,15 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(targetUid)).data.get('gymId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('gymId', '');
     }
 
+    // Are the signed-in user and the target user in the same squad?
+    function isSameSquad(targetUid) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/users/$(targetUid)) &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(targetUid)).data.get('squadCode', '') != '' &&
+        get(/databases/$(database)/documents/users/$(targetUid)).data.get('squadCode', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('squadCode', '');
+    }
+
     // ── Field-level validation helpers for users/{uid} ────────────────────────
 
     // Whitelist of every field written across all phases.
@@ -144,9 +153,9 @@ service cloud.firestore {
       // Owner creates their own profile (signup — Phase 1)
       allow create: if isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin();
 
-      // Owner updates, or gym members updating powerUps for streak rescue
+      // Owner updates, or gym/squad members updating powerUps for streak rescue
       allow update: if (isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin())
-        || (isSameGym(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps']));
+        || ((isSameGym(uid) || isSameSquad(uid)) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps']));
 
 
       // Profiles are never deleted from client
@@ -214,8 +223,9 @@ service cloud.firestore {
         allow read:   if isOwner(uid);
         allow create: if isOwner(uid)
           && request.resource.data.amount is number
-          && request.resource.data.amount > 0
-          && request.resource.data.amount <= 500;
+          && request.resource.data.amount >= -500
+          && request.resource.data.amount <= 500
+          && request.resource.data.amount != 0;
         // update → implicitly DENIED
         // delete → implicitly DENIED
       }
