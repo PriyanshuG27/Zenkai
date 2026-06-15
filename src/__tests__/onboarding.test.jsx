@@ -60,9 +60,9 @@ describe('useOnboarding Hook', () => {
 
   // 1. useOnboarding — setUserType()
   describe('setUserType()', () => {
-    it('updates userType in local state, calls updateDoc, and does not advance step on failure', async () => {
+    it('updates userType in local state, calls setDoc, and does not advance step on failure', async () => {
       // Simulate firestore write failure
-      mockUpdateDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
+      mockSetDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
 
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
@@ -75,11 +75,12 @@ describe('useOnboarding Hook', () => {
 
       // State is updated locally
       expect(result.current.state.userType).toBe('Comeback');
-      // updateDoc was called with the correct payload
-      expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-      expect(mockUpdateDoc).toHaveBeenCalledWith(
+      // setDoc was called with the correct payload
+      expect(mockSetDoc).toHaveBeenCalledTimes(1);
+      expect(mockSetDoc).toHaveBeenCalledWith(
         expect.objectContaining({ _path: 'users/test-user-123' }),
-        { userType: 'Comeback' }
+        { userType: 'Comeback' },
+        { merge: true }
       );
       // Step did NOT advance due to write failure
       expect(result.current.currentStep).toBe(0);
@@ -89,7 +90,7 @@ describe('useOnboarding Hook', () => {
       act(() => {
         result.current.setError(null);
       });
-      mockUpdateDoc.mockResolvedValueOnce(undefined);
+      mockSetDoc.mockResolvedValueOnce(undefined);
 
       await act(async () => {
         await result.current.setUserType('Consistent');
@@ -131,8 +132,8 @@ describe('useOnboarding Hook', () => {
 
   // 3. useOnboarding — skip()
   describe('skip()', () => {
-    it('calls updateDoc with onboardingComplete: true, navigates to /home, and saves partial state', async () => {
-      mockUpdateDoc.mockResolvedValueOnce(undefined);
+    it('calls setDoc with onboardingComplete: true, navigates to /home, and saves partial state', async () => {
+      mockSetDoc.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
@@ -146,10 +147,10 @@ describe('useOnboarding Hook', () => {
         await result.current.skip();
       });
 
-      expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
+      expect(mockSetDoc).toHaveBeenCalledTimes(2);
 
       // Verify public document update
-      const publicUpdateCall = mockUpdateDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123');
+      const publicUpdateCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123');
       expect(publicUpdateCall).toBeDefined();
       expect(publicUpdateCall[1]).toEqual(
         expect.objectContaining({
@@ -160,7 +161,7 @@ describe('useOnboarding Hook', () => {
       );
 
       // Verify private document update
-      const privateUpdateCall = mockUpdateDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123/private/profile');
+      const privateUpdateCall = mockSetDoc.mock.calls.find(call => call[0]._path === 'users/test-user-123/private/profile');
       expect(privateUpdateCall).toBeDefined();
       expect(privateUpdateCall[1]).toEqual(
         expect.objectContaining({
@@ -231,7 +232,7 @@ describe('useOnboarding Hook', () => {
     });
 
     it('fails to advance step 3 if equipmentList is empty', async () => {
-      mockUpdateDoc.mockResolvedValue(undefined);
+      mockSetDoc.mockResolvedValue(undefined);
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       // Step 0: UserType
@@ -273,7 +274,7 @@ describe('useOnboarding Hook', () => {
     });
 
     it('advances steps sequentially when data is valid', async () => {
-      mockUpdateDoc.mockResolvedValue(undefined);
+      mockSetDoc.mockResolvedValue(undefined);
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       act(() => {
@@ -299,7 +300,7 @@ describe('useOnboarding Hook', () => {
 
   describe('complete()', () => {
     it('saves all selections on complete and navigates home', async () => {
-      mockUpdateDoc.mockResolvedValueOnce(undefined);
+      mockSetDoc.mockResolvedValueOnce(undefined);
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       act(() => {
@@ -318,12 +319,12 @@ describe('useOnboarding Hook', () => {
         await result.current.complete();
       });
 
-      expect(mockUpdateDoc).toHaveBeenCalled();
+      expect(mockSetDoc).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('/home', { replace: true });
     });
 
     it('sets error when complete() fails', async () => {
-      mockUpdateDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
+      mockSetDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       await act(async () => {
@@ -336,7 +337,7 @@ describe('useOnboarding Hook', () => {
 
   describe('skip() error path', () => {
     it('sets error when skip() fails', async () => {
-      mockUpdateDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
+      mockSetDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       await act(async () => {
@@ -349,7 +350,7 @@ describe('useOnboarding Hook', () => {
 
   describe('advance() comprehensive sequential steps and error handling', () => {
     it('advances all steps from 0 to 5 and then navigates to home', async () => {
-      mockUpdateDoc.mockResolvedValue(undefined);
+      mockSetDoc.mockResolvedValue(undefined);
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       // Step 0: UserType
@@ -395,8 +396,8 @@ describe('useOnboarding Hook', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/home', { replace: true });
     });
 
-    it('sets error when updateDoc fails during advance()', async () => {
-      mockUpdateDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
+    it('sets error when setDoc fails during advance()', async () => {
+      mockSetDoc.mockRejectedValueOnce(new Error('Firestore write failed'));
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       act(() => { result.current.updateState('userType', 'Comeback'); });
@@ -462,7 +463,7 @@ describe('useOnboarding Hook', () => {
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
       // Trigger syncProfile by calling skip() (which calls syncProfile internally)
-      mockUpdateDoc.mockResolvedValue(undefined);
+      mockSetDoc.mockResolvedValue(undefined);
       await act(async () => {
         await result.current.skip();
       });
@@ -484,7 +485,7 @@ describe('useOnboarding Hook', () => {
 
       const { result } = renderHook(() => useOnboarding(), { wrapper });
 
-      mockUpdateDoc.mockResolvedValue(undefined);
+      mockSetDoc.mockResolvedValue(undefined);
       await act(async () => {
         await result.current.skip();
       });

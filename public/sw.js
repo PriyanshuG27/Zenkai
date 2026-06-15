@@ -164,12 +164,16 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return networkResponse;
-        })
-        .catch(() => {
-          /* Ignore background fetch failures (e.g. offline) */
         });
+
+      if (cachedResponse) {
+        // Run fetch in background to update cache, ignoring background errors
+        fetchPromise.catch(() => {});
+        return cachedResponse;
+      }
       
-      return cachedResponse || fetchPromise;
+      // No cache: return the fetch promise directly so errors propagate properly to the browser
+      return fetchPromise;
     })
   );
 });

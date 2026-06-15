@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthStore } from '../stores/authStore';
 
@@ -90,7 +90,7 @@ export const useOnboarding = () => {
 
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', uid), { userType: type });
+      await setDoc(doc(db, 'users', uid), { userType: type }, { merge: true });
       setCurrentStep(1);
     } catch (err) {
       console.error('[Onboarding] Error saving userType:', err);
@@ -213,10 +213,10 @@ export const useOnboarding = () => {
       }
 
       if (hasPublic) {
-        batch.update(publicRef, publicPayload);
+        batch.set(publicRef, publicPayload, { merge: true });
       }
       if (hasPrivate) {
-        batch.update(privateRef, privatePayload);
+        batch.set(privateRef, privatePayload, { merge: true });
       }
       await batch.commit();
 
@@ -242,13 +242,13 @@ export const useOnboarding = () => {
       const filteredEquipment = state.equipmentList.filter(item => VALID_EQUIPMENT.includes(item));
       const batch = writeBatch(db);
 
-      batch.update(doc(db, 'users', uid), {
+      batch.set(doc(db, 'users', uid), {
         userType: state.userType || 'Beginner',
         onboardingComplete: true,
         onboardingSkipped: true,
-      });
+      }, { merge: true });
 
-      batch.update(doc(db, 'users', uid, 'private', 'profile'), {
+      batch.set(doc(db, 'users', uid, 'private', 'profile'), {
         gender: state.gender || 'male',
         age: state.age ? Number(state.age) : 25,
         heightCm: state.heightCm ? Number(state.heightCm) : 175,
@@ -260,7 +260,7 @@ export const useOnboarding = () => {
         dietType: state.dietType || 'Vegetarian',
         currentSupplements: state.currentSupplements,
         medicalFlags: state.medicalFlags,
-      });
+      }, { merge: true });
 
       await batch.commit();
       await syncProfile();
@@ -282,13 +282,13 @@ export const useOnboarding = () => {
       const filteredEquipment = state.equipmentList.filter(item => VALID_EQUIPMENT.includes(item));
       const batch = writeBatch(db);
 
-      batch.update(doc(db, 'users', uid), {
+      batch.set(doc(db, 'users', uid), {
         userType: state.userType,
         onboardingComplete: true,
         onboardingSkipped: false,
-      });
+      }, { merge: true });
 
-      batch.update(doc(db, 'users', uid, 'private', 'profile'), {
+      batch.set(doc(db, 'users', uid, 'private', 'profile'), {
         gender: state.gender,
         age: Number(state.age),
         heightCm: Number(state.heightCm),
@@ -300,7 +300,7 @@ export const useOnboarding = () => {
         dietType: state.dietType,
         currentSupplements: state.currentSupplements,
         medicalFlags: state.medicalFlags,
-      });
+      }, { merge: true });
 
       await batch.commit();
       await syncProfile();
