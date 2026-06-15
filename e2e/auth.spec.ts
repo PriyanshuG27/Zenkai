@@ -137,6 +137,8 @@ test.describe('Auth journeys', () => {
     await page.getByRole('button', { name: /continue/i }).click();
     await page.getByRole('button', { name: '4x' }).click();
     await page.getByRole('button', { name: '60 min' }).click();
+    await page.getByRole('button', { name: 'Barbell' }).click();
+    await page.getByRole('button', { name: 'Flat Bench' }).click();
     await page.getByRole('button', { name: /continue/i }).click();
     await page.getByRole('button', { name: /non-veg/i }).click();
     await page.getByRole('button', { name: /continue/i }).click();
@@ -222,6 +224,8 @@ test.describe('Auth journeys', () => {
     await page.getByRole('button', { name: /continue/i }).click();
     await page.getByRole('button', { name: '3x' }).click();
     await page.getByRole('button', { name: '45 min' }).click();
+    await page.getByRole('button', { name: 'Barbell' }).click();
+    await page.getByRole('button', { name: 'Flat Bench' }).click();
     await page.getByRole('button', { name: /continue/i }).click();
     await page.getByRole('button', { name: /vegetarian/i }).click();
     await page.getByRole('button', { name: /continue/i }).click();

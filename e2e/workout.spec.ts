@@ -90,7 +90,7 @@ async function openWorkoutLogger(page: Page) {
   await page.getByRole('link', { name: /workout/i }).click({ force: true });
   await page.waitForURL('**/workout', { timeout: 10_000 });
   // Wait for the setup sheet heading
-  await expect(page.getByRole('heading', { name: /how are you feeling/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /ready to train/i })).toBeVisible();
 }
 
 /** Select mood and start the session */
