@@ -213,7 +213,7 @@ jobs:
 
       # ── Deploy Firebase Rules ───────────────────────────────────────────
       - name: Deploy Firestore security rules
-        run: npx firebase-tools deploy --only firestore:rules --token ${{ secrets.FIREBASE_TOKEN }} --non-interactive
+        run: npx firebase-tools deploy --only firestore:rules --project production --token ${{ secrets.FIREBASE_TOKEN }} --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
