@@ -391,15 +391,15 @@ export function useWorkoutLogger() {
     let streakShieldConsumed = false;
     let newStreak;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayMidnight = new Date(today);
+    todayMidnight.setHours(0, 0, 0, 0);
 
     if (!lastDate) {
       newStreak = 1;
     } else {
       const prev = new Date(lastDate);
       prev.setHours(0, 0, 0, 0);
-      const diffDays = Math.round((today - prev) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round((todayMidnight - prev) / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) {
         newStreak = userData.streak ?? 0;
