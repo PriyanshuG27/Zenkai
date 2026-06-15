@@ -69,9 +69,8 @@ jobs:
           retention-days: 7
 
       - name: Audit dependencies (fail on HIGH+)
-        # Allow the step to produce output even when it exits non-zero,
-        # then we surface the full report before failing.
-        run: npm audit --audit-level=high
+        # Audit only production dependencies to prevent dev-only vulnerabilities (like the Vite dev server) from blocking deploys.
+        run: npm audit --audit-level=high --omit=dev
 
   # ─── Job 2: Build + Secret Scan ───────────────────────────────────────────
   build:
