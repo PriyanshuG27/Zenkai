@@ -17,6 +17,11 @@ export default defineConfig({
       : []),
   ],
   base: '/',
+  esbuild: {
+    supported: {
+      'destructuring': true
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
