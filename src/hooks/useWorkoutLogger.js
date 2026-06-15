@@ -385,7 +385,55 @@ export function useWorkoutLogger() {
         ? userData.streakLastDate.toDate()
         : new Date(userData.streakLastDate);
     }
-    const { newStreak } = evaluateStreak(lastDate, userData.streak ?? 0);
+
+    const hasIronWill = !!userData.skills?.ironWill;
+    const currentShields = userData.powerUps?.streakShield || 0;
+    let streakShieldConsumed = false;
+    let newStreak;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!lastDate) {
+      newStreak = 1;
+    } else {
+      const prev = new Date(lastDate);
+      prev.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((today - prev) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) {
+        newStreak = userData.streak ?? 0;
+      } else if (diffDays === 1) {
+        newStreak = (userData.streak ?? 0) + 1;
+      } else {
+        // Streak is broken (diffDays > 1)
+        if (hasIronWill) {
+          newStreak = (userData.streak ?? 0) + 1;
+          console.info('[Streak] Streak preserved via Iron Will skill.');
+        } else if (currentShields > 0) {
+          newStreak = (userData.streak ?? 0) + 1;
+          streakShieldConsumed = true;
+          console.info('[Streak] Streak preserved via Streak Shield.');
+        } else {
+          newStreak = 1;
+        }
+      }
+    }
+
+    // Evaluate streak milestones
+    const streakBonuses = [];
+    const prevStreak = userData.streak ?? 0;
+    if (newStreak >= 30 && prevStreak < 30) {
+      streakBonuses.push('streak_30');
+    } else if (newStreak >= 7 && prevStreak < 7) {
+      streakBonuses.push('streak_7');
+    }
+
+    let streakBonusXP = 0;
+    streakBonuses.forEach((bonusSource) => {
+      const bonusAmount = bonusSource === 'streak_7' ? 75 : (bonusSource === 'streak_30' ? 200 : 0);
+      streakBonusXP += bonusAmount;
+    });
 
     // ── g. Calculate XP (deterministic — before any write) ────────────────────
     const isBossFight = session.planDayId && String(session.planDayId).startsWith('boss_fight_');
@@ -393,14 +441,24 @@ export function useWorkoutLogger() {
 
     let powerUpsUpdate = null;
     let lootDrops = [];
+
+    // Decrement Streak Shield if consumed
+    if (streakShieldConsumed) {
+      const powerUps = userData.powerUps || {};
+      powerUpsUpdate = {
+        ...powerUps,
+        streakShield: Math.max(0, (powerUps.streakShield || 0) - 1),
+      };
+    }
+
     if (isBossFight && !shouldDowngrade) {
       const dropType = Math.random() < 0.5 ? 'streakShield' : 'xpBooster';
-      const powerUps = userData.powerUps || {};
-      const streakShield = powerUps.streakShield || 0;
+      const powerUps = powerUpsUpdate || userData.powerUps || {};
+      const streakShieldCount = powerUps.streakShield || 0;
       const xpBooster = powerUps.xpBooster || 0;
       powerUpsUpdate = {
         ...powerUps,
-        streakShield: dropType === 'streakShield' ? streakShield + 1 : streakShield,
+        streakShield: dropType === 'streakShield' ? streakShieldCount + 1 : streakShieldCount,
         xpBooster: dropType === 'xpBooster' ? xpBooster + 1 : xpBooster,
       };
       lootDrops.push(dropType === 'streakShield' ? 'Streak Shield' : 'XP Booster');
@@ -427,9 +485,9 @@ export function useWorkoutLogger() {
     } else {
       xpEarned = Math.round((BASE_SESSION_XP + newPRs.length * currentPR_XP + bossBonusXP + adrenalineBonus + gritBonus) * overdriveMultiplier * boosterMultiplier);
     }
-    const newXP      = currentXP + xpEarned;
+    const newXP      = currentXP + xpEarned + streakBonusXP;
     const currentCumulative = typeof userData.cumulativeXP === 'number' ? userData.cumulativeXP : currentXP;
-    const newCumulative = currentCumulative + xpEarned;
+    const newCumulative = currentCumulative + xpEarned + streakBonusXP;
     const prevDerived = deriveLevelFromXP(currentCumulative);
     const newDerived  = deriveLevelFromXP(newCumulative);
     const levelUp     = newDerived.level > prevDerived.level;
@@ -663,6 +721,7 @@ export function useWorkoutLogger() {
       exerciseDocs,
       newPRs,
       xpEarned,
+      streakBonusXP,
       newXP,
       newCumulative,
       newDerived,
@@ -680,6 +739,7 @@ export function useWorkoutLogger() {
       totalVolume,
       teamSquadCodes: squadsSnap.docs.map(d => d.id),
       strengthScore: overallStrengthScore,
+      streakBonuses,
 
       summary: {
         sessionId,
@@ -690,7 +750,7 @@ export function useWorkoutLogger() {
         prCount:       shouldDowngrade ? 0 : newPRs.length,
         prNames:       shouldDowngrade ? [] : newPRs.map((p) => `${p.name} (${p.weight === 'BW' ? 'BW' : p.weight + ' kg'} x ${p.reps})`),
         prs:           shouldDowngrade ? [] : newPRs,
-        xpEarned,
+        xpEarned:      xpEarned + streakBonusXP,
         xpBreakdown: shouldDowngrade ? {
           baseXP: 20,
           prCount: 0,
@@ -700,6 +760,7 @@ export function useWorkoutLogger() {
           bossBonusXP: 0,
           overdriveMultiplier: 1,
           boosterMultiplier: 1,
+          streakBonusXP: 0,
         } : {
           baseXP: BASE_SESSION_XP,
           prCount: newPRs.length,
@@ -709,6 +770,7 @@ export function useWorkoutLogger() {
           bossBonusXP,
           overdriveMultiplier,
           boosterMultiplier,
+          streakBonusXP,
         },
         levelUp,
         newLevel:     newDerived.level,
@@ -725,7 +787,8 @@ export function useWorkoutLogger() {
       newPRs, xpEarned, newXP, newCumulative, newDerived, newStreak,
       powerUps, latestLiftsMap, latestRestTimesMap,
       squadCode, userName, weeklyVolume, squadChallengeUpdates,
-      isQuickLog, totalVolume, teamSquadCodes, strengthScore
+      isQuickLog, totalVolume, teamSquadCodes, strengthScore,
+      streakBonuses
     } = payload;
 
     const batch = writeBatch(db);
@@ -756,6 +819,20 @@ export function useWorkoutLogger() {
       prCount:   newPRs.length,
       timestamp: serverTimestamp(),
     });
+
+    // Write additional xpLogs for streak bonuses
+    if (streakBonuses && streakBonuses.length > 0) {
+      streakBonuses.forEach((bonusSource) => {
+        const bonusAmount = bonusSource === 'streak_7' ? 75 : (bonusSource === 'streak_30' ? 200 : 0);
+        const bonusLogRef = doc(collection(db, 'users', uid, 'xpLog'));
+        batch.set(bonusLogRef, {
+          source:    bonusSource,
+          amount:    bonusAmount,
+          sessionId,
+          timestamp: serverTimestamp(),
+        });
+      });
+    }
 
     // Op 5 — User profile update
     const userUpdates = {
@@ -853,11 +930,9 @@ export function useWorkoutLogger() {
       }
 
       // Optimistic XP update — animates immediately before network round-trip.
-      // Guard: only award once per session attempt. On retry (pendingBatchRef is set
-      // but xpAwardedRef is true), the XP was already awarded and rolled back on fail,
-      // so we re-award it here exactly once before the next commit attempt.
       if (!xpAwardedRef.current) {
-        useXPStore.getState().awardXP(payload.xpEarned);
+        const totalXP = payload.xpEarned + (payload.streakBonusXP || 0);
+        useXPStore.getState().awardXP(totalXP);
         xpAwardedRef.current = true;
       }
 
@@ -918,7 +993,8 @@ export function useWorkoutLogger() {
 
       // Roll back the optimistic XP we speculatively added
       if (pendingBatchRef.current && xpAwardedRef.current) {
-        useXPStore.getState().rollbackXP(pendingBatchRef.current.xpEarned);
+        const totalXP = pendingBatchRef.current.xpEarned + (pendingBatchRef.current.streakBonusXP || 0);
+        useXPStore.getState().rollbackXP(totalXP);
         xpAwardedRef.current = false; // allow re-award on next retry attempt
       }
 
