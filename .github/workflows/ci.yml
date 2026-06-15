@@ -165,11 +165,11 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Set up JDK 17 (needed for Firebase Emulators)
+      - name: Set up JDK 21 (needed for Firebase Emulators)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
