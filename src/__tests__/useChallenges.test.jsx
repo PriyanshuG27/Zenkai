@@ -6,6 +6,7 @@ import {
   mockGetDoc,
   mockDeleteDoc,
   mockCollection,
+  mockAuth,
 } from '../__mocks__/firebase';
 
 import { renderHook, act } from '@testing-library/react';
@@ -31,6 +32,10 @@ vi.mock('../stores/useUIStore', () => ({
 describe('useChallenges Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuth.currentUser = {
+      uid: 'user-123',
+      getIdToken: vi.fn().mockResolvedValue('mock-token'),
+    };
     useAuthStore.setState({
       user: { uid: 'user-123' },
       uid: 'user-123',

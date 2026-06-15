@@ -34,6 +34,7 @@ export const SquadMatchmaker = () => {
   const activityList = useSquadStore((state) => state.activityList);
 
   const setActiveSquadCode = (code) => useSquadStore.setState({ activeSquadCode: code });
+  const setActiveSquad = (squad) => useSquadStore.setState({ activeSquad: squad });
 
   // Collaboration and Synergy states
   const mountTimeRef = useRef(Date.now());

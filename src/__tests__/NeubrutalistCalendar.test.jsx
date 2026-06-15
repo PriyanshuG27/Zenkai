@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { mockDeleteDoc } from '../__mocks__/firebase';
+import { mockDeleteDoc, mockGetDocs } from '../__mocks__/firebase';
 import { NeubrutalistCalendar } from '../components/shared/NeubrutalistCalendar';
 import { useAuthStore } from '../stores/useAuthStore';
 
@@ -13,6 +13,10 @@ function RouterWrapper({ children }) {
 
 describe('NeubrutalistCalendar Component', () => {
   beforeEach(() => {
+    mockGetDocs.mockResolvedValue({
+      empty: true,
+      docs: [],
+    });
     useAuthStore.setState({
       user: { uid: 'user123' },
       uid: 'user123',
