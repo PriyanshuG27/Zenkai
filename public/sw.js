@@ -3,38 +3,43 @@
 // Firebase scripts must be imported at the top of the service worker.
 // This merges FCM handling into the single PWA service worker to avoid
 // scope conflicts between sw.js and firebase-messaging-sw.js.
-try {
-  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+const urlParams = new URL(self.location.href).searchParams;
+const enableFCM = urlParams.get('fcm') === 'true';
 
-  firebase.initializeApp({
-    apiKey: 'AIzaSyAR3fj_g6G_nxtfKHl1CVera44SGGqv8Nc',
-    authDomain: 'fitdesi-74283.firebaseapp.com',
-    projectId: 'fitdesi-74283',
-    storageBucket: 'fitdesi-74283.firebasestorage.app',
-    messagingSenderId: '878645616985',
-    appId: '1:878645616985:web:f4bb46ad2f332e1917ec48',
-  });
+if (enableFCM) {
+  try {
+    importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-  const messaging = firebase.messaging();
-
-  // Handle background messages (app closed or in a different tab)
-  messaging.onBackgroundMessage((payload) => {
-    const title = payload.notification?.title ?? payload.data?.title ?? 'Zenkai';
-    const body = payload.notification?.body ?? payload.data?.body ?? 'You have a new notification.';
-    const icon = payload.notification?.icon ?? payload.data?.icon;
-    
-    self.registration.showNotification(title, {
-      body: body,
-      icon: icon ?? 'https://zenkaifit.vercel.app/logos/zenkai_official_logo.png',
-      badge: 'https://zenkaifit.vercel.app/logos/zenkai_official_logo.png',
-      data: payload.data ?? {},
-      actions: [{ action: 'open', title: '📱 Open App' }],
-      vibrate: [300, 100, 300]
+    firebase.initializeApp({
+      apiKey: 'AIzaSyAR3fj_g6G_nxtfKHl1CVera44SGGqv8Nc',
+      authDomain: 'fitdesi-74283.firebaseapp.com',
+      projectId: 'fitdesi-74283',
+      storageBucket: 'fitdesi-74283.firebasestorage.app',
+      messagingSenderId: '878645616985',
+      appId: '1:878645616985:web:f4bb46ad2f332e1917ec48',
     });
-  });
-} catch (e) {
-  console.warn('[SW] FCM init failed (non-fatal):', e.message);
+
+    const messaging = firebase.messaging();
+
+    // Handle background messages (app closed or in a different tab)
+    messaging.onBackgroundMessage((payload) => {
+      const title = payload.notification?.title ?? payload.data?.title ?? 'Zenkai';
+      const body = payload.notification?.body ?? payload.data?.body ?? 'You have a new notification.';
+      const icon = payload.notification?.icon ?? payload.data?.icon;
+      
+      self.registration.showNotification(title, {
+        body: body,
+        icon: icon ?? 'https://zenkaifit.vercel.app/logos/zenkai_official_logo.png',
+        badge: 'https://zenkaifit.vercel.app/logos/zenkai_official_logo.png',
+        data: payload.data ?? {},
+        actions: [{ action: 'open', title: '📱 Open App' }],
+        vibrate: [300, 100, 300]
+      });
+    });
+  } catch (e) {
+    console.warn('[SW] FCM init failed (non-fatal):', e.message);
+  }
 }
 
 // Handle notification click — open or focus app tab

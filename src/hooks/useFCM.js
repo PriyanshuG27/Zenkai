@@ -91,8 +91,17 @@ export async function enablePushNotifications(uid, addToast) {
     // Cleanup conflicting legacy service workers
     await cleanupStaleServiceWorkers();
 
-    // Use the active service worker via .ready — most reliable approach
-    const swReg = await navigator.serviceWorker.ready;
+    // Register/update the service worker with fcm=true
+    const isLocal = window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1' || 
+                    window.location.hostname.startsWith('192.168.');
+    const swUrl = isLocal ? '/sw.js?dev=true&fcm=true' : '/sw.js?fcm=true';
+    let swReg;
+    if (typeof navigator.serviceWorker.register === 'function') {
+      swReg = await navigator.serviceWorker.register(swUrl);
+    } else {
+      swReg = await navigator.serviceWorker.ready;
+    }
 
     // Clear any stale push subscription before requesting a new token.
     // This fixes "push service error" caused by old subscriptions from
@@ -172,11 +181,18 @@ export function useFCM() {
         // Cleanup conflicting legacy service workers
         await cleanupStaleServiceWorkers();
 
-        // Use navigator.serviceWorker.ready — resolves to the active sw.js registration.
-        // More reliable than getRegistrations() which can return stale entries.
+        // Register the service worker with the fcm query parameter since we have permission
         let swRegistration;
         try {
-          swRegistration = await navigator.serviceWorker.ready;
+          const isLocal = window.location.hostname === 'localhost' || 
+                          window.location.hostname === '127.0.0.1' || 
+                          window.location.hostname.startsWith('192.168.');
+          const swUrl = isLocal ? '/sw.js?dev=true&fcm=true' : '/sw.js?fcm=true';
+          if (typeof navigator.serviceWorker.register === 'function') {
+            swRegistration = await navigator.serviceWorker.register(swUrl);
+          } else {
+            swRegistration = await navigator.serviceWorker.ready;
+          }
         } catch (swErr) {
           console.warn('[FCM] Could not get service worker registration:', swErr);
           return;
