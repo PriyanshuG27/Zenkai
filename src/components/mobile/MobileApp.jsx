@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
+import { NeubrutalistSkeleton } from '../shared/NeubrutalistSkeleton';
 
 export const MobileApp = () => {
   const location = useLocation();
@@ -14,7 +15,9 @@ export const MobileApp = () => {
           paddingBottom: hideNav ? '0px' : 'calc(64px + env(safe-area-inset-bottom))' 
         }}
       >
-        <Outlet />
+        <Suspense fallback={<NeubrutalistSkeleton />}>
+          <Outlet />
+        </Suspense>
       </div>
 
       {!hideNav && <BottomNav />}
