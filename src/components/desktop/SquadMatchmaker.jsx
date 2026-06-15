@@ -2310,7 +2310,7 @@ export const SquadMatchmaker = () => {
                               const hoursSinceLastWorkout = mbr.updatedAt 
                                 ? (Date.now() - new Date(mbr.updatedAt).getTime()) / (1000 * 60 * 60)
                                 : 999;
-                              const isStreakExpiring = hoursSinceLastWorkout > 24 && (mbr.streak || 0) > 0;
+                              const isStreakExpiring = hoursSinceLastWorkout > 24 && (mbr.streak || 0) > 0 && !(mbr.powerUps?.streakShield > 0);
 
                               return (
                                 <div key={idx} className="border border-neutral-850 bg-neutral-900/10 p-3.5 rounded-xl flex items-center justify-between hover:border-neutral-700/60 hover:bg-neutral-900/20 transition-all duration-300 shadow-md text-xs font-mono">
@@ -3236,7 +3236,7 @@ export const SquadMatchmaker = () => {
                             const hoursSinceLastWorkout = selectedMember.updatedAt 
                               ? (Date.now() - new Date(selectedMember.updatedAt).getTime()) / (1000 * 60 * 60)
                               : 999;
-                            const isStreakExpiring = hoursSinceLastWorkout > 24 && (selectedMember.streak || 0) > 0;
+                            const isStreakExpiring = hoursSinceLastWorkout > 24 && (selectedMember.streak || 0) > 0 && !(selectedMember.powerUps?.streakShield > 0);
 
                             if (isStreakExpiring) {
                               handleRescueStreak(selectedMember);
