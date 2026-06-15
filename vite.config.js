@@ -22,6 +22,13 @@ export default defineConfig({
       'destructuring': true
     }
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      supported: {
+        'destructuring': true
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
