@@ -1,6 +1,6 @@
 # Zenkai — Desktop Off-Gym Command Center Walkthrough
 
-> **Status**: **Phase Complete.** The Zenkai Desktop application has been transformed from mobile-centric views into a dedicated, high-fidelity **Off-Gym Command Center**. Every command center feature—from the Post-Workout Recap Cinema to the Bar Path Video Autopsy and Accountability Squad Code Draft—is now fully implemented, integrated, and verified. The code builds successfully, and all 165 Vitest unit tests pass.
+> **Status**: **Phase Complete.** The Zenkai Desktop application has been transformed from mobile-centric views into a dedicated, high-fidelity **Off-Gym Command Center**. Every command center feature—from the Post-Workout Recap Cinema to the Accountability Squad Code Draft—is now fully implemented, integrated, and verified. The code builds successfully, and all 165 Vitest unit tests pass.
 
 ---
 
@@ -13,7 +13,6 @@ The lazy-loaded page components are defined at the top of [`src/App.jsx`](file:/
 ```javascript
 const DesktopDashboard   = React.lazy(() => import('./components/desktop/DesktopDashboard'));
 const DesktopLogEditor   = React.lazy(() => import('./components/desktop/DesktopLogEditor'));
-const BarPathAutopsy     = React.lazy(() => import('./components/desktop/BarPathAutopsy'));
 const PosterStudio       = React.lazy(() => import('./components/desktop/PosterStudio'));
 const SquadMatchmaker    = React.lazy(() => import('./components/desktop/SquadMatchmaker'));
 const DesktopProfile     = React.lazy(() => import('./components/desktop/DesktopProfile'));
@@ -24,7 +23,6 @@ const SundayMagazine     = React.lazy(() => import('./components/desktop/SundayM
 These are routed within the desktop application shell:
 * `/home` ➔ `DesktopDashboard` (Bento metrics deck)
 * `/recap` ➔ `DesktopLogEditor` (Recap Cinema)
-* `/progress` ➔ `BarPathAutopsy` (Bar Path Autopsy Video Bay)
 * `/poster` ➔ `PosterStudio` (Milestone Poster Studio)
 * `/challenges` ➔ `SquadMatchmaker` (Accountability Squads & PvE Titan Raid Boss Fights)
 * `/profile` ➔ `DesktopProfile` (Profile, Trophy Cabinet, and Exam Buffer)
@@ -92,23 +90,7 @@ Located at [`DesktopLogEditor.jsx`](file:///d:/Fitdesi/src/components/desktop/De
 
 ---
 
-## 📹 Section 4: Bar Path Autopsy (60fps Imperative Video Bay)
-
-Built at [`BarPathAutopsy.jsx`](file:///d:/Fitdesi/src/components/desktop/BarPathAutopsy.jsx), this tool allows frame-by-frame scrubbing:
-
-### 1. Imperative Playback Synchronization (60fps Lag-Free)
-To prevent React/Zustand state updates from throttling rendering at 60fps:
-* Playback head scrubbing uses direct DOM reference mutations (`videoRef.current.currentTime = ...`) triggered by keyboard arrow key listeners (Left/Right to step 0.1s, Shift+Left/Right to step 1s).
-* Canvas markup overlays are updated imperatively via direct `stageRef` canvas mutations during active mouse drags.
-* Coordinates and angles are committed to Zustand state **only** when the drawing gesture finishes, bypassing rendering latency.
-
-### 2. Biomechanical Vector Analysis
-* Users can upload a training video and a comparison lift video.
-* The tool calculates horizontal bar sway range and provides form correction guidelines (e.g., knee travel warnings, path verticality markers).
-
----
-
-## 🎨 Section 5: Neubrutalist Social Poster Studio
+## 🎨 Section 4: Neubrutalist Social Poster Studio
 
 Created in [`PosterStudio.jsx`](file:///d:/Fitdesi/src/components/desktop/PosterStudio.jsx), this module utilizes **React-Konva** to compile milestone achievements into graphics:
 
@@ -116,7 +98,7 @@ Created in [`PosterStudio.jsx`](file:///d:/Fitdesi/src/components/desktop/Poster
 2. **QR Code Sharing**: Generates a mobile-friendly QR code encoding the session URL. Scanning the QR code downloads the rendered graphic directly to the user's phone.
 
 ---
-## 🤝 Section 6: Accountability Squads & PvE Titan Raid Boss Fights
+## 🤝 Section 5: Accountability Squads & PvE Titan Raid Boss Fights
 
 ### 1. Squad Code Draft System ([`SquadMatchmaker.jsx`](file:///d:/Fitdesi/src/components/desktop/SquadMatchmaker.jsx))
 * Replaces email-based scraping queries with unique squad codes (e.g. `FIT-PRIY821`).
@@ -137,7 +119,7 @@ Created in [`PosterStudio.jsx`](file:///d:/Fitdesi/src/components/desktop/Poster
 
 ---
 
-## ⚡ Section 7: Aura & Beast Mode Forecaster
+## ⚡ Section 6: Aura & Beast Mode Forecaster
 
 Located at [`AuraForecaster.jsx`](file:///d:/Fitdesi/src/components/desktop/AuraForecaster.jsx), this dashboard converts training consistency, volume, and focus into gamified status metrics:
 
@@ -158,7 +140,7 @@ Located at [`AuraForecaster.jsx`](file:///d:/Fitdesi/src/components/desktop/Aura
 
 ---
 
-## 📰 Section 8: Sunday AI "Scouting Report" Magazine
+## 📰 Section 7: Sunday AI "Scouting Report" Magazine
 
 Located at [`SundayMagazine.jsx`](file:///d:/Fitdesi/src/components/desktop/SundayMagazine.jsx), this editorial newspaper generates ruthless AI coaching feedback:
 
@@ -176,7 +158,7 @@ Located at [`SundayMagazine.jsx`](file:///d:/Fitdesi/src/components/desktop/Sund
 
 ---
 
-## 🔒 Section 9: Firestore Security Rules & Sync Resolution
+## 🔒 Section 8: Firestore Security Rules & Sync Resolution
 
 ### 1. Hardened Firestore Rules ([`firestore.rules`](file:///d:/Fitdesi/firestore.rules))
 * **Squad Codes**: Allows direct read on `/squad_codes/{code}` for code-matching searches.
@@ -189,7 +171,7 @@ Located at [`SundayMagazine.jsx`](file:///d:/Fitdesi/src/components/desktop/Sund
 
 ---
 
-## 🧪 Section 10: Verification & Build Metrics
+## 🧪 Section 9: Verification & Build Metrics
 
 The desktop modules are compiled and verified:
 * **Production Build**: Compiles cleanly (`npm run build`) with Vite code-splitting each page into dynamic chunks:

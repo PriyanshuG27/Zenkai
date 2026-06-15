@@ -56,16 +56,7 @@ State in Zenkai is managed using decentralized Zustand stores located in `src/st
   - `updateSetRow(exerciseKey, setIndex, updatedFields)`: Modifies weight, reps, RPE, or MMC of a set.
   - `removeExercise(exerciseKey)`: Drops an exercise from the logging buffer.
 
-### 3. Video Bay Store (`useVideoBayStore.js`)
-- **Purpose**: Manages video assets and drawing coordinates for the Bar Path Autopsy page.
-- **State Variables**:
-  - `videoFile` / `comparisonVideoFile`: Selected video files.
-  - `barPathCoordinates` / `torsoAnglePoints`: Traced points.
-- **Methods**:
-  - `setVideo(file)` / `setComparisonVideo(file)`: Loads video files.
-  - `saveDrawings(path, torsoPoints)`: Commits coordinates to state.
-
-### 4. XP & Gamification Store (`useXPStore.js`)
+### 3. XP & Gamification Store (`useXPStore.js`)
 - **Purpose**: Manages XP updates, levels, and level-up modal displays.
 - **State Variables**:
   - `currentXP`: `number` (Current level progress XP).
@@ -76,7 +67,7 @@ State in Zenkai is managed using decentralized Zustand stores located in `src/st
   - `setXP(xp, cumulative, streak)`: Hydrates XP states.
   - `addXP(amount)`: Adds XP, runs level boundary checks, and triggers level-ups.
 
-### 5. Routine Plan Store (`usePlanStore.js`)
+### 4. Routine Plan Store (`usePlanStore.js`)
 - **Purpose**: Caches and updates weekly training splits.
 - **State Variables**:
   - `weeklyPlan`: `object | null` (Active week plan).
@@ -85,7 +76,7 @@ State in Zenkai is managed using decentralized Zustand stores located in `src/st
   - `loadWeeklyPlan(uid, weekId)`: Fetches weekly plan from Firestore.
   - `updatePlanDay(weekId, dayIdx, updatedDay)`: Modifies a day's schedule.
 
-### 6. Squad Management Store (`useSquadStore.js`)
+### 5. Squad Management Store (`useSquadStore.js`)
 - **Purpose**: Syncs real-time squad state, members, check-ins, activity feeds, and polls.
 - **State Variables**:
   - `activeSquad`: `object | null` (Current squad document).
@@ -98,7 +89,7 @@ State in Zenkai is managed using decentralized Zustand stores located in `src/st
   - `subscribeSquad(squadCode, uid)`: Establishes real-time snapshot listeners for the squad and its subcollections.
   - `clearSquad()`: Unsubscribes from listeners and clears the store.
 
-### 7. UI Configuration Store (`useUIStore.js`)
+### 6. UI Configuration Store (`useUIStore.js`)
 - **Purpose**: Manages theme, PWA install prompts, and notification toasts.
 - **State Variables**:
   - `theme`: `"dark" | "light"`.

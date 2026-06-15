@@ -37,14 +37,22 @@
 
 import { create } from 'zustand';
 import { deriveLevelFromXP } from '../lib/xpHelpers';
+import { readProfileCache } from './authStore';
+
+// ─── Initial state — hydrate from cache immediately ───────────────────────────
+const cachedProfile = readProfileCache();
+const initialXP = cachedProfile?.xp ?? 0;
+const initialTotalXP = cachedProfile?.cumulativeXP ?? cachedProfile?.xp ?? 0;
+const initialStreak = cachedProfile?.streak ?? 0;
+const derived = deriveLevelFromXP(initialTotalXP);
 
 export const useXPStore = create((set, get) => ({
-  xp:            0, // Current spendable XP currency
-  totalXP:       0, // Cumulative lifetime XP used for levels
-  level:         1,
-  levelName:     'Rookie',
-  xpToNextLevel: 200,
-  streak:        0,
+  xp:            initialXP, // Current spendable XP currency
+  totalXP:       initialTotalXP, // Cumulative lifetime XP used for levels
+  level:         derived.level,
+  levelName:     derived.levelName,
+  xpToNextLevel: derived.xpToNextLevel,
+  streak:        initialStreak,
   pendingXP:     0,
   leveledUp:     false,
 
