@@ -5,6 +5,7 @@ import { doc, collection, query, where, orderBy, limit, onSnapshot, getDocs } fr
 export const useSquadStore = create((set, get) => {
   // Store unsubscribers outside state to avoid unnecessary React re-renders or circularity
   let squadUnsub = null;
+  let subscribedSquadCode = null;
   let memberUnsubs = {}; // { squadCode: unsubFn }
   let activityUnsub = null;
   let presenceUnsub = null;
@@ -67,6 +68,7 @@ export const useSquadStore = create((set, get) => {
 
     unsubscribeAll: () => {
       if (squadUnsub) { squadUnsub(); squadUnsub = null; }
+      subscribedSquadCode = null;
       Object.values(memberUnsubs).forEach(unsub => unsub());
       memberUnsubs = {};
       if (activityUnsub) { activityUnsub(); activityUnsub = null; }
@@ -76,12 +78,13 @@ export const useSquadStore = create((set, get) => {
 
     subscribeSquad: (squadCode, uid) => {
       if (!squadCode || !uid) return;
-      if (get().activeSquadCode === squadCode && squadUnsub) {
+      if (subscribedSquadCode === squadCode && squadUnsub) {
         // Already listening to this squad code
         return;
       }
 
       get().unsubscribeAll();
+      subscribedSquadCode = squadCode;
       set({ activeSquadCode: squadCode, loading: true });
 
       const squadRef = doc(db, 'shared_squads', squadCode);
