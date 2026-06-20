@@ -388,7 +388,7 @@ export function useWorkoutLogger() {
 
     const hasIronWill = !!userData.skills?.ironWill;
     const currentShields = userData.powerUps?.streakShield || 0;
-    let streakShieldConsumed = false;
+    let streakShieldsConsumedCount = 0;
     let newStreak;
 
     const todayMidnight = new Date(today);
@@ -407,15 +407,17 @@ export function useWorkoutLogger() {
         newStreak = (userData.streak ?? 0) + 1;
       } else {
         // Streak is broken (diffDays > 1)
+        const missedDays = diffDays - 1;
         if (hasIronWill) {
           newStreak = (userData.streak ?? 0) + 1;
           console.info('[Streak] Streak preserved via Iron Will skill.');
-        } else if (currentShields > 0) {
+        } else if (currentShields >= missedDays) {
           newStreak = (userData.streak ?? 0) + 1;
-          streakShieldConsumed = true;
-          console.info('[Streak] Streak preserved via Streak Shield.');
+          streakShieldsConsumedCount = missedDays;
+          console.info(`[Streak] Streak preserved via Streak Shield. Consumed ${missedDays} shield(s).`);
         } else {
           newStreak = 1;
+          console.info(`[Streak] Streak broken. Missed ${missedDays} days but only had ${currentShields} shield(s). No shields consumed.`);
         }
       }
     }
@@ -443,11 +445,11 @@ export function useWorkoutLogger() {
     let lootDrops = [];
 
     // Decrement Streak Shield if consumed
-    if (streakShieldConsumed) {
+    if (streakShieldsConsumedCount > 0) {
       const powerUps = userData.powerUps || {};
       powerUpsUpdate = {
         ...powerUps,
-        streakShield: Math.max(0, (powerUps.streakShield || 0) - 1),
+        streakShield: Math.max(0, (powerUps.streakShield || 0) - streakShieldsConsumedCount),
       };
     }
 

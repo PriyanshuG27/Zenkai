@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Trophy, Zap, Dumbbell, Play, RefreshCw, CalendarDays, ArrowRight, Camera, CheckCircle2 } from 'lucide-react';
@@ -129,6 +129,38 @@ export const MobileHome = () => {
   const { planLoading, currentPlan, planDays, weekId, planError, hasFetched, isNewUser } = usePlanStore();
   const { xp, totalXP, level, levelName, xpToNextLevel, streak, setXP } = useXPStore();
   const { challenges, userProgress, avgWorkoutHour } = useChallenges();
+
+  const displayStreak = useMemo(() => {
+    if (!profile || !profile.streak) return 0;
+    if (!profile.streakLastDate) return 0;
+
+    const lastDate = typeof profile.streakLastDate.toDate === 'function'
+      ? profile.streakLastDate.toDate()
+      : new Date(profile.streakLastDate);
+
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    const prev = new Date(lastDate);
+    prev.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((todayMidnight - prev) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 1) {
+      return profile.streak;
+    }
+
+    // Streak is broken or protected
+    const missedDays = diffDays - 1;
+    const hasIronWill = !!profile.skills?.ironWill;
+    const currentShields = profile.powerUps?.streakShield || 0;
+
+    if (hasIronWill || currentShields >= missedDays) {
+      return profile.streak;
+    }
+
+    return 0;
+  }, [profile]);
   const {
     recap,
     isRecapDay,
@@ -418,15 +450,15 @@ export const MobileHome = () => {
           {/* Streak Badge with subtle breathing scale effect */}
           <motion.div
             className={`flex items-center gap-1 px-3 py-1.5 rounded-md border-2 ${
-              streak > 0
+              displayStreak > 0
                 ? 'border-[var(--primary)] bg-[#ff5c000c] text-[var(--primary)]'
                 : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]'
             }`}
-            animate={streak === 0 ? {} : { scale: [1, 1.05, 1] }}
+            animate={displayStreak === 0 ? {} : { scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
           >
-            <Flame size={16} fill={streak > 0 ? 'var(--primary)' : 'none'} />
-            <span className="font-mono text-sm font-bold">{streak}</span>
+            <Flame size={16} fill={displayStreak > 0 ? 'var(--primary)' : 'none'} />
+            <span className="font-mono text-sm font-bold">{displayStreak}</span>
           </motion.div>
 
           {/* Clickable profile avatar with Aura styling */}
