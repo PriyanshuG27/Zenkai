@@ -108,6 +108,7 @@ Run before every production deploy:
 ### API Keys + Secrets
 - [ ] `grep -r "GEMINI" src/` returns zero results.
 - [ ] `grep -r "GROQ" src/` returns zero results.
+- [ ] `grep -r "AIza" src/` returns zero results.
 - [ ] `.env` files are not tracked by Git (`git status`).
 
 ### Express Backend APIs

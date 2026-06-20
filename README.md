@@ -61,6 +61,21 @@
 <img src="public/neon_divider.svg?v=2" width="100%" />
 <br/>
 
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=B5FF2D&vCenter=true&width=500&lines=📸+Visual+Previews" alt="Visual Previews" />
+
+<p align="center">
+  <img src="public/screenshots/dashboard.png" alt="Zenkai Dashboard" width="48%" />
+  <img src="public/screenshots/workout_logger.png" alt="Tactile Workout Logger" width="48%" />
+</p>
+<p align="center">
+  <img src="public/screenshots/boss_raid.png" alt="MMO Boss Raid" width="48%" />
+  <img src="public/screenshots/squad_feed.png" alt="Shared Squad Activity Feed" width="48%" />
+</p>
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
 ## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=FF5C00&vCenter=true&width=500&lines=🎨+The+Design+System" alt="Design System" />
 
 Zenkai uses a custom **Neubrutalism + Dark OLED** style designed to look premium, energetic, and highly tactile. Interactive elements look *liftable*, matching the physical gym environment.
@@ -120,6 +135,16 @@ Zenkai uses a custom **Neubrutalism + Dark OLED** style designed to look premium
       <p style="color: #bbb; font-size: 14px;">Personalized weekly newspaper summaries featuring verbal cues overlays, paired with a Poster Studio using Konva for dragging achievements and badges into shareable cards.</p>
     </td>
   </tr>
+  <tr>
+    <td style="background: #111; padding: 20px; border: 1px solid #00D4FF; border-radius: 12px; width: 50%;">
+      <h3 style="margin-top:0; color: #00D4FF;">⚔️ Shared Squads &amp; Leaderboards</h3>
+      <p style="color: #bbb; font-size: 14px;">Create or join password-protected squads. Share gym check-ins and workout completions to a live feed, react to teammates' lifts, and compete on a weekly XP leaderboard to stay accountable.</p>
+    </td>
+    <td style="background: #111; padding: 20px; border: 1px solid #FF5C00; border-radius: 12px; width: 50%;">
+      <h3 style="margin-top:0; color: #FF5C00;">📸 verifyGymImage (AI Gym Check-in)</h3>
+      <p style="color: #bbb; font-size: 14px;">Prevent fake workout streaks. Upload a live photo of your gym environment; Zenkai's backend AI vision validates the equipment and location before awarding check-in XP.</p>
+    </td>
+  </tr>
 </table>
 
 <br/>
@@ -164,6 +189,24 @@ graph TD
     API -->|Constructs Prompt| AI
     AI -->|Returns JSON Payload| API
 ```
+
+<br/>
+<img src="public/neon_divider.svg?v=2" width="100%" />
+<br/>
+
+## <img src="https://readme-typing-svg.herokuapp.com?font=Outfit&weight=800&size=28&color=B5FF2D&vCenter=true&width=500&lines=📡+Offline-First+Sync+Strategy" alt="Offline-First Sync Strategy" />
+
+Zenkai is engineered to operate seamlessly in basement gyms with zero signal. The offline sync architecture relies on Firestore's **multi-tab IndexedDB persistent cache** combined with a dual-vector sync engine.
+
+### 🔌 How Dual-Vector Sync Works in Code:
+1. **Vector 1: Real-time Cloud Target Listener (`onSnapshot`)**
+   - Active listener in [useSyncEngine.js](file:///d:/Fitdesi/src/hooks/useSyncEngine.js#L45-L66) monitors the `planned_targets` subcollection in Firestore.
+   - When the server generates a new AI workout plan, the client automatically receives the new plan and updates the Zustand store instantly in the background without manual polling.
+
+2. **Vector 2: Latency-Compensated Offline Writes**
+   - Enabled via `persistentLocalCache({ tabManager: persistentMultipleTabManager() })` inside [firebase.js](file:///d:/Fitdesi/src/lib/firebase.js#L37-L41).
+   - When a user logs a workout set offline, Firestore intercepts the write, instantly commits it to the local IndexedDB cache, and registers a pending sync mutation. The UI updates instantly (latency compensation).
+   - Once connection is restored, the client automatically flushes the queue to the cloud. Collision resolution is handled by Firestore's document-versioning system (`last-write-wins` paradigm with transactional validation).
 
 <br/>
 <img src="public/neon_divider.svg?v=2" width="100%" />
