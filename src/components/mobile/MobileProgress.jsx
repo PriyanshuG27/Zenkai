@@ -546,9 +546,9 @@ export const MobileProgress = () => {
           {activeTab === 'Strength' && (
             <motion.div
               key="strength"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex flex-col gap-4"
             >
               {/* Muscle Group Selection Row */}
@@ -651,7 +651,13 @@ export const MobileProgress = () => {
               />
 
               {/* Strength Stats Telemetry */}
-              {strengthMetrics && !strengthLoading && (
+              {strengthLoading ? (
+                <div className="grid grid-cols-2 gap-3 mt-1 animate-pulse">
+                  <div className="h-[76px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded shadow-[3px_3px_0px_rgba(0,0,0,0.15)]" />
+                  <div className="h-[76px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded shadow-[3px_3px_0px_rgba(0,0,0,0.15)]" />
+                  <div className="col-span-2 h-[64px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded shadow-[3px_3px_0px_rgba(0,0,0,0.15)]" />
+                </div>
+              ) : strengthMetrics ? (
                 <div className="grid grid-cols-2 gap-3 mt-1">
                   <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-3 rounded shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col">
                     <span className="text-[9px] font-mono text-[var(--text-secondary)] uppercase tracking-wider">
@@ -704,16 +710,16 @@ export const MobileProgress = () => {
                     )}
                   </div>
                 </div>
-              )}
+              ) : null}
             </motion.div>
           )}
 
           {activeTab === 'Volume' && (
             <motion.div
               key="volume"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex flex-col gap-4"
             >
               <div className="flex justify-between items-center text-xs font-mono text-[var(--text-secondary)] px-1">
@@ -725,7 +731,12 @@ export const MobileProgress = () => {
               <VolumeChart data={volumeData} loading={volumeLoading} />
 
               {/* Volume Stats Telemetry */}
-              {volumeMetrics && !volumeLoading && (
+              {volumeLoading ? (
+                <div className="grid grid-cols-2 gap-3 mt-1 animate-pulse">
+                  <div className="h-[76px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded shadow-[3px_3px_0px_rgba(0,0,0,0.15)]" />
+                  <div className="h-[76px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded shadow-[3px_3px_0px_rgba(0,0,0,0.15)]" />
+                </div>
+              ) : volumeMetrics ? (
                 <div className="grid grid-cols-2 gap-3 mt-1">
                   <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-3 rounded shadow-[3px_3px_0px_rgba(0,0,0,1)] flex flex-col">
                     <span className="text-[9px] font-mono text-[var(--text-secondary)] uppercase tracking-wider">
@@ -745,7 +756,7 @@ export const MobileProgress = () => {
                     </span>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* ─── IDEA B: TELEMETRIC MUSCLE VOLUME DISTRIBUTION ───────────────── */}
               <div className="border-2 border-[var(--border-bright)] bg-[var(--surface)] p-4 rounded shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-3">
@@ -789,19 +800,22 @@ export const MobileProgress = () => {
           {activeTab === 'PRs' && (
             <motion.div
               key="prs"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex flex-col gap-3"
             >
               <span className="text-xs font-mono text-[var(--text-secondary)] px-1">
-                Personal Records ({prs.length})
+                Personal Records {prsLoading ? '(...)' : `(${prs.length})`}
               </span>
 
               {prsLoading ? (
                 <div className="flex flex-col gap-3">
                   {[1, 2, 3].map((n) => (
-                    <div key={n} className="w-full h-16 bg-[var(--surface)] border border-[var(--border)] rounded-lg animate-pulse" />
+                    <div
+                      key={n}
+                      className="w-full h-[74px] border-2 border-[var(--border-bright)] bg-[var(--surface)] rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,0.15)] animate-pulse"
+                    />
                   ))}
                 </div>
               ) : prs.length === 0 ? (
@@ -858,9 +872,9 @@ export const MobileProgress = () => {
           {activeTab === 'Recovery' && (
             <motion.div
               key="recovery"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex flex-col gap-5"
             >
               {/* Muscle Map Interactive Section */}
