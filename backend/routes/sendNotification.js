@@ -68,15 +68,21 @@ module.exports = [
         return res.status(200).json({ success: true, message: 'No eligible recipients.' });
       }
 
+      // Build FCM data payload from a strict whitelist.
+      // The frontend only ever sends { url: '/squad' | '/some-path' }.
+      // We never spread the raw client object — that would allow injecting
+      // arbitrary keys or overriding reserved FCM fields.
+      const safeFcmData = { url: '/squad' };
+      if (data && typeof data.url === 'string' && data.url.startsWith('/') && data.url.length <= 200) {
+        safeFcmData.url = data.url;
+      }
+
       // Send asynchronously (non-blocking)
       sendPushNotification({
         recipientUids: uids,
         title,
         body,
-        data: {
-          url: '/squad',
-          ...(data || {})
-        }
+        data: safeFcmData
       }).catch(err => console.error('[sendNotification Route] FCM async error:', err));
 
       return res.status(200).json({ success: true, message: 'Push notifications queued.' });

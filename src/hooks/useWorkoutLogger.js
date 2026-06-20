@@ -48,7 +48,7 @@ import {
   increment,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { useWorkoutStore } from '../stores/useWorkoutStore';
+import { useWorkoutStore, generateUUID } from '../stores/useWorkoutStore';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useXPStore } from '../stores/useXPStore';
 import { useUIStore } from '../stores/useUIStore';
@@ -289,7 +289,7 @@ export function useWorkoutLogger() {
     const startedAt       = session.startedAt ? new Date(session.startedAt) : new Date();
     const durationSeconds = Math.max(1, Math.round((Date.now() - startedAt.getTime()) / 1000));
     const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
-    const sessionId       = crypto.randomUUID();
+    const sessionId       = generateUUID();
     const nowLocal = new Date();
     const dateString = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
@@ -318,7 +318,7 @@ export function useWorkoutLogger() {
       if (doneSets.length === 0) return;
 
       // exerciseId: useWorkoutStore uses 'exerciseId' as the key
-      const exerciseId  = ex.exerciseId ?? ex.id ?? crypto.randomUUID();
+      const exerciseId  = ex.exerciseId ?? ex.id ?? generateUUID();
       const exerciseKey = ex.exerciseKey ?? ex.exerciseId ?? exerciseId;
 
       // Build exercise sub-document

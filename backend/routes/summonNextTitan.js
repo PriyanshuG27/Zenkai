@@ -83,7 +83,7 @@ module.exports = [
 
     } catch (err) {
       console.error('[summonNextTitan] Error:', err);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Failed to summon Titan. Please try again.' });
     }
   }
 ];

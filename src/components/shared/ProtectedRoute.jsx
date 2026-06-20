@@ -23,20 +23,22 @@ export const AuthSpinner = ({ label = 'Securing Access...' }) => (
 );
 
 // ─── ProtectedRoute ───────────────────────────────────────────────────────────
-// Guards: loading → spinner, no user → /login (saves `from` for post-login
-// redirect), authenticated → renders children.
+// Guards: loading → spinner (cold load only), no user → /login (saves `from`
+// for post-login redirect), authenticated → renders children.
 export const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuthStore();
+  const { user, loading, cacheHydrated } = useAuthStore();
   const location = useLocation();
 
-  // Wait for Firebase onAuthStateChanged to fire at least once.
-  // Without this check, authenticated users see a flash of the login page
-  // before the session is hydrated from IndexedDB.
-  if (loading) {
+  // Only block with a spinner on a genuine cold load (no cached profile in
+  // localStorage). Returning users already have profile data in the store from
+  // the SWR cache, so we render immediately and let Firebase verify the session
+  // silently in the background. If the session is later invalidated, the auth
+  // state listener clears `user` and the next render redirects to /login.
+  if (loading && !cacheHydrated) {
     return <AuthSpinner label="Securing Access..." />;
   }
 
-  if (!user) {
+  if (!user && !loading) {
     // Save the current path in location.state.from so LoginPage can
     // redirect back to it after a successful login.
     return (

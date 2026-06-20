@@ -28,8 +28,8 @@ export default {
         'text-muted': 'var(--text-muted)',
       },
       fontFamily: {
-        display: ['Barlow Condensed', 'sans-serif'],
-        body: ['Outfit', 'sans-serif'],
+        display: ['Barlow Condensed', 'Barlow Condensed Fallback', 'sans-serif'],
+        body: ['Outfit', 'Outfit Fallback', 'sans-serif'],
         mono: ['DM Mono', 'monospace'],
       }
     },

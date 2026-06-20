@@ -393,7 +393,7 @@ export const MobileHome = () => {
         <div className="flex items-center gap-3">
           {/* Small Zenkai Logo */}
           <div className="w-8 h-8 rounded bg-black border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0 select-none">
-            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" width="32" height="32" fetchPriority="high" />
+            <img src="/logos/zenkai_official_logo.webp" alt="Zenkai Logo" className="w-full h-full object-contain p-0.5" width="32" height="32" fetchpriority="high" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-mono text-[var(--text-secondary)] uppercase tracking-widest leading-none">
@@ -436,7 +436,7 @@ export const MobileHome = () => {
             style={getAvatarStyle(profile?.aura, level, profile?.powerUps)}
           >
             {profile?.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="avatar" className="w-full h-full object-cover" width="40" height="40" fetchPriority="high" />
+              <img src={profile.avatarUrl} alt="avatar" className="w-full h-full object-cover" width="40" height="40" fetchpriority="high" />
             ) : (
               <span className="font-display font-extrabold text-[10px] text-white">
                 {profile?.name?.slice(0, 2).toUpperCase() || 'ZK'}
@@ -458,8 +458,8 @@ export const MobileHome = () => {
       {/* ─── PWA INSTALL CARD ────────────────────────────────────────────────── */}
       {!isStandalone && (
         <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="border-2 border-[var(--primary)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col gap-3 relative overflow-hidden"
         >
           <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 text-[8px] font-mono font-bold uppercase tracking-wider text-[var(--primary)] border border-[var(--primary)] bg-[#ff5c000e] rounded">
@@ -507,19 +507,15 @@ export const MobileHome = () => {
 
         {/* Bar track */}
         <div className="w-full h-3 bg-[var(--bg-elevated)] rounded-full overflow-hidden border border-[var(--border)] relative">
-          {/* Fainted blur bar for Lifetime best */}
-          <motion.div
+          {/* Fainted blur bar for Lifetime best — CSS transition avoids CLS */}
+          <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-[var(--secondary)] to-[var(--accent-xp)] opacity-30 blur-[1px]"
-            initial={{ width: 0 }}
-            animate={{ width: `${lifetimePercentage}%` }}
-            transition={{ type: 'spring', stiffness: 50, damping: 15 }}
+            style={{ width: `${lifetimePercentage}%`, transition: 'width 0.7s ease-out' }}
           />
-          {/* Solid colored bar for Current spendable */}
-          <motion.div
+          {/* Solid colored bar for Current spendable — CSS transition avoids CLS */}
+          <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-[var(--secondary)] to-[var(--accent-xp)]"
-            initial={{ width: 0 }}
-            animate={{ width: `${spendablePercentage}%` }}
-            transition={{ type: 'spring', stiffness: 50, damping: 15 }}
+            style={{ width: `${spendablePercentage}%`, transition: 'width 0.7s ease-out' }}
           />
         </div>
 
@@ -631,8 +627,8 @@ export const MobileHome = () => {
         ) : (
           <motion.div
             className="border-2 border-[var(--primary)] bg-[var(--surface)] p-5 rounded-lg shadow-[5px_5px_0px_rgba(255,92,0,0.15)] flex flex-col gap-4"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
             <div className="flex flex-col gap-1.5">
               <h3 className="font-display text-lg font-bold text-[var(--primary)] uppercase tracking-wide">
@@ -724,8 +720,8 @@ export const MobileHome = () => {
       {/* ─── WEEKLY RECAP BANNER (Moved here to prevent CLS above-the-fold) ────── */}
       {isRecapDay && !hasSeen && recap && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="border-2 border-[var(--secondary)] bg-[var(--surface)] p-4 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-between cursor-pointer hover:border-[var(--text-primary)] transition-all animate-pulse"
           onClick={() => setShowRecapScreen(true)}
         >
@@ -747,8 +743,8 @@ export const MobileHome = () => {
       {/* Redo Onboarding warning prompt banner (Moved here to prevent CLS above-the-fold) */}
       {profile?.onboardingSkipped === true && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="border-2 border-amber-500 bg-amber-950/10 p-4 rounded-lg shadow-[4px_4px_0px_rgba(245,158,11,0.25)] flex flex-col gap-3 text-left animate-pulse"
         >
           <div className="flex gap-3 items-start">

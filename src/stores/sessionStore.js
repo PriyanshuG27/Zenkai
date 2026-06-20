@@ -20,6 +20,7 @@
  */
 
 import { create } from 'zustand';
+import { generateUUID } from './useWorkoutStore';
 
 const VALID_MOOD_TAGS = ['locked_in', 'average', 'low_energy'];
 
@@ -75,10 +76,10 @@ export const useSessionStore = create((set, get) => ({
   /**
    * addExercise(name, exerciseKey, muscleGroup)
    * Creates a new exercise with one blank set { reps: 0, weight: 0, done: false }.
-   * Uses crypto.randomUUID() for the exercise ID.
+   * Uses generateUUID() for the exercise ID (works on HTTP + HTTPS).
    */
   addExercise: (name, exerciseKey, muscleGroup) => {
-    const id = crypto.randomUUID();
+    const id = generateUUID();
 
     set((state) => ({
       exercises: [

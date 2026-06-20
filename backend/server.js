@@ -20,8 +20,13 @@ app.use(cors(isProd && allowedOrigins.length > 0
   : { origin: true }  // dev: allow all
 ));
 
-// Expand parsing capacity to safely handle baseline Base64 compressed image strings
-app.use(express.json({ limit: '10mb' }));
+// Route-scoped JSON body size limits:
+// - /api/verifyGymImage needs 10mb for Base64-encoded gym photos.
+// - All other routes are capped at 100kb to prevent memory-exhaustion DoS.
+app.use((req, res, next) => {
+  const limit = req.path === '/api/verifyGymImage' ? '10mb' : '100kb';
+  express.json({ limit })(req, res, next);
+});
 
 // Proactive Wake-Up / Health Verification Routes
 app.get('/health', (req, res) => {

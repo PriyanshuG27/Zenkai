@@ -33,7 +33,9 @@ async function checkRateLimit(db, uid, usePowerUp = false) {
     const now = Date.now();
     const oneHourAgo = now - 60 * 60 * 1000;
     let recentRegens = userData.recentRegenTimes || [];
-    recentRegens = recentRegens.filter(t => t > oneHourAgo);
+    // Filter expired entries and cap size — both are defensive layers.
+    // Logical max is 2/hour, but we cap at 10 to guard against any edge-case growth.
+    recentRegens = recentRegens.filter(t => t > oneHourAgo).slice(-10);
 
     if (recentRegens.length >= 2) {
       throw new HttpsError('resource-exhausted', 'Hourly limit of 2 plan generations reached. Please try again later.');
@@ -92,8 +94,9 @@ async function checkGymCheckinRateLimit(db, uid) {
 
     let recentGymVerifications = userData.recentGymVerifyTimes || [];
     
-    // Filter to only keep the last 24 hours of attempts
-    recentGymVerifications = recentGymVerifications.filter(t => t > oneDayAgo);
+    // Filter to only keep the last 24 hours of attempts and cap size.
+    // Logical max is 5/day, capped at 20 as a defensive guard.
+    recentGymVerifications = recentGymVerifications.filter(t => t > oneDayAgo).slice(-20);
 
     // Limit 1: Max 2 attempts in 5 minutes
     const recent5MinAttempts = recentGymVerifications.filter(t => t > fiveMinutesAgo);

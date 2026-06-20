@@ -27,22 +27,54 @@ import { useAuthStore } from './authStore';
 
 const BODYWEIGHT_EXERCISES = [
   'push_ups',
+  'incline_push_ups',
+  'decline_push_ups',
   'pull_ups',
+  'chin_ups',
   'dips',
   'plank',
   'hanging_leg_raise',
   'russian_twists',
-  'ab_wheel_rollouts'
+  'ab_wheel_rollouts',
+  'bodyweight_squat',
+  'lunges',
+  'burpees',
+  'mountain_climbers',
+  'jumping_jacks',
 ];
 
 export const isBodyweightExercise = (exerciseKey, exerciseId) => {
   const cleanKey = (exerciseKey || '').toLowerCase();
-  const cleanId = (exerciseId || '').toLowerCase();
-  return BODYWEIGHT_EXERCISES.some((key) => 
-    cleanKey === key || 
-    cleanId === key || 
+  const cleanId  = (exerciseId  || '').toLowerCase();
+  return BODYWEIGHT_EXERCISES.some((key) =>
+    cleanKey === key ||
+    cleanKey.startsWith(key) ||
+    cleanId  === key ||
     cleanId.startsWith(key + '_')
   );
+};
+
+/**
+ * Generates a UUID that works in both secure (HTTPS) and non-secure (HTTP)
+ * contexts. crypto.randomUUID() is only available on HTTPS — this fallback
+ * uses crypto.getRandomValues (available everywhere) or Math.random as a
+ * last resort for local dev over HTTP.
+ */
+export const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // crypto.getRandomValues fallback (available on HTTP too)
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, (c) =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  }
+  // Math.random last resort (dev only, not cryptographically secure)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
 };
 
 export const getEstimated1RM = (weight, reps, isBW, bodyWeight = 75) => {

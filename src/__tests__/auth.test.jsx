@@ -547,7 +547,86 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Securing Access...')).toBeInTheDocument();
     expect(screen.queryByText('Should Not Render')).not.toBeInTheDocument();
   });
+
+  // ─── cacheHydrated fast-path tests (LCP optimisation) ────────────────────
+  // ProtectedRoute skips the spinner when a cached profile is already in memory,
+  // so returning users see their home screen ~800ms sooner on each visit.
+
+  it('renders children immediately when loading=true but cacheHydrated=true (SWR fast path)', () => {
+    // Simulate returning user: Firebase hasn't confirmed session yet, but we
+    // already have their profile from localStorage cache.
+    useAuthStore.setState({
+      user: { uid: 'u1' },   // user object set from cache before Firebase confirms
+      loading: true,          // Firebase still in-flight
+      cacheHydrated: true,    // profile was pre-hydrated from localStorage
+    });
+
+    render(
+      <RouterWrapper>
+        <ProtectedRoute>
+          <div data-testid="cached-content">Home Screen</div>
+        </ProtectedRoute>
+      </RouterWrapper>
+    );
+
+    // Should render immediately — no spinner blocking the page
+    expect(screen.getByTestId('cached-content')).toBeInTheDocument();
+    expect(screen.queryByText('Securing Access...')).not.toBeInTheDocument();
+  });
+
+  it('shows spinner on cold load: loading=true and cacheHydrated=false', () => {
+    // Simulate first-ever visit: no localStorage cache, Firebase not yet resolved.
+    useAuthStore.setState({
+      user: null,
+      loading: true,
+      cacheHydrated: false,
+    });
+
+    render(
+      <RouterWrapper>
+        <ProtectedRoute>
+          <div>Should Not Render</div>
+        </ProtectedRoute>
+      </RouterWrapper>
+    );
+
+    expect(screen.getByText('Securing Access...')).toBeInTheDocument();
+    expect(screen.queryByText('Should Not Render')).not.toBeInTheDocument();
+  });
+
+  it('redirects to /login when cacheHydrated=true but Firebase confirms user=null (signed out on another device)', () => {
+    // Simulate stale cache: cache says logged in, but Firebase resolved with no user.
+    useAuthStore.setState({
+      user: null,
+      loading: false,         // Firebase resolved
+      cacheHydrated: true,    // cache existed (stale)
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/home']}>
+        <Routes>
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <div>Should Not Render</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={<div data-testid="login-page">Login</div>}
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Must still redirect to /login — cached state never bypasses the auth check
+    expect(screen.getByTestId('login-page')).toBeInTheDocument();
+    expect(screen.queryByText('Should Not Render')).not.toBeInTheDocument();
+  });
 });
+
 
 // ─── OnboardingGuard ─────────────────────────────────────────────────────────
 

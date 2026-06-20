@@ -10,10 +10,7 @@ export const MobileApp = () => {
   return (
     <div style={{ height: '100dvh' }} className="bg-[var(--bg-oled)] text-[var(--text-primary)] flex flex-col overflow-hidden relative">
       <div 
-        className="flex-1 overflow-y-auto" 
-        style={{ 
-          paddingBottom: hideNav ? '0px' : 'calc(64px + env(safe-area-inset-bottom))' 
-        }}
+        className={`flex-1 overflow-y-auto ${hideNav ? '' : 'pb-safe-nav'}`}
       >
         <Suspense fallback={<NeubrutalistSkeleton />}>
           <Outlet />

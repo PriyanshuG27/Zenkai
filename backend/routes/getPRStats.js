@@ -56,7 +56,17 @@ module.exports = [authGuard, async (req, res) => {
     return res.status(400).json({ error: 'Missing exerciseName parameter.' });
   }
 
-  const genderKey = (gender || 'male').toLowerCase();
+  // Validate inputs before they touch any AI prompt
+  if (typeof exerciseName !== 'string' || exerciseName.trim().length === 0 || exerciseName.length > 100) {
+    return res.status(400).json({ error: 'Invalid exerciseName. Must be a non-empty string under 100 characters.' });
+  }
+
+  const VALID_GENDERS = ['male', 'female'];
+  const genderKey = (typeof gender === 'string' ? gender : 'male').toLowerCase();
+  if (!VALID_GENDERS.includes(genderKey)) {
+    return res.status(400).json({ error: 'Invalid gender. Must be "male" or "female".' });
+  }
+
   const exerciseKey = exerciseName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   const docId = `${exerciseKey}_${genderKey}`;
 

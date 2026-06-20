@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── BottomNav padding utility ─────────────────────────────────────────────
+   Applied as a CSS class (not inline JS style) so the padding is part of the
+   initial CSS paint — preventing a layout shift (CLS) when JS evaluates the
+   `env(safe-area-inset-bottom)` value after mount.                          */
+.pb-safe-nav {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+/* ─── Font fallback size-adjust ─────────────────────────────────────────────
+   Google Fonts load non-blocking, so browsers render text with a system
+   fallback first (Arial / Helvetica). Without size-adjust, the condensed
+   Barlow Condensed font is ~20% narrower than Arial, causing a text reflow
+   (CLS) when the real font swaps in. These overrides shrink the fallback to
+   approximately match, eliminating the visible shift.                       */
+@font-face {
+  font-family: 'Barlow Condensed Fallback';
+  src: local('Arial Narrow'), local('Arial');
+  ascent-override: 96%;
+  descent-override: 20%;
+  line-gap-override: 0%;
+  size-adjust: 82%;
+}
+
+@font-face {
+  font-family: 'Outfit Fallback';
+  src: local('Arial'), local('Helvetica');
+  ascent-override: 98%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+  size-adjust: 97%;
+}
+
 :root {
   /* Backgrounds */
   --bg-base:       #080808;   /* True OLED black */
@@ -39,7 +71,7 @@ body {
   margin: 0;
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', 'Outfit Fallback', sans-serif;
   overflow-x: hidden;
 }
 
