@@ -2,14 +2,14 @@
 
 const authGuard = require('../middleware/authGuard');
 const { admin, adminDb } = require('../lib/firebaseAdmin');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { validateUID, validatePlanRequest, validatePlan, HttpsError } = require('../lib/validators');
 const { checkRateLimit } = require('../middleware/rateLimiter');
 const { WORKOUT_PLAN } = require('../lib/models');
+const { executeAICall } = require('../lib/aiRouter');
 const exercisesDatabase = require('../data/exercises.json');
 
 const FieldValue = admin.firestore.FieldValue;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
 
 function mapAvailableEquipment(equipmentList) {
   const mapped = new Set();
@@ -177,7 +177,7 @@ module.exports = [authGuard, async (req, res) => {
     const sessionsSnap = await adminDb
       .collection(`users/${uid}/sessions`)
       .orderBy('date', 'desc')
-      .limit(14)
+      .limit(7)
       .get();
 
     const exerciseNamesMap = {};
@@ -341,95 +341,23 @@ JSON Schema: { "days": [{ "day": number (1-7), "focus": string (e.g. "Push", "Re
 IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for each day from 1 to 7 in sequential order. Do NOT omit rest days; they must have "focus": "Rest" and "exercises": []`;
     }
 
+    // Three-tier AI call: Groq Primary → Groq Fallback → Gemini
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
     let rawText = '';
     let successModel = '';
-    const errors = [];
-
-    // Model 1: Groq (Primary)
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (GROQ_API_KEY) {
-      try {
-        console.log(`[generatePlan] Attempting Model 1: Groq (${WORKOUT_PLAN.PRIMARY})...`);
-        const abortController = new AbortController();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            abortController.abort();
-            reject(new Error('deadline-exceeded'));
-          }, 50000); // 50 second timeout for Groq
-        });
-
-        const groqPromise = (async () => {
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${GROQ_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: WORKOUT_PLAN.PRIMARY,
-              messages: [{ role: 'user', content: prompt }],
-              temperature: 0.2,
-              response_format: { type: 'json_object' }
-            }),
-            signal: abortController.signal
-          });
-
-          if (response.ok) {
-            const resData = await response.json();
-            return resData.choices?.[0]?.message?.content || '';
-          } else {
-            const errText = await response.text();
-            throw new Error(`Groq API returned status ${response.status}: ${errText}`);
-          }
-        })();
-
-        rawText = await Promise.race([groqPromise, timeoutPromise]);
-        successModel = 'groq';
-        console.log(`[generatePlan] Groq (${WORKOUT_PLAN.PRIMARY}) successfully generated plan.`);
-      } catch (err) {
-        console.error(`[generatePlan] Groq (${WORKOUT_PLAN.PRIMARY}) failed:`, err.message);
-        errors.push({ model: WORKOUT_PLAN.PRIMARY, error: err.message });
-      }
-    } else {
-      errors.push({ model: WORKOUT_PLAN.PRIMARY, error: 'GROQ_API_KEY missing' });
-    }
-
-    // Model 2: Gemini (Fallback)
-    if (!rawText && GEMINI_API_KEY) {
-      try {
-        console.log(`[generatePlan] Attempting Model 2: Gemini (${WORKOUT_PLAN.FALLBACK})...`);
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-          model: WORKOUT_PLAN.FALLBACK,
-          generationConfig: {
-            temperature: 0.2,
-          },
-        });
-
-        const abortController = new AbortController();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            abortController.abort();
-            reject(new Error('deadline-exceeded'));
-          }, 90000); // 90 second timeout for Gemini
-        });
-
-        const geminiPromise = model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
-        }, {
-          signal: abortController.signal
-        });
-
-        const geminiResult = await Promise.race([geminiPromise, timeoutPromise]);
-        rawText = geminiResult.response.text();
-        successModel = 'gemini';
-        console.log(`[generatePlan] Gemini (${WORKOUT_PLAN.FALLBACK}) successfully generated plan.`);
-      } catch (err) {
-        console.error(`[generatePlan] Gemini (${WORKOUT_PLAN.FALLBACK}) failed:`, err.message);
-        errors.push({ model: WORKOUT_PLAN.FALLBACK, error: err.message });
-      }
-    } else if (!rawText) {
-      errors.push({ model: WORKOUT_PLAN.FALLBACK, error: 'GEMINI_API_KEY missing' });
+    const aiResult = await executeAICall('WORKOUT_PLAN', prompt, '', {
+      jsonMode: true,
+      temperature: 0.2,
+      groqTimeoutMs: 50000,
+      geminiTimeoutMs: 90000
+    });
+    // executeAICall returns parsed object in jsonMode; re-serialize so parseGeminiJSON below still works uniformly
+    if (aiResult && typeof aiResult === 'object') {
+      rawText = JSON.stringify(aiResult);
+      successModel = GROQ_API_KEY ? 'groq' : 'gemini';
+    } else if (aiResult) {
+      rawText = aiResult;
+      successModel = GROQ_API_KEY ? 'groq' : 'gemini';
     }
 
     if (!rawText) {
@@ -438,12 +366,8 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
         await rollbackRateLimit(adminDb, uid, req.body?.usePowerUp === true).catch(() => {});
       }
 
-      const isTimeout = errors.some(e => e.error === 'deadline-exceeded');
-      // Log the full model error details server-side only
-      console.error('[generatePlan] All models failed:', JSON.stringify(errors));
-      if (isTimeout) {
-        return res.status(504).json({ error: 'Plan generation timed out. Please try again.' });
-      }
+      // All tiers failed — errors are already logged by aiRouter
+      console.error('[generatePlan] All AI tiers failed. Returning error to client.');
       return res.status(500).json({ error: 'Plan generation failed. Please try again.' });
     }
 

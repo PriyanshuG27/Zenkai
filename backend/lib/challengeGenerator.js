@@ -1,10 +1,8 @@
 'use strict';
 
 const { adminDb } = require('./firebaseAdmin');
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const { SQUAD_CHALLENGE } = require('./models');
+const { executeAICall } = require('./aiRouter');
 
 /**
  * Core function to generate a weekly synergy challenge (Titan Raid) for a squad and save it.
@@ -100,83 +98,11 @@ async function generateChallengeForSquad(squadCode, isRegen = false) {
   }
 `;
 
-  let copywriteJSON = null;
-
-  // Model 1: Groq (Primary — using Llama 3.3 70B)
-  if (GROQ_API_KEY) {
-    try {
-      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Groq (${SQUAD_CHALLENGE.PRIMARY})...`);
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: SQUAD_CHALLENGE.PRIMARY,
-          messages: [{ role: 'user', content: prompt }],
-          response_format: { type: 'json_object' },
-          temperature: 0.7
-        })
-      });
-
-      if (response.ok) {
-        const resData = await response.json();
-        const contentText = resData.choices?.[0]?.message?.content || '{}';
-        
-        let cleanText = contentText.trim();
-        if (cleanText.includes('```')) {
-          cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
-        }
-        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanText = jsonMatch[0];
-        }
-
-        copywriteJSON = JSON.parse(cleanText);
-        console.log(`[challengeGenerator] Groq (${SQUAD_CHALLENGE.PRIMARY}) succeeded for ${squadCode}`);
-      } else {
-        const errText = await response.text();
-        console.warn(`[challengeGenerator] Groq API returned status ${response.status}: ${errText}`);
-      }
-    } catch (groqErr) {
-      console.error(`[challengeGenerator] Groq (${SQUAD_CHALLENGE.PRIMARY}) call failed, trying fallback:`, groqErr.message);
-    }
-  }
-
-  // Model 2: Gemini (Fallback — using Gemini 3.1 Flash / gemini-flash-latest)
-  if (!copywriteJSON && GEMINI_API_KEY) {
-    try {
-      console.log(`[challengeGenerator] Generating Titan Raid for ${squadCode} via Gemini (${SQUAD_CHALLENGE.FALLBACK})...`);
-      const { GoogleGenerativeAI } = require('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({
-        model: SQUAD_CHALLENGE.FALLBACK,
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: 'application/json'
-        },
-      });
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }]
-      });
-      const text = result.response.text().trim();
-      
-      let cleanText = text;
-      if (cleanText.includes('```')) {
-        cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
-      }
-      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        cleanText = jsonMatch[0];
-      }
-
-      copywriteJSON = JSON.parse(cleanText);
-      console.log(`[challengeGenerator] Gemini (${SQUAD_CHALLENGE.FALLBACK}) succeeded for ${squadCode}`);
-    } catch (geminiErr) {
-      console.error(`[challengeGenerator] Gemini (${SQUAD_CHALLENGE.FALLBACK}) fallback failed:`, geminiErr.message);
-    }
-  }
+  // Three-tier AI call: Groq Primary → Groq Fallback → Gemini
+  const copywriteJSON = await executeAICall('SQUAD_CHALLENGE', prompt, '', {
+    jsonMode: true,
+    temperature: 0.7
+  });
 
   if (copywriteJSON) {
     if (copywriteJSON.titanName) titanName = copywriteJSON.titanName.trim();

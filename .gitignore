@@ -54,3 +54,12 @@ lighthouse-report.html
 
 # Coverage reports
 coverage/
+
+# Local media assets and presentation files
+*.mp3
+*.mp4
+*.png
+*.srt
+audio/
+promo_video_playbook.md
+

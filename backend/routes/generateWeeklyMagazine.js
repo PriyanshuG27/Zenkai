@@ -3,9 +3,7 @@
 const authGuard = require('../middleware/authGuard');
 const { adminDb } = require('../lib/firebaseAdmin');
 const { validateUID } = require('../lib/validators');
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const { executeAICall } = require('../lib/aiRouter');
 const { WEEKLY_MAGAZINE } = require('../lib/models');
 
 function getISOWeek(date) {
@@ -219,8 +217,7 @@ module.exports = [authGuard, async (req, res) => {
       workouts_logged_this_week: mobileSnap.size + desktopSnap.size
     };
 
-    // 5. Prompt Groq / Gemini
-    let copywriteJSON = null;
+    // 5. Build prompts
     const systemPrompt = `You are a world-class, ruthless, hyper-motivating fitness coach and sports journalist.
 Your job is to write the weekly "Sunday morning sports magazine" report for a lifter based on their training telemetry.
 Analyze their stats with brutal honesty: roast them if they skipped leg day (legs volume is 0 or low compared to chest/back), praise their consistency, evaluate their mental focus (MMC), and provide action items overlaying their custom cues.
@@ -265,128 +262,15 @@ JSON structure:
   }
 }`;
 
-    const prompt = `Here is the compressed weekly telemetry for the user:
-${JSON.stringify(compressedTelemetry, null, 2)}`;
+    const prompt = `Here is the compressed weekly telemetry for the user:\n${JSON.stringify(compressedTelemetry, null, 2)}`;
 
-    // Model 1: Groq API (Primary)
-    if (GROQ_API_KEY) {
-      try {
-        console.log(`[generateWeeklyMagazine] Calling Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) for ${uid}...`);
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: WEEKLY_MAGAZINE.PRIMARY,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: prompt }
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.8
-          })
-        });
-        if (response.ok) {
-          const resData = await response.json();
-          const rawContent = (resData.choices?.[0]?.message?.content || '{}').trim();
-          let cleanContent = rawContent;
-          if (cleanContent.startsWith('```')) {
-            cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
-          }
-          const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanContent = jsonMatch[0];
-          }
-          copywriteJSON = JSON.parse(cleanContent);
-          console.log(`[generateWeeklyMagazine] Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) succeeded.`);
-        } else {
-          const errText = await response.text();
-          console.warn(`[generateWeeklyMagazine] Groq Primary error ${response.status}: ${errText}`);
-        }
-      } catch (groqErr) {
-        console.error(`[generateWeeklyMagazine] Groq Primary (${WEEKLY_MAGAZINE.PRIMARY}) failed:`, groqErr.message);
-      }
-    }
+    // 6. Run three-tier AI call
+    let copywriteJSON = await executeAICall('WEEKLY_MAGAZINE', prompt, systemPrompt, {
+      jsonMode: true,
+      temperature: 0.8
+    });
 
-    // Model 2: Groq API (Fallback)
-    if (!copywriteJSON && GROQ_API_KEY) {
-      try {
-        console.log(`[generateWeeklyMagazine] Falling back to Groq (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) for ${uid}...`);
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: WEEKLY_MAGAZINE.FALLBACK_GROQ,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: prompt }
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.8
-          })
-        });
-        if (response.ok) {
-          const resData = await response.json();
-          const rawContent = (resData.choices?.[0]?.message?.content || '{}').trim();
-          let cleanContent = rawContent;
-          if (cleanContent.startsWith('```')) {
-            cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
-          }
-          const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanContent = jsonMatch[0];
-          }
-          copywriteJSON = JSON.parse(cleanContent);
-          console.log(`[generateWeeklyMagazine] Groq Fallback (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) succeeded.`);
-        } else {
-          const errText = await response.text();
-          console.warn(`[generateWeeklyMagazine] Groq Fallback error ${response.status}: ${errText}`);
-        }
-      } catch (groqErr) {
-        console.error(`[generateWeeklyMagazine] Groq Fallback (${WEEKLY_MAGAZINE.FALLBACK_GROQ}) failed:`, groqErr.message);
-      }
-    }
-
-    // Model 3: Gemini API (Last Resort)
-    if (!copywriteJSON && GEMINI_API_KEY) {
-      try {
-        console.log(`[generateWeeklyMagazine] Calling Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort for ${uid}...`);
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-          model: WEEKLY_MAGAZINE.FALLBACK_GEMINI,
-          systemInstruction: systemPrompt,
-          generationConfig: {
-            temperature: 0.8,
-            responseMimeType: 'application/json'
-          },
-        });
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
-        });
-        const rawContent = result.response.text().trim();
-        
-        let cleanContent = rawContent;
-        if (cleanContent.startsWith('```')) {
-          cleanContent = cleanContent.replace(/^```(?:json)?\n?|```$/g, '').trim();
-        }
-        const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanContent = jsonMatch[0];
-        }
-        copywriteJSON = JSON.parse(cleanContent);
-        console.log(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort succeeded.`);
-      } catch (geminiErr) {
-        console.error(`[generateWeeklyMagazine] Gemini (${WEEKLY_MAGAZINE.FALLBACK_GEMINI}) last resort failed:`, geminiErr.message);
-      }
-    }
-
-    // Fallback magazine payload if all APIs fail
+    // 7. Hard fallback if all tiers fail
     if (!copywriteJSON) {
       copywriteJSON = {
         headline: `${userName}'s Path to Power: A Week in Review`,

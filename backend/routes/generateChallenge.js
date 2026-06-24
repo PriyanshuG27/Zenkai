@@ -3,9 +3,9 @@
 const authGuard = require('../middleware/authGuard');
 const { adminDb } = require('../lib/firebaseAdmin');
 const { validateUID } = require('../lib/validators');
+const { executeAICall } = require('../lib/aiRouter');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const { PERSONAL_CHALLENGE } = require('../lib/models');
 
 module.exports = [authGuard, async (req, res) => {
   const uid = req.user.uid;
@@ -108,8 +108,7 @@ module.exports = [authGuard, async (req, res) => {
     let favTitle = `${favMuscle} Champion`;
     let favDesc = `Log ${favMuscleSets} sets of ${favMuscle} to dominate your favorite lifts.`;
 
-    // 6. Groq / Gemini Copywriter Call
-    let copywriteJSON = null;
+    // 6. Three-tier AI copywriter call
     const prompt = `You are an elite fitness gamification designer. Generate two personalized challenges for a user with the goal '${userGoal}' and level '${userType}':
 1. A Weak Point Challenge for their lagging muscle group: ${weakPoint}. Target: Complete ${weakPointSets} sets of ${weakPoint} over ${durationDays} days.
 2. A Favorite Muscle Group Challenge for their favorite muscle group: ${favMuscle}. Target: Complete ${favMuscleSets} sets of ${favMuscle} over ${durationDays} days.
@@ -128,90 +127,22 @@ JSON format:
   }
 }`;
 
-    // Model 1: Groq (Primary — using Llama 3.1 8B)
-    if (GROQ_API_KEY) {
-      try {
-        console.log(`[generateChallenge] Attempting Model 1: Groq (${PERSONAL_CHALLENGE.PRIMARY})...`);
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: PERSONAL_CHALLENGE.PRIMARY,
-            messages: [{ role: 'user', content: prompt }],
-            response_format: { type: 'json_object' },
-            temperature: 0.7
-          })
-        });
-
-        if (response.ok) {
-          const resData = await response.json();
-          const contentText = resData.choices?.[0]?.message?.content || '{}';
-          let cleanText = contentText.trim();
-          if (cleanText.includes('```')) {
-            cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
-          }
-          const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanText = jsonMatch[0];
-          }
-          copywriteJSON = JSON.parse(cleanText);
-          console.log(`[generateChallenge] Groq (${PERSONAL_CHALLENGE.PRIMARY}) succeeded.`);
-        } else {
-          const errText = await response.text();
-          console.warn(`[generateChallenge] Groq API returned status ${response.status}: ${errText}`);
-        }
-      } catch (groqErr) {
-        console.error(`[generateChallenge] Groq (${PERSONAL_CHALLENGE.PRIMARY}) failed, trying fallback:`, groqErr.message);
-      }
-    }
-
-    // Model 2: Gemini (Fallback — using Gemini 3.1 Flash Lite)
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!copywriteJSON && GEMINI_API_KEY) {
-      try {
-        console.log(`[generateChallenge] Attempting Model 2: Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback...`);
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-          model: PERSONAL_CHALLENGE.FALLBACK,
-          generationConfig: {
-            temperature: 0.7,
-            responseMimeType: 'application/json'
-          },
-        });
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
-        });
-        const text = result.response.text().trim();
-        let cleanText = text;
-        if (cleanText.includes('```')) {
-          cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
-        }
-        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanText = jsonMatch[0];
-        }
-        copywriteJSON = JSON.parse(cleanText);
-        console.log(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback succeeded.`);
-      } catch (geminiErr) {
-        console.error(`[generateChallenge] Gemini (${PERSONAL_CHALLENGE.FALLBACK}) fallback failed:`, geminiErr.message);
-      }
-    }
+    const copywriteJSON = await executeAICall('PERSONAL_CHALLENGE', prompt, '', {
+      jsonMode: true,
+      temperature: 0.7
+    });
 
     if (copywriteJSON) {
-      if (copywriteJSON.weak_point && copywriteJSON.weak_point.title && copywriteJSON.weak_point.description) {
+      if (copywriteJSON.weak_point?.title && copywriteJSON.weak_point?.description) {
         wpTitle = copywriteJSON.weak_point.title.trim();
         wpDesc = copywriteJSON.weak_point.description.trim();
       }
-      if (copywriteJSON.favorite && copywriteJSON.favorite.title && copywriteJSON.favorite.description) {
+      if (copywriteJSON.favorite?.title && copywriteJSON.favorite?.description) {
         favTitle = copywriteJSON.favorite.title.trim();
         favDesc = copywriteJSON.favorite.description.trim();
       }
     } else {
-      console.log('[generateChallenge] Both APIs failed. Using local copywriter templates.');
+      console.log('[generateChallenge] All AI tiers failed. Using local copywriter templates.');
     }
 
     const templatesCol = adminDb.collection(`users/${uid}/personalTemplates`);

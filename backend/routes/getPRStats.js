@@ -1,10 +1,7 @@
 const authGuard = require('../middleware/authGuard');
 const { admin, adminDb } = require('../lib/firebaseAdmin');
-const Groq = require('groq-sdk');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const { PR_STATS } = require('../lib/models');
+const { executeAICall } = require('../lib/aiRouter');
 const FieldValue = admin.firestore.FieldValue;
 
 // Load predefined exercise and strength standards databases for local lookup
@@ -122,50 +119,11 @@ module.exports = [authGuard, async (req, res) => {
       }
     `;
 
-    let multipliers = null;
-
-    // Model 1: Groq (Primary)
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (GROQ_API_KEY) {
-      try {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'system', content: prompt }],
-          model: PR_STATS.PRIMARY,
-          temperature: 0.1,
-          response_format: { type: 'json_object' }
-        });
-        console.log(`[getPRStats] Model 1: Groq (${PR_STATS.PRIMARY}) succeeded for: ${exerciseName}`);
-        multipliers = JSON.parse(completion.choices[0].message.content);
-      } catch (err) {
-        console.warn(`[getPRStats] Model 1: Groq (${PR_STATS.PRIMARY}) failed, trying fallback:`, err.message);
-      }
-    }
-
-    // Model 2: Gemini (Fallback)
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!multipliers && GEMINI_API_KEY) {
-      try {
-        console.log(`[getPRStats] Attempting Model 2: Gemini (${PR_STATS.FALLBACK}) fallback...`);
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-          model: PR_STATS.FALLBACK,
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json'
-          }
-        });
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
-        let cleanText = text;
-        if (cleanText.includes('```')) {
-          cleanText = cleanText.replace(/```(?:json)?/g, '').trim();
-        }
-        multipliers = JSON.parse(cleanText);
-        console.log(`[getPRStats] Model 2: Gemini (${PR_STATS.FALLBACK}) fallback succeeded.`);
-      } catch (err) {
-        console.error(`[getPRStats] Model 2: Gemini (${PR_STATS.FALLBACK}) fallback failed:`, err.message);
-      }
-    }
+    // Three-tier AI call: Groq Primary → Groq Fallback → Gemini
+    let multipliers = await executeAICall('PR_STATS', prompt, '', {
+      jsonMode: true,
+      temperature: 0.1
+    });
 
     // If both failed, use static fallback
     if (!multipliers) {
