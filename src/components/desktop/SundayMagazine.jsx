@@ -86,7 +86,7 @@ export const SundayMagazine = () => {
           <Newspaper size={48} className="text-[var(--primary)] animate-pulse" />
           <div className="flex flex-col gap-2 text-center">
             <h3 className="font-display font-black text-xl uppercase tracking-wider">Printing Sunday Issue...</h3>
-            <p className="text-xs font-mono text-neutral-400">Interviewing Coach Llama & compiling weekly training telemetry logs.</p>
+            <p className="text-xs font-mono text-neutral-400">Interviewing Coach Zenkai & compiling weekly training telemetry logs.</p>
           </div>
           <div className="w-full bg-neutral-900 border-2 border-black rounded-full h-4 overflow-hidden p-[1px]">
             <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent-xp)] h-full rounded animate-[pulse_1.5s_infinite] w-3/4" />
@@ -545,7 +545,7 @@ export const SundayMagazine = () => {
             <div className="border-4 border-black bg-[#fef9c3] text-black p-6 rounded-none shadow-[5px_5px_0px_black] text-left flex flex-col gap-4 relative overflow-hidden">
               <Quote className="absolute right-4 bottom-2 text-yellow-250/30 w-24 h-24 pointer-events-none" />
               <span className="text-[9px] font-mono text-neutral-600 uppercase font-black tracking-wider block">
-                COACH LLAMA'S VERDICT
+                COACH ZENKAI'S VERDICT
               </span>
               <p className="font-serif italic text-base leading-relaxed text-neutral-900 font-bold relative z-10">
                 "{magazineData.coachVerdict}"
@@ -553,7 +553,7 @@ export const SundayMagazine = () => {
               <div className="flex items-center gap-2 border-t border-yellow-350 pt-3 mt-1 relative z-10">
                 <span className="w-5 h-0.5 bg-black" />
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-black">
-                  Llama 3.3 Core Engine
+                  Zenkai Core AI Engine
                 </span>
               </div>
             </div>
