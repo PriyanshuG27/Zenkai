@@ -246,6 +246,14 @@ function _cbRecordSuccess() {
  * @param {string} reason - Short description for logging.
  */
 function _cbRecordFailure(reason) {
+  // Do not trip circuit breaker for client-side/validation errors (400 Bad Request, 401 Unauthorized, 403 Forbidden)
+  // as they indicate prompt/auth issues rather than service downtime or rate limits.
+  const isClientError = /Groq 40[013]/.test(reason);
+  if (isClientError) {
+    console.warn(`[aiRouter][CircuitBreaker] Client/validation error (not incrementing failure count): ${reason}`);
+    return;
+  }
+
   _groqCB.failures += 1;
   console.warn(`[aiRouter][CircuitBreaker] Groq failure #${_groqCB.failures}: ${reason}`);
   if (_groqCB.failures >= CB_FAILURE_THRESHOLD && _groqCB.trippedAt === null) {
@@ -256,6 +264,7 @@ function _cbRecordFailure(reason) {
     );
   }
 }
+
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -347,9 +356,14 @@ async function executeAICall(taskKey, prompt, systemPrompt = '', options = {}) {
 
   // Build Groq messages array
   const buildMessages = () => {
-    if (systemPrompt) {
+    let system = systemPrompt;
+    if (jsonMode) {
+      const jsonSystemInstruction = "You are a strict JSON generator. You must respond ONLY with a valid JSON object matching the requested schema. Do not wrap the JSON in markdown code blocks (e.g. do NOT use ```json or ```). Do not output any conversational text, introductions, or explanations. Start your response directly with '{' or '[' and end with '}' or ']'.";
+      system = system ? `${system}\n\n${jsonSystemInstruction}` : jsonSystemInstruction;
+    }
+    if (system) {
       return [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: system },
         { role: 'user', content: prompt },
       ];
     }
