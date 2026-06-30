@@ -378,7 +378,7 @@ function App() {
                   publicData = data;
                   
                   // Auto-initialize / heal cumulativeXP and correct any past level corruption
-                  if (data.cumulativeXP === undefined) {
+                  if (data.cumulativeXP === undefined || data.cumulativeXP < (data.xp ?? 0)) {
                     (async () => {
                       try {
                         const { getDocs, collection, updateDoc } = await import('firebase/firestore');

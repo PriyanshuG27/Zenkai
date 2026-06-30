@@ -334,7 +334,7 @@ export const MobileHome = () => {
   const nextLevelThreshold = totalXP + xpToNextLevel;
   const spendablePercentage = nextLevelThreshold > 0 ? Math.min(100, Math.max(0, (xp / nextLevelThreshold) * 100)) : 0;
   const lifetimePercentage = nextLevelThreshold > 0 ? Math.min(100, Math.max(0, (totalXP / nextLevelThreshold) * 100)) : 0;
-  const displayXpToNextLevel = nextLevelThreshold - xp;
+  const displayXpToNextLevel = xpToNextLevel;
 
   // Find active joined challenge (campaign subtype only)
   const activeChallenge = challenges.find(
@@ -533,7 +533,7 @@ export const MobileHome = () => {
             </span>
           </div>
           <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">
-            {xp} <span className="text-[var(--text-secondary)]">/ {nextLevelThreshold} XP</span>
+            {totalXP} <span className="text-[var(--text-secondary)]">/ {nextLevelThreshold} XP</span>
           </span>
         </div>
 

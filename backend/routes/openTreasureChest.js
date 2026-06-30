@@ -44,6 +44,49 @@ const REWARDS = {
   ]
 };
 
+// ─── Level Anchor Thresholds & Derivation ─────────────────────────────────────
+const LEVEL_THRESHOLDS = [
+  { level: 1,  name: 'Rookie',     xpRequired: 0      },
+  { level: 6,  name: 'Challenger', xpRequired: 1000   },
+  { level: 16, name: 'Athlete',    xpRequired: 7000   },
+  { level: 31, name: 'Elite',      xpRequired: 30000  },
+];
+
+function deriveLevelFromXP(xp) {
+  const raw = Math.max(0, xp);
+
+  let tierIdx = 0;
+  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (raw >= LEVEL_THRESHOLDS[i].xpRequired) {
+      tierIdx = i;
+      break;
+    }
+  }
+
+  const current = LEVEL_THRESHOLDS[tierIdx];
+  const next = LEVEL_THRESHOLDS[tierIdx + 1] ?? null;
+
+  if (!next) {
+    const eliteXPPerLevel = 2000;
+    const xpIntoElite = raw - current.xpRequired;
+    const levelsIntoElite = Math.floor(xpIntoElite / eliteXPPerLevel);
+    const level = current.level + levelsIntoElite;
+    const xpToNextLevel = eliteXPPerLevel - (xpIntoElite % eliteXPPerLevel);
+    return { level, levelName: current.name, xpToNextLevel };
+  }
+
+  const tierXPSpan = next.xpRequired - current.xpRequired;
+  const levelCount = next.level - current.level;
+  const xpPerLevel = Math.floor(tierXPSpan / levelCount);
+  const xpIntoTier = raw - current.xpRequired;
+  const levelsIntoTier = Math.min(Math.floor(xpIntoTier / xpPerLevel), levelCount - 1);
+  const level = current.level + levelsIntoTier;
+  const xpEarnedThisSubLevel = xpIntoTier - levelsIntoTier * xpPerLevel;
+  const xpToNextLevel = xpPerLevel - xpEarnedThisSubLevel;
+
+  return { level, levelName: current.name, xpToNextLevel };
+}
+
 module.exports = [
   authGuard,
   async (req, res) => {
@@ -98,16 +141,17 @@ module.exports = [
       nextPowerUps.bossFightKey = currentKeys - config.cost; // deduct cost
 
       let nextXp = userData.xp || 0;
+      let nextCumulativeXp = userData.cumulativeXP || userData.xp || 0;
       let nextLevel = userData.level || 1;
+      let nextLevelName = userData.levelName || 'Rookie';
       let nextBadges = [...(userData.badges || [])];
 
       if (rolledReward.type === 'xp') {
         nextXp += rolledReward.value;
-        // Simple level-up algorithm: level = floor(sqrt(xp / 100)) + 1
-        const calculatedLevel = Math.floor(Math.sqrt(nextXp / 100)) + 1;
-        if (calculatedLevel > nextLevel) {
-          nextLevel = calculatedLevel;
-        }
+        nextCumulativeXp += rolledReward.value;
+        const derived = deriveLevelFromXP(nextCumulativeXp);
+        nextLevel = derived.level;
+        nextLevelName = derived.levelName;
       } else if (rolledReward.type === 'consumable') {
         nextPowerUps[rolledReward.key] = (nextPowerUps[rolledReward.key] || 0) + rolledReward.value;
       } else if (rolledReward.type === 'title' || rolledReward.type === 'aura') {
@@ -133,7 +177,9 @@ module.exports = [
       const updateData = {
         powerUps: nextPowerUps,
         xp: nextXp,
+        cumulativeXP: nextCumulativeXp,
         level: nextLevel,
+        levelName: nextLevelName,
         updatedAt: new Date()
       };
 
