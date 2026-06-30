@@ -55,6 +55,7 @@ test.describe('Auth journeys', () => {
     await page.fill('#name', 'Auth TestUser');
     await page.fill('#email', email);
     await page.fill('#password', TEST_PASSWORD);
+    await page.check('#termsAccepted');
 
     // Submit — button text is "Create Account"
     await page.getByRole('button', { name: /create account/i }).click();
@@ -124,6 +125,7 @@ test.describe('Auth journeys', () => {
     await page.fill('#name', 'Login TestUser');
     await page.fill('#email', email);
     await page.fill('#password', TEST_PASSWORD);
+    await page.check('#termsAccepted');
     await page.getByRole('button', { name: /create account/i }).click();
     await page.waitForURL('**/onboarding**', { timeout: 15_000 });
     // Complete minimum onboarding to set onboardingComplete = true
@@ -214,6 +216,7 @@ test.describe('Auth journeys', () => {
     await page.fill('#name', 'Redirect User');
     await page.fill('#email', email);
     await page.fill('#password', TEST_PASSWORD);
+    await page.check('#termsAccepted');
     await page.getByRole('button', { name: /create account/i }).click();
     await page.waitForURL('**/onboarding**', { timeout: 15_000 });
     // Minimal onboarding

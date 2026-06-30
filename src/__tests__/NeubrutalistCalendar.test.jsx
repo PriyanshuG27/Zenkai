@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { mockDeleteDoc, mockGetDocs } from '../__mocks__/firebase';
@@ -13,6 +13,8 @@ function RouterWrapper({ children }) {
 
 describe('NeubrutalistCalendar Component', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'));
     mockGetDocs.mockResolvedValue({
       empty: true,
       docs: [],
@@ -22,6 +24,10 @@ describe('NeubrutalistCalendar Component', () => {
       uid: 'user123',
     });
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders correctly with default props', () => {

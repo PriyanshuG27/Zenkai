@@ -133,6 +133,7 @@ export default async function globalSetup(config: FullConfig) {
     await page.fill('#name', 'Onboarded TestUser');
     await page.fill('#email', 'e2e-workout@zenkai.test');
     await page.fill('#password', 'Test1234!');
+    await page.check('#termsAccepted');
     await page.click('button[type="submit"]');
 
     // Wait for onboarding (created user will land here)
