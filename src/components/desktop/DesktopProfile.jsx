@@ -800,14 +800,14 @@ export const DesktopProfile = () => {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => window.open('/terms', '_blank')}
+                onClick={() => navigate('/terms')}
                 className="w-full py-3 px-4 bg-bg-surface hover:bg-[#1a1a1a] text-left rounded-xl border border-border flex items-center justify-between text-xs font-mono font-bold text-text-primary uppercase tracking-wide transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.1)] active:scale-[0.99] cursor-pointer"
               >
                 <span>Terms of Service & Liability Waiver</span>
                 <ChevronRight size={14} className="text-[var(--text-muted)]" />
               </button>
               <button
-                onClick={() => window.open('/privacy', '_blank')}
+                onClick={() => navigate('/privacy')}
                 className="w-full py-3 px-4 bg-bg-surface hover:bg-[#1a1a1a] text-left rounded-xl border border-border flex items-center justify-between text-xs font-mono font-bold text-text-primary uppercase tracking-wide transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.1)] active:scale-[0.99] cursor-pointer"
               >
                 <span>Privacy Policy & Data safety</span>

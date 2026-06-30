@@ -689,7 +689,7 @@ export const MobileProfile = () => {
 
         {/* Terms of Service Button */}
         <motion.button
-          onClick={() => window.open('/terms', '_blank')}
+          onClick={() => navigate('/terms')}
           className="w-full p-4 border-2 border-black bg-[var(--surface)] hover:bg-[#1a1a1a] text-left rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-[0.99] transition-all flex items-center justify-between"
           whileTap={{ scale: 0.99 }}
         >
@@ -711,7 +711,7 @@ export const MobileProfile = () => {
 
         {/* Privacy Policy Button */}
         <motion.button
-          onClick={() => window.open('/privacy', '_blank')}
+          onClick={() => navigate('/privacy')}
           className="w-full p-4 border-2 border-black bg-[var(--surface)] hover:bg-[#1a1a1a] text-left rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-[0.99] transition-all flex items-center justify-between"
           whileTap={{ scale: 0.99 }}
         >
