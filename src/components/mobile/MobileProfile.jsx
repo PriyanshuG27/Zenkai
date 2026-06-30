@@ -7,7 +7,7 @@ import { useUIStore } from '../../stores/useUIStore';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc, collection, addDoc, query, onSnapshot, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
-import { Smartphone, LogOut, Info, Sparkles, User, Flame, Trophy, Award, Check, X, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Trash2, Plus, ArrowLeft, Camera, Bell, BellOff } from 'lucide-react';
+import { Smartphone, LogOut, Info, Sparkles, User, Flame, Trophy, Award, Check, X, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Trash2, Plus, ArrowLeft, Camera, Bell, BellOff, FileText, Shield } from 'lucide-react';
 import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWeeklyRecap } from '../../hooks/useWeeklyRecap';
@@ -685,6 +685,50 @@ export const MobileProfile = () => {
             </div>
           </div>
           <MessageSquare size={16} className="text-[var(--text-muted)]" />
+        </motion.button>
+
+        {/* Terms of Service Button */}
+        <motion.button
+          onClick={() => window.open('/terms', '_blank')}
+          className="w-full p-4 border-2 border-black bg-[var(--surface)] hover:bg-[#1a1a1a] text-left rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-[0.99] transition-all flex items-center justify-between"
+          whileTap={{ scale: 0.99 }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded bg-[#3b82f60e] border border-[#3b82f6] text-[#3b82f6]">
+              <FileText size={18} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display text-sm font-bold uppercase tracking-wide text-[var(--text-primary)]">
+                Terms of Service
+              </span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-sans mt-0.5">
+                Read our rules and fitness liability disclaimers
+              </span>
+            </div>
+          </div>
+          <FileText size={16} className="text-[var(--text-muted)]" />
+        </motion.button>
+
+        {/* Privacy Policy Button */}
+        <motion.button
+          onClick={() => window.open('/privacy', '_blank')}
+          className="w-full p-4 border-2 border-black bg-[var(--surface)] hover:bg-[#1a1a1a] text-left rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:scale-[0.99] transition-all flex items-center justify-between"
+          whileTap={{ scale: 0.99 }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded bg-[#10b9810e] border border-[#10b981] text-[#10b981]">
+              <Shield size={18} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display text-sm font-bold uppercase tracking-wide text-[var(--text-primary)]">
+                Privacy Policy
+              </span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-sans mt-0.5">
+                Understand how we protect and manage your data
+              </span>
+            </div>
+          </div>
+          <Shield size={16} className="text-[var(--text-muted)]" />
         </motion.button>
 
         {/* Sign Out Button */}

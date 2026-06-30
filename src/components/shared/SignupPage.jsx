@@ -13,6 +13,7 @@ export const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Field Validation Errors
   const [nameErr, setNameErr] = useState('');
@@ -82,6 +83,10 @@ export const SignupPage = () => {
   };
 
   const handleGoogleSignup = async () => {
+    if (!termsAccepted) {
+      setServerErr('You must declare you are at least 13 and agree to the Terms & Privacy Policy to sign up.');
+      return;
+    }
     setLoading(true);
     clearError();
     setServerErr('');
@@ -122,7 +127,7 @@ export const SignupPage = () => {
   };
 
   const isFormValid = name && email && password && !nameErr && !emailErr && !passwordErr;
-  const isSubmitDisabled = loading || !isFormValid;
+  const isSubmitDisabled = loading || !isFormValid || !termsAccepted;
 
   return (
     <div className="relative min-h-screen bg-bg-base flex items-center justify-center p-4 selection:bg-primary/30 selection:text-primary overflow-hidden">
@@ -295,10 +300,26 @@ export const SignupPage = () => {
             </motion.div>
           )}
 
-          {/* Terms Agreement (Plain Text) */}
-          <p className="text-[11px] text-text-muted leading-snug">
-            By signing up you agree to our terms.
-          </p>
+          {/* Terms Agreement (Checkbox + Links) */}
+          <div className="flex items-start gap-2.5 text-[11px] text-text-muted leading-snug">
+            <input
+              type="checkbox"
+              id="termsAccepted"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 rounded border-border-base bg-bg-input text-primary focus:ring-primary/20 cursor-pointer h-3.5 w-3.5"
+            />
+            <label htmlFor="termsAccepted" className="cursor-pointer select-none">
+              I am at least 18 years old, or I am a minor between 13–17 and have obtained my parent or guardian's consent, and I agree to the{' '}
+              <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+                Privacy Policy
+              </Link>.
+            </label>
+          </div>
 
           {/* Sign Up Button */}
           <button

@@ -138,6 +138,8 @@ import { writeProfileCache, readProfileCache } from './stores/authStore';
 const LandingPage      = safeLazy(() => import('./components/shared/LandingPage').then(m => ({ default: m.LandingPage })));
 const LoginPage        = safeLazy(() => import('./components/shared/LoginPage').then(m => ({ default: m.LoginPage })));
 const SignupPage       = safeLazy(() => import('./components/shared/SignupPage').then(m => ({ default: m.SignupPage })));
+const PrivacyPolicy    = safeLazy(() => import('./components/shared/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService   = safeLazy(() => import('./components/shared/TermsOfService').then(m => ({ default: m.TermsOfService })));
 import { PWAInstallModal } from './components/shared/PWAInstallModal';
 import { PWAInstallBanner } from './components/shared/PWAInstallBanner';
 import { ToastStack } from './components/shared/ToastStack';
@@ -190,6 +192,8 @@ function AppRoutes({ layout }) {
         <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
         <Route path="/login"  element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/signup" element={<GuestRoute><SignupPage /></GuestRoute>} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
 
         {/* ── Onboarding — protected but NOT guarded by OnboardingGuard ───── */}
         {/* Steps are managed by local state (no sub-routes), so no wildcard needed */}

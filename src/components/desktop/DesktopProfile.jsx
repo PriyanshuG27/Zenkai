@@ -5,7 +5,7 @@ import { auth, db } from '../../lib/firebase';
 import { doc, updateDoc, collection, getDocs, deleteDoc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '../../hooks/useAuth';
-import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, LogOut, Check, Dumbbell, ShieldAlert, Sparkles, Flame, Trophy, Award, Landmark, ToggleLeft, ToggleRight, X, Bell, BellOff, Trash2, ChevronDown, ChevronUp, FileText, ChevronRight } from 'lucide-react';
 import { isPushEnabled, enablePushNotifications, disablePushNotifications } from '../../hooks/useFCM';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -785,6 +785,36 @@ export const DesktopProfile = () => {
 
           {/* Push Notification Toggle */}
           <PushNotificationToggle />
+
+          {/* Legal & Compliance Card */}
+          <div className="border-2 border-black bg-[var(--surface)] p-6 rounded-2xl shadow-[5px_5px_0px_rgba(0,0,0,1)] text-left flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#222] pb-3">
+              <FileText size={20} className="text-[var(--primary)] shrink-0" />
+              <div>
+                <h3 className="font-display font-black text-lg text-white uppercase tracking-tight leading-none">
+                  Legal & Compliance
+                </h3>
+                <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-wider mt-1 block">Zenkai terms, privacy, and rules</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => window.open('/terms', '_blank')}
+                className="w-full py-3 px-4 bg-bg-surface hover:bg-[#1a1a1a] text-left rounded-xl border border-border flex items-center justify-between text-xs font-mono font-bold text-text-primary uppercase tracking-wide transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.1)] active:scale-[0.99] cursor-pointer"
+              >
+                <span>Terms of Service & Liability Waiver</span>
+                <ChevronRight size={14} className="text-[var(--text-muted)]" />
+              </button>
+              <button
+                onClick={() => window.open('/privacy', '_blank')}
+                className="w-full py-3 px-4 bg-bg-surface hover:bg-[#1a1a1a] text-left rounded-xl border border-border flex items-center justify-between text-xs font-mono font-bold text-text-primary uppercase tracking-wide transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.1)] active:scale-[0.99] cursor-pointer"
+              >
+                <span>Privacy Policy & Data safety</span>
+                <ChevronRight size={14} className="text-[var(--text-muted)]" />
+              </button>
+            </div>
+          </div>
 
         </div>
 

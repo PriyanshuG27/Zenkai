@@ -104,6 +104,10 @@ export const PlanGenerationLoader = () => {
           </AnimatePresence>
         </div>
       </div>
+
+      <p className="text-[9px] text-[var(--text-muted)] font-mono leading-tight border-t border-[var(--border)] pt-2.5">
+        DISCLAIMER: AI workout suggestions are for educational purposes. Consult a physician before beginning any exercise routine.
+      </p>
     </div>
   );
 };

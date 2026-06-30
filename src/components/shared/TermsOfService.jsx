@@ -1,0 +1,167 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, FileText, AlertTriangle, Coins, Ban, RefreshCw } from 'lucide-react';
+
+export const TermsOfService = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-[#F0F0F0] font-sans selection:bg-[#FF5C00]/30 selection:text-[#FF5C00] py-12 px-4 sm:px-6 lg:px-8">
+      {/* Background Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] rounded-full bg-radial-gradient from-[#FF5C00]/5 via-transparent to-transparent blur-[100px] pointer-events-none z-0" />
+
+      <div className="max-w-3xl mx-auto relative z-10">
+        {/* Navigation / Header */}
+        <div className="flex items-center justify-between mb-8 border-b-2 border-[#222222] pb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-black bg-[#111111] hover:bg-[#1A1A1A] text-xs font-mono font-bold uppercase transition shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5"
+          >
+            <ArrowLeft size={14} />
+            <span>Back</span>
+          </button>
+          <div className="text-right">
+            <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white leading-none">
+              Terms of Service
+            </h1>
+            <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mt-1 block">
+              Zenkai Platform Rules
+            </span>
+          </div>
+        </div>
+
+        {/* Essential Waiver Warning Banner */}
+        <div className="border-2 border-[#EF4444] bg-[#EF4444]/5 p-6 rounded-2xl shadow-[5px_5px_0px_#EF4444] mb-6 flex items-start gap-4">
+          <div className="p-3 rounded-xl bg-[#ef444415] border border-[#EF4444] text-[#EF4444] shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white uppercase tracking-wide">Physical Training Waiver</h2>
+            <p className="text-xs text-neutral-300 leading-relaxed mt-2 font-medium">
+              By using Zenkai, you acknowledge that strength training and high-intensity exercises carry inherent risks of injury or health complications. You agree to use all training tools, AI schedules, and advice at your own risk and release Zenkai from any and all liability.
+            </p>
+          </div>
+        </div>
+
+        {/* Content Sections */}
+        <div className="flex flex-col gap-6">
+          {/* Section 1: Eligibility */}
+          <div className="border-2 border-black bg-[#111111] p-6 rounded-2xl shadow-[5px_5px_0px_black]">
+            <div className="flex items-center gap-2 border-b border-[#222222] pb-3 mb-4">
+              <FileText size={18} className="text-[#00D4FF]" />
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                1. Eligibility & Age Restriction
+              </h3>
+            </div>
+            
+            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
+              <p>
+                To create a trainer profile and register for Zenkai, you must satisfy the following criteria:
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li>You must be at least <strong className="text-white">13 years of age</strong>. We do not permit registration or collect data from children under 13 under any circumstances.</li>
+                <li>
+                  <strong className="text-white">Minors (13–17):</strong> If you are a minor under the age of 18, you represent that you have obtained the consent of a parent or legal guardian to agree to these terms and use the application.
+                </li>
+                <li>You must possess the legal capacity to agree to these terms.</li>
+                <li>You must not have been previously banned or terminated from the Zenkai platform.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Section 2: Health Warning & Waiver of Liability */}
+          <div className="border-2 border-black bg-[#111111] p-6 rounded-2xl shadow-[5px_5px_0px_black]">
+            <div className="flex items-center gap-2 border-b border-[#222222] pb-3 mb-4">
+              <AlertTriangle size={18} className="text-[#FF5C00]" />
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                2. Health Warning & Liability Waiver
+              </h3>
+            </div>
+            
+            <div className="space-y-4 text-xs text-neutral-300 leading-relaxed">
+              <p>
+                <strong className="text-white">Not Medical Advice:</strong> All content, suggestions, and schedules generated by the Zenkai AI engine are for educational and motivational purposes only. Zenkai is not a medical professional, physiotherapist, or certified personal trainer. 
+              </p>
+              <p>
+                <strong className="text-white">Voluntary Assumption of Risk:</strong> You warrant that you are in good physical health to perform strength training routines. You are solely responsible for adjusting weight loads, reps, and exercises based on your actual physical capabilities and any medical conditions or limitations.
+              </p>
+              <div className="border border-[#FF5C00]/20 bg-[#FF5C00]/5 p-3 rounded-lg text-[11px] text-[#F0F0F0] leading-normal font-mono uppercase">
+                <strong>Release of Liability:</strong> In consideration of being permitted to use this application, you hereby release, waive, and discharge Zenkai, its developers, and contributors from any and all liability, claims, or demands arising out of any physical injury, muscle strain, cardiovascular issue, or property damage sustained while performing activities logged or recommended in Zenkai.
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Gamification & Virtual Assets */}
+          <div className="border-2 border-black bg-[#111111] p-6 rounded-2xl shadow-[5px_5px_0px_black]">
+            <div className="flex items-center gap-2 border-b border-[#222222] pb-3 mb-4">
+              <Coins size={18} className="text-[#B5FF2D]" />
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                3. Gamification Economy & Virtual Assets
+              </h3>
+            </div>
+            
+            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
+              <p>
+                Zenkai features a gamified reward hierarchy, including Experience Points (XP), consistency streaks, profile titles, and glowing avatar auras.
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li>
+                  <strong className="text-white">No Monetary Value:</strong> All XP, streaks, titles, and auras earned or rented in the Zenkai Armory Shop are purely virtual achievements. They hold zero monetary value, cannot be redeemed for fiat currency or other financial assets, and cannot be transferred between accounts.
+                </li>
+                <li>
+                  <strong className="text-white">No Ownership:</strong> You do not own the virtual items or achievements; you are granted a limited, non-transferable license to display them within the application.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Section 4: Prohibited Actions */}
+          <div className="border-2 border-black bg-[#111111] p-6 rounded-2xl shadow-[5px_5px_0px_black]">
+            <div className="flex items-center gap-2 border-b border-[#222222] pb-3 mb-4">
+              <Ban size={18} className="text-red-500" />
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                4. Code of Conduct & Prohibited Uses
+              </h3>
+            </div>
+            
+            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
+              <p>
+                To maintain fair leaderboards and a clean community, you agree not to:
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li>Log fraudulent or fabricated workout exercises, weights, or repetitions to manipulate leaderboards or earn XP.</li>
+                <li>Bypass rate limits, exploit streak bonuses, or submit script-generated API calls.</li>
+                <li>Upload abusive, harassing, obscene, or trademark-infringing content (including profile names, squad descriptions, or chat notices).</li>
+                <li>Share or post copyrighted icons, fonts, or assets unless you possess a valid commercial license.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Section 5: Modifications */}
+          <div className="border-2 border-black bg-[#111111] p-6 rounded-2xl shadow-[5px_5px_0px_black]">
+            <div className="flex items-center gap-2 border-b border-[#222222] pb-3 mb-4">
+              <RefreshCw size={18} className="text-neutral-400" />
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                5. Modifications to Service & Terms
+              </h3>
+            </div>
+            
+            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
+              <p>
+                We reserve the right to modify, suspend, or terminate the Zenkai application or your access to it at any time, for any reason (including violations of the Code of Conduct), without notice. We may update these terms periodically. Continued use of Zenkai following updates constitutes acceptance of the new Terms of Service.
+              </p>
+              <p className="mt-3">
+                For questions regarding these terms, please contact <a href="mailto:pri2712gumber@gmail.com" className="text-[#00D4FF] hover:underline font-mono">pri2712gumber@gmail.com</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-12 text-[10px] font-mono text-neutral-600 uppercase tracking-widest border-t border-[#222222] pt-6">
+          Zenkai Strength Engineering • Terms Enforced
+        </div>
+      </div>
+    </div>
+  );
+};
