@@ -5,14 +5,8 @@
 #   1. test-client      — Vitest + coverage + npm audit (root)
 #   2. build            — Vite build + secret-leak scan + artifact upload
 #   3. test-e2e         — Playwright E2E tests with Firebase Emulator
-#   4. deploy-preview   — Vercel preview URL on every PR
-#   5. deploy-production— Vercel prod + Firebase Rules on push to main
 #
 # Required GitHub Secrets:
-#   VERCEL_TOKEN          — from vercel.com → Account Settings → Tokens
-#   VERCEL_ORG_ID         — from .vercel/project.json after `vercel link`
-#   VERCEL_PROJECT_ID     — from .vercel/project.json after `vercel link`
-#   FIREBASE_TOKEN        — from `firebase login:ci` output
 #   VITE_FIREBASE_API_KEY
 #   VITE_FIREBASE_AUTH_DOMAIN
 #   VITE_FIREBASE_PROJECT_ID
@@ -192,70 +186,6 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-
-  # ─── Job 4: Deploy Preview (PRs) ────────────────────────────────────────────
-  deploy-preview:
-    name: Deploy Preview (Vercel)
-    runs-on: ubuntu-latest
-    needs: [build, test-e2e]
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: zenkai-dist-${{ github.sha }}
-          path: dist/
-
-      - name: Deploy Preview to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
-          vercel-args: '--local-config=vercel.json'
-
-  # ─── Job 5: Deploy Production (Push to Main) ─────────────────────────────────
-  deploy-production:
-    name: Deploy Production (Vercel & Firebase)
-    runs-on: ubuntu-latest
-    needs: [build, test-e2e]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: zenkai-dist-${{ github.sha }}
-          path: dist/
-
-      - name: Deploy Production to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod --local-config=vercel.json'
-          working-directory: ./
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Deploy Firebase Rules and Indexes
-        run: npx firebase deploy --only firestore:rules,firestore:indexes --token "${{ secrets.FIREBASE_TOKEN }}"
 
 
 
