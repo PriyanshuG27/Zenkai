@@ -225,7 +225,7 @@ export const PrivacyPolicy = () => {
                 <strong className="text-white">Grievance Redressal / Contact:</strong><br />
                 If you have complaints, questions about these rights, or wish to submit a grievance, contact our Data Protection Officer:<br />
                 <span className="font-semibold text-white">Priyanshu Gumber</span><br />
-                Email: <a href="mailto:pri2712gumber@gmail.com" className="text-[#00D4FF] hover:underline font-mono">pri2712gumber@gmail.com</a>
+                Email: <a href="mailto:help.zenkai@outlook.com" className="text-[#00D4FF] hover:underline font-mono">help.zenkai@outlook.com</a>
               </div>
             </div>
           </div>

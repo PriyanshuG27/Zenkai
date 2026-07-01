@@ -151,7 +151,7 @@ export const TermsOfService = () => {
                 We reserve the right to modify, suspend, or terminate the Zenkai application or your access to it at any time, for any reason (including violations of the Code of Conduct), without notice. We may update these terms periodically. Continued use of Zenkai following updates constitutes acceptance of the new Terms of Service.
               </p>
               <p className="mt-3">
-                For questions regarding these terms, please contact <a href="mailto:pri2712gumber@gmail.com" className="text-[#00D4FF] hover:underline font-mono">pri2712gumber@gmail.com</a>.
+                For questions regarding these terms, please contact <a href="mailto:help.zenkai@outlook.com" className="text-[#00D4FF] hover:underline font-mono">help.zenkai@outlook.com</a>.
               </p>
             </div>
           </div>
