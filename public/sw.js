@@ -172,8 +172,14 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       
-      // No cache: return the fetch promise directly so errors propagate properly to the browser
-      return fetchPromise;
+      // No cache: return the fetch promise, catching errors gracefully to prevent uncaught rejections
+      return fetchPromise.catch((err) => {
+        const isPage = !url.pathname.includes('.') || url.pathname.endsWith('.html');
+        if (isPage) {
+          return caches.match('/index.html');
+        }
+        return Response.error();
+      });
     })
   );
 });
