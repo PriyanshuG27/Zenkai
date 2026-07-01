@@ -28,7 +28,7 @@ const __dirname = path.dirname(__filename);
 
 const EMULATOR_AUTH_URL = 'http://127.0.0.1:9099';
 const EMULATOR_FIRESTORE_URL = 'http://127.0.0.1:8080';
-const PROJECT_ID = 'zenkai-test';
+const PROJECT_ID = 'fitdesi-74283';
 const AUTH_STATE_PATH = path.join(__dirname, '.auth', 'user.json');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ import * as http from 'http';
 
 const EMULATOR_AUTH_URL = 'http://localhost:9099';
 const EMULATOR_FIRESTORE_URL = 'http://localhost:8080';
-const PROJECT_ID = 'zenkai-test';
+const PROJECT_ID = 'fitdesi-74283';
 
 function emulatorDelete(url: string): Promise<void> {
   return new Promise((resolve) => {

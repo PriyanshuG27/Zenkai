@@ -56,15 +56,31 @@ export default defineConfig({
     },
   ],
 
-  // Start the Vite dev server before running tests
-  webServer: {
-    command: 'npm run dev -- --port 5183',
-    url: 'http://localhost:5183',
-    reuseExistingServer: false,
-    timeout: 60_000,
-    env: {
-      // Tell firebase.js to connect to emulators, not production
-      VITE_FIREBASE_EMULATOR: 'true',
+  // Start the Vite dev server and Express backend server before running tests
+  webServer: [
+    {
+      command: 'npm run dev -- --port 5183',
+      url: 'http://localhost:5183',
+      reuseExistingServer: false,
+      timeout: 90_000,
+      env: {
+        // Tell firebase.js to connect to emulators, not production
+        VITE_FIREBASE_EMULATOR: 'true',
+        VITE_FIREBASE_PROJECT_ID: 'fitdesi-74283',
+      },
     },
-  },
+    {
+      command: 'npm --prefix backend start',
+      url: 'http://localhost:10000/ping',
+      reuseExistingServer: false,
+      timeout: 90_000,
+      env: {
+        VITE_FIREBASE_EMULATOR: 'true',
+        VITE_FIREBASE_PROJECT_ID: 'fitdesi-74283',
+        PORT: '10000',
+        ALLOWED_ORIGINS: 'http://localhost:5183',
+        REDIS_URL: '', // Bypass external Redis to avoid auth/connection issues during E2E
+      },
+    },
+  ],
 });

@@ -1,7 +1,3 @@
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
-
 const isEmulator = 
   process.env.VITE_FIREBASE_EMULATOR === 'true' || 
   process.env.FUNCTIONS_EMULATOR === 'true';
@@ -9,7 +5,21 @@ const isEmulator =
 if (isEmulator) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
   process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-  
+}
+
+console.log('[firebaseAdmin] env config:', {
+  isEmulator,
+  VITE_FIREBASE_EMULATOR: process.env.VITE_FIREBASE_EMULATOR,
+  VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID,
+  FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST,
+  FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST
+});
+
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
+
+if (isEmulator) {
   if (!admin.apps.length) {
     admin.initializeApp({ 
       projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'fitdesi-74283' 
