@@ -32,6 +32,7 @@ vi.mock('firebase/auth', () => ({
 
 describe('firebase initialization module', () => {
   const originalEnvEmulator = import.meta.env.VITE_FIREBASE_EMULATOR;
+  const originalProjId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
   const originalWebdriver = navigator.webdriver;
 
   beforeEach(() => {
@@ -41,6 +42,7 @@ describe('firebase initialization module', () => {
 
   afterEach(() => {
     import.meta.env.VITE_FIREBASE_EMULATOR = originalEnvEmulator;
+    import.meta.env.VITE_FIREBASE_PROJECT_ID = originalProjId;
     Object.defineProperty(navigator, 'webdriver', {
       value: originalWebdriver,
       configurable: true,
@@ -90,6 +92,7 @@ describe('firebase initialization module', () => {
 
   it('sets projectId to zenkai-test under webdriver automation', async () => {
     import.meta.env.VITE_FIREBASE_EMULATOR = 'true';
+    import.meta.env.VITE_FIREBASE_PROJECT_ID = ''; // Clear project ID to test fallback
     Object.defineProperty(navigator, 'webdriver', {
       value: true,
       configurable: true,
@@ -100,6 +103,21 @@ describe('firebase initialization module', () => {
 
     const configArg = mockInitializeApp.mock.calls[0][0];
     expect(configArg.projectId).toBe('zenkai-test');
+  });
+
+  it('uses VITE_FIREBASE_PROJECT_ID under webdriver automation if provided', async () => {
+    import.meta.env.VITE_FIREBASE_EMULATOR = 'true';
+    import.meta.env.VITE_FIREBASE_PROJECT_ID = 'custom-project-id';
+    Object.defineProperty(navigator, 'webdriver', {
+      value: true,
+      configurable: true,
+    });
+    mockGetApps.mockReturnValue([]);
+
+    await import('../lib/firebase');
+
+    const configArg = mockInitializeApp.mock.calls[0][0];
+    expect(configArg.projectId).toBe('custom-project-id');
   });
 
   it('configures modern local cache settings when running in a browser environment', async () => {

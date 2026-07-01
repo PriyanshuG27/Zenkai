@@ -145,4 +145,33 @@ describe('usePRDetection Hook', () => {
     expect(res2.isPR).toBe(false);
     expect(mockGetDoc).toHaveBeenCalledTimes(1);
   });
+
+  it('handles bodyweight (BW) weight format correctly and detects new PRs', async () => {
+    // 1. First set ever with 'BW'
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => false,
+    });
+    const { result } = renderHook(() => usePRDetection());
+    const exerciseKey1 = 'pullup_bw_1';
+    const res1 = await result.current.checkForPR('user-123', exerciseKey1, 'BW', 10);
+    expect(res1.isPR).toBe(true);
+
+    // 2. Mock existing 'BW' doc returning weight: 'BW' or 0
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ weight: 'BW', reps: 10, exerciseKey: 'pullup_bw_2' }),
+    });
+    const exerciseKey2 = 'pullup_bw_2';
+    // More reps than existing PR
+    const res2 = await result.current.checkForPR('user-123', exerciseKey2, 'BW', 12);
+    expect(res2.isPR).toBe(true);
+
+    // 3. Fallback when weight is invalid (falls back to 0)
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => false,
+    });
+    const exerciseKey3 = 'pull_ups_invalid_weight';
+    const res3 = await result.current.checkForPR('user-123', exerciseKey3, 'abc', 8);
+    expect(res3.isPR).toBe(true); // first set is still treated as PR
+  });
 });

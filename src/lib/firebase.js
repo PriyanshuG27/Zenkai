@@ -24,9 +24,7 @@ const resolvedConfig = { ...firebaseConfig };
 const useEmulator = import.meta.env.VITE_FIREBASE_EMULATOR === 'true' || (typeof navigator !== 'undefined' && navigator.webdriver);
 
 if (useEmulator) {
-  if (import.meta.env.VITE_FIREBASE_PROJECT_ID) {
-    resolvedConfig.projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-  }
+  resolvedConfig.projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'zenkai-test';
 }
 
 const app = getApps().length ? getApps()[0] : initializeApp(resolvedConfig);
