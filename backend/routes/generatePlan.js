@@ -69,9 +69,50 @@ function parseGeminiJSON(text) {
   const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
   try {
     return JSON.parse(cleaned);
-  } catch {
+  } catch (err) {
+    console.error('[generatePlan] JSON.parse failed. Raw text (first 500 chars):', text.slice(0, 500));
     throw new Error('plan_parse_failed');
   }
+}
+
+/**
+ * Unwrap and normalize the plan object returned by the AI.
+ *
+ * Handles two common Groq response quirks:
+ *   1. The model wraps days in a nested key, e.g. { "workout_plan": { "days": [...] } }
+ *   2. The model returns fewer than 7 day objects (omits explicit rest days).
+ *
+ * Returns a normalized { days: [...] } object ready for validatePlan.
+ */
+function unwrapAndNormalizePlan(raw) {
+  if (!raw || typeof raw !== 'object') return raw;
+
+  let plan = raw;
+
+  // Unwrap one level of nesting if days is missing at the top level
+  if (!Array.isArray(plan.days)) {
+    const nested = Object.values(plan).find(
+      (v) => v && typeof v === 'object' && Array.isArray(v.days)
+    );
+    if (nested) {
+      console.warn('[generatePlan] AI returned nested plan wrapper — unwrapping automatically.');
+      plan = nested;
+    }
+  }
+
+  // Pad missing days to exactly 7 (fill gaps with Rest days)
+  if (Array.isArray(plan.days) && plan.days.length < 7) {
+    console.warn(`[generatePlan] AI returned only ${plan.days.length} days — auto-filling missing days as Rest.`);
+    const existingDayNumbers = new Set(plan.days.map((d) => d.day));
+    for (let d = 1; d <= 7; d++) {
+      if (!existingDayNumbers.has(d)) {
+        plan.days.push({ day: d, focus: 'Rest', exercises: [] });
+      }
+    }
+    plan.days.sort((a, b) => a.day - b.day);
+  }
+
+  return plan;
 }
 
 // Sanitizes user-supplied free text before interpolation into AI prompts.
@@ -169,10 +210,7 @@ module.exports = [authGuard, async (req, res) => {
       return true;
     });
 
-    const allowedExercisesSummary = allowedExercises.map(ex => ({
-      name: ex.name,
-      muscleGroup: ex.muscleGroup
-    }));
+    const allowedExercisesSummary = allowedExercises.map(ex => ex.name);
 
     const sessionsSnap = await adminDb
       .collection(`users/${uid}/sessions`)
@@ -371,7 +409,7 @@ IMPORTANT: You MUST return exactly 7 day objects in the "days" array, one for ea
       return res.status(500).json({ error: 'Plan generation failed. Please try again.' });
     }
 
-    const plan = parseGeminiJSON(rawText);
+    const plan = unwrapAndNormalizePlan(parseGeminiJSON(rawText));
 
     // Normalize exercise names to clean, official title case display names from exercisesDatabase
     const exerciseCatalog = {};

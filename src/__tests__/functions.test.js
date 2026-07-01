@@ -224,10 +224,12 @@ describe('validatePlan', () => {
     expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
   });
 
-  it('throws plan_parse_failed when a rest day has exercises', () => {
+  it('silently clears exercises when a rest day has exercises instead of throwing', () => {
     const plan = JSON.parse(JSON.stringify(validPlan));
     plan.days[1].focus = 'Rest';
-    expect(() => validatePlan(plan)).toThrow('plan_parse_failed');
+    expect(plan.days[1].exercises.length).toBeGreaterThan(0);
+    expect(() => validatePlan(plan)).not.toThrow();
+    expect(plan.days[1].exercises.length).toBe(0);
   });
 });
 

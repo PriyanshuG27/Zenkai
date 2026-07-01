@@ -236,6 +236,12 @@ export function useAuth() {
   const logout = useCallback(async () => {
     clearError();
     try {
+      // Tear down ALL Firestore onSnapshot listeners BEFORE revoking the auth
+      // token — otherwise they fire one last time with an invalid credential and
+      // flood the console with "Missing or insufficient permissions" errors.
+      const { useSquadStore } = await import('../stores/useSquadStore');
+      useSquadStore.getState().unsubscribeAll();
+
       const { auth } = await import('../lib/firebase');
       const { signOut } = await import('firebase/auth');
       await signOut(auth);

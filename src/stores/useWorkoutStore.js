@@ -104,6 +104,7 @@ export const useWorkoutStore = create(
           const planDayId = planDayOrMood.id ?? planDayOrMood.day ?? 'custom';
           set((state) => ({
             activeSession: {
+              sessionId: generateUUID(),
               planDayId,
               startedAt: Date.now(),
               exercises: planDayOrMood.exercises,
@@ -147,6 +148,7 @@ export const useWorkoutStore = create(
           const mood = typeof planDayOrMood === 'string' ? planDayOrMood : 'average';
           set((state) => ({
             activeSession: {
+              sessionId: generateUUID(),
               planDayId: 'custom',
               startedAt: Date.now(),
               exercises: [],

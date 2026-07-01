@@ -25,32 +25,52 @@ async function runProductionBroadcast() {
 
     console.log('[productionBroadcast] Starting one-time production update broadcast...');
 
-    const usersSnap = await adminDb.collection('users').get();
-    const uids = [];
-    
-    usersSnap.forEach(doc => {
-      if (doc.id) {
-        uids.push(doc.id);
-      }
-    });
+    let totalSent = 0;
+    let hasMore = true;
+    let lastVisible = null;
+    const limit = 500;
 
-    if (uids.length === 0) {
+    while (hasMore) {
+      let query = adminDb.collection('users').orderBy('__name__').limit(limit);
+      if (lastVisible) {
+        query = query.startAfter(lastVisible);
+      }
+
+      const usersSnap = await query.get();
+      if (usersSnap.empty) {
+        hasMore = false;
+        break;
+      }
+
+      const uids = [];
+      usersSnap.forEach(doc => {
+        if (doc.id) {
+          uids.push(doc.id);
+        }
+      });
+
+      if (uids.length > 0) {
+        await sendPushNotification({
+          recipientUids: uids,
+          title: 'FitDesi Update: v1.1.1 is Live! 🚀',
+          body: 'Dynamic leaderboard refresh timers, force sync, and database optimizations are now live. Tap to see What\'s New!',
+          data: { url: '/profile' }
+        });
+        totalSent += uids.length;
+        console.log(`[productionBroadcast] Broadcasted to ${totalSent} users so far...`);
+      }
+
+      lastVisible = usersSnap.docs[usersSnap.docs.length - 1];
+    }
+
+    if (totalSent === 0) {
       console.log('[productionBroadcast] No users found to notify.');
       return;
     }
 
-    console.log(`[productionBroadcast] Broadcasting v1.1.1 notification to ${uids.length} users...`);
-
-    await sendPushNotification({
-      recipientUids: uids,
-      title: 'FitDesi Update: v1.1.1 is Live! 🚀',
-      body: 'Dynamic leaderboard refresh timers, force sync, and database optimizations are now live. Tap to see What\'s New!',
-      data: { url: '/profile' }
-    });
-
     // Mark as sent in Firestore so it never runs again
     await configRef.set({ broadcast_v1_1_1_sent: true }, { merge: true });
-    console.log('[productionBroadcast] One-time v1.1.1 update broadcast sent and flagged successfully.');
+    console.log(`[productionBroadcast] One-time v1.1.1 update broadcast sent to ${totalSent} users and flagged successfully.`);
   } catch (err) {
     console.error('[productionBroadcast] Failed to run update broadcast:', err);
   }

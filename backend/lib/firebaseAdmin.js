@@ -70,6 +70,7 @@ if (isEmulator) {
 }
 
 const adminDb = admin.firestore();
+adminDb.settings({ ignoreUndefinedProperties: true });
 const adminAuth = admin.auth();
 
 module.exports = { admin, adminDb, adminAuth };

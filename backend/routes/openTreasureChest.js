@@ -100,21 +100,21 @@ module.exports = [
 
     try {
       const userRef = adminDb.doc(`users/${uid}`);
-      const userSnap = await userRef.get();
+      
+      const result = await adminDb.runTransaction(async (t) => {
+        const userSnap = await t.get(userRef);
 
-      if (!userSnap.exists) {
-        return res.status(404).json({ error: 'User profile not found.' });
-      }
+        if (!userSnap.exists) {
+          throw new Error('User profile not found.');
+        }
 
-      const userData = userSnap.data();
-      const currentPowerUps = userData.powerUps || {};
-      const currentKeys = currentPowerUps.bossFightKey || 0;
+        const userData = userSnap.data();
+        const currentPowerUps = userData.powerUps || {};
+        const currentKeys = currentPowerUps.bossFightKey || 0;
 
-      if (currentKeys < config.cost) {
-        return res.status(400).json({ 
-          error: `Insufficient Boss Keys. Opening a ${chestType} chest costs ${config.cost} keys, you have ${currentKeys}.` 
-        });
-      }
+        if (currentKeys < config.cost) {
+          throw new Error(`Insufficient Boss Keys. Opening a ${chestType} chest costs ${config.cost} keys, you have ${currentKeys}.`);
+        }
 
       // Roll rarity tier using a cryptographically secure RNG.
       // Math.random() is predictable given V8's PRNG seed; crypto.randomInt
@@ -183,9 +183,20 @@ module.exports = [
         updatedAt: new Date()
       };
 
-      await userRef.set(updateData, { merge: true });
+      t.set(userRef, updateData, { merge: true });
 
-      return res.status(200).json({ 
+      // Sync with squad_codes if applicable
+      if (userData.squadCode) {
+        const codeRef = adminDb.doc(`squad_codes/${userData.squadCode}`);
+        t.set(codeRef, { 
+          xp: nextXp, 
+          level: nextLevel, 
+          powerUps: nextPowerUps, 
+          updatedAt: new Date() 
+        }, { merge: true });
+      }
+
+      return { 
         success: true, 
         chestType,
         tier,
@@ -193,10 +204,15 @@ module.exports = [
         nextKeys: nextPowerUps.bossFightKey,
         nextXp,
         nextLevel
-      });
+      };
+    });
+
+    return res.status(200).json(result);
 
     } catch (err) {
       console.error('[openTreasureChest] Error:', err);
+      if (err.message === 'User profile not found.') return res.status(404).json({ error: err.message });
+      if (err.message.includes('Insufficient Boss Keys')) return res.status(400).json({ error: err.message });
       return res.status(500).json({ error: 'Failed to open chest. Please try again.' });
     }
   }

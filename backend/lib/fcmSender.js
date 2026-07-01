@@ -40,43 +40,58 @@ async function sendPushNotification({ recipientUids, title, body, data }) {
 
     console.log(`[fcmSender] Sending push notification to ${tokens.length} tokens for UIDs: ${recipientUids.join(', ')}`);
 
-    // 2. Build the multicast message payload (data-only to prevent duplicate PWA/Browser notifications)
-    const message = {
-      data: {
-        title: title || '',
-        body: body || '',
-        url: (data && data.url) || '/squad',
-        ...(data || {})
-      },
-      tokens
-    };
+    // 2. Chunk tokens into arrays of 500 (FCM sendEachForMulticast limit)
+    const CHUNK_SIZE = 500;
+    let successCount = 0;
+    let failureCount = 0;
+    const tokensToDelete = [];
 
-    // 3. Send multicast via Admin SDK
-    const response = await admin.messaging().sendEachForMulticast(message);
-    console.log(`[fcmSender] Sent successfully: ${response.successCount}, Failed: ${response.failureCount}`);
+    for (let i = 0; i < tokens.length; i += CHUNK_SIZE) {
+      const chunkTokens = tokens.slice(i, i + CHUNK_SIZE);
+      const message = {
+        data: {
+          title: title || '',
+          body: body || '',
+          url: (data && data.url) || '/squad',
+          ...(data || {})
+        },
+        tokens: chunkTokens
+      };
 
-    // 4. Handle token cleanup for invalid/expired tokens
-    if (response.failureCount > 0) {
-      const tokensToDelete = [];
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          const error = resp.error;
-          const token = tokens[idx];
-          console.warn(`[fcmSender] Token failed: ${token.slice(0, 10)}... Error Code: ${error.code}, Message: ${error.message}`);
-          
-          if (
-            error.code === 'messaging/invalid-registration-token' ||
-            error.code === 'messaging/registration-token-not-registered'
-          ) {
-            tokensToDelete.push(token);
+      // 3. Send multicast via Admin SDK
+      const response = await admin.messaging().sendEachForMulticast(message);
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+
+      // Handle token cleanup for invalid/expired tokens in this chunk
+      if (response.failureCount > 0) {
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            const error = resp.error;
+            const token = chunkTokens[idx];
+            console.warn(`[fcmSender] Token failed: ${token.slice(0, 10)}... Error Code: ${error?.code}, Message: ${error?.message}`);
+            
+            if (
+              error?.code === 'messaging/invalid-registration-token' ||
+              error?.code === 'messaging/registration-token-not-registered'
+            ) {
+              tokensToDelete.push(token);
+            }
           }
-        }
-      });
+        });
+      }
+    }
 
-      if (tokensToDelete.length > 0) {
-        console.log(`[fcmSender] Cleaning up ${tokensToDelete.length} stale FCM tokens...`);
+    console.log(`[fcmSender] Sent successfully: ${successCount}, Failed: ${failureCount}`);
+
+    // 4. Batch delete stale tokens
+    if (tokensToDelete.length > 0) {
+      console.log(`[fcmSender] Cleaning up ${tokensToDelete.length} stale FCM tokens...`);
+      // Firestore batch has a 500 operation limit, so we chunk token deletions too
+      for (let i = 0; i < tokensToDelete.length; i += 500) {
+        const batchTokens = tokensToDelete.slice(i, i + 500);
         const batch = adminDb.batch();
-        for (const token of tokensToDelete) {
+        for (const token of batchTokens) {
           const uid = tokenToUidMap[token];
           if (uid) {
             const tokenDocRef = adminDb.doc(`users/${uid}/fcmTokens/${token}`);
@@ -84,8 +99,8 @@ async function sendPushNotification({ recipientUids, title, body, data }) {
           }
         }
         await batch.commit();
-        console.log('[fcmSender] Cleaned up stale tokens.');
       }
+      console.log('[fcmSender] Cleaned up stale tokens.');
     }
   } catch (error) {
     console.error('[fcmSender] Failed to send push notification:', error);

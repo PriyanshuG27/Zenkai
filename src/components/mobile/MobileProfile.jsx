@@ -17,6 +17,7 @@ import { GymLeaderboard } from '../shared/GymLeaderboard';
 import { compressGymImage } from '../../utils/imageCompressor';
 import { useSquadStore } from '../../stores/useSquadStore';
 import { sendPushNotification } from '../../utils/notificationHelper';
+import { callZenkaiAPI } from '../../lib/apiClient';
 
 const EQUIPMENT_CATEGORIES = [
   { label: 'Chest & Push', items: ['Flat Bench', 'Incline Bench', 'Decline Bench', 'Chest Press Machine', 'Pec Deck', 'Dip Bars'] },
@@ -347,39 +348,25 @@ export const MobileProfile = () => {
   };
 
   const handleVote = async (feedbackId, voteType) => {
-    const item = feedbackList.find(f => f.id === feedbackId);
-    if (!item || !uid) return;
-
-    const upvotes = item.upvotes || [];
-    const downvotes = item.downvotes || [];
-    const hasUpvoted = upvotes.includes(uid);
-    const hasDownvoted = downvotes.includes(uid);
-
-    let newUpvotes = [...upvotes];
-    let newDownvotes = [...downvotes];
-
-    if (voteType === 'up') {
-      if (hasUpvoted) {
-        newUpvotes = newUpvotes.filter(id => id !== uid);
+    if (!uid) return;
+    // Optimistic UI update so button feels instant
+    setFeedbackList(prev => prev.map(f => {
+      if (f.id !== feedbackId) return f;
+      const upvotes = f.upvotes || [];
+      const downvotes = f.downvotes || [];
+      let newUpvotes = [...upvotes];
+      let newDownvotes = [...downvotes];
+      if (voteType === 'up') {
+        if (upvotes.includes(uid)) { newUpvotes = newUpvotes.filter(id => id !== uid); }
+        else { newUpvotes.push(uid); newDownvotes = newDownvotes.filter(id => id !== uid); }
       } else {
-        newUpvotes.push(uid);
-        newDownvotes = newDownvotes.filter(id => id !== uid);
+        if (downvotes.includes(uid)) { newDownvotes = newDownvotes.filter(id => id !== uid); }
+        else { newDownvotes.push(uid); newUpvotes = newUpvotes.filter(id => id !== uid); }
       }
-    } else if (voteType === 'down') {
-      if (hasDownvoted) {
-        newDownvotes = newDownvotes.filter(id => id !== uid);
-      } else {
-        newDownvotes.push(uid);
-        newUpvotes = newUpvotes.filter(id => id !== uid);
-      }
-    }
-
+      return { ...f, upvotes: newUpvotes, downvotes: newDownvotes };
+    }));
     try {
-      const docRef = doc(db, 'feedback', feedbackId);
-      await updateDoc(docRef, {
-        upvotes: newUpvotes,
-        downvotes: newDownvotes
-      });
+      await callZenkaiAPI('upvoteFeedback', { feedbackId, voteType });
     } catch (err) {
       console.error('Error voting:', err);
       addToast('Failed to save vote.', 'error');
@@ -388,8 +375,7 @@ export const MobileProfile = () => {
 
   const handleUpdateStatus = async (feedbackId, newStatus) => {
     try {
-      const docRef = doc(db, 'feedback', feedbackId);
-      await updateDoc(docRef, { status: newStatus });
+      await callZenkaiAPI('updateFeedbackStatus', { feedbackId, status: newStatus });
       addToast(`Status marked as "${newStatus}"`, 'success');
     } catch (err) {
       console.error('Error updating status:', err);
@@ -400,8 +386,7 @@ export const MobileProfile = () => {
   const handleDeleteFeedback = async (feedbackId) => {
     if (!window.confirm('Delete this feedback suggestion permanently?')) return;
     try {
-      const docRef = doc(db, 'feedback', feedbackId);
-      await deleteDoc(docRef);
+      await callZenkaiAPI('deleteFeedback', { feedbackId });
       addToast('Feedback deleted successfully.', 'success');
     } catch (err) {
       console.error('Error deleting feedback:', err);

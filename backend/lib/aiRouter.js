@@ -210,6 +210,8 @@ async function callGeminiVision({ model, textPrompt, imageData, temperature = 0.
 // On auto-reset the circuit goes half-open: the next request will retry Groq.
 // A successful Groq response at any point resets the failure counter.
 
+const redisClient = require('./redisClient');
+
 const CB_FAILURE_THRESHOLD = 3;        // consecutive Groq failures before tripping
 const CB_RESET_MS = 10 * 60 * 1000;   // 10 minutes before auto-reset
 
@@ -219,11 +221,29 @@ const _groqCB = {
 };
 
 /** Returns true when the circuit is open (Groq should be skipped). */
-function _cbIsOpen() {
+async function _cbIsOpen() {
+  if (redisClient) {
+    try {
+      const trippedAtStr = await redisClient.get('groqCB:trippedAt');
+      if (!trippedAtStr) return false;
+      const trippedAt = parseInt(trippedAtStr, 10);
+      if (Date.now() - trippedAt >= CB_RESET_MS) {
+        console.log('[aiRouter][CircuitBreaker] Reset after cooldown — retrying Groq.');
+        await redisClient.del('groqCB:trippedAt');
+        await redisClient.set('groqCB:failures', '0');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.warn('[aiRouter][CircuitBreaker] Redis error on _cbIsOpen:', err);
+      // Fallback to memory on redis error
+    }
+  }
+
+  // Memory fallback
   if (_groqCB.trippedAt === null) return false;
   if (Date.now() - _groqCB.trippedAt >= CB_RESET_MS) {
-    // Auto-reset: allow one test request through (half-open)
-    console.log('[aiRouter][CircuitBreaker] Reset after cooldown — retrying Groq.');
+    console.log('[aiRouter][CircuitBreaker] (Memory) Reset after cooldown — retrying Groq.');
     _groqCB.trippedAt = null;
     _groqCB.failures = 0;
     return false;
@@ -232,9 +252,24 @@ function _cbIsOpen() {
 }
 
 /** Call after a successful Groq response to reset the failure counter. */
-function _cbRecordSuccess() {
+async function _cbRecordSuccess() {
+  if (redisClient) {
+    try {
+      const failures = await redisClient.get('groqCB:failures');
+      if (failures && parseInt(failures, 10) > 0) {
+        console.log('[aiRouter][CircuitBreaker] Groq succeeded — resetting failure count.');
+      }
+      await redisClient.set('groqCB:failures', '0');
+      await redisClient.del('groqCB:trippedAt');
+      return;
+    } catch (err) {
+      console.warn('[aiRouter][CircuitBreaker] Redis error on _cbRecordSuccess:', err);
+    }
+  }
+
+  // Memory fallback
   if (_groqCB.failures > 0) {
-    console.log('[aiRouter][CircuitBreaker] Groq succeeded — resetting failure count.');
+    console.log('[aiRouter][CircuitBreaker] (Memory) Groq succeeded — resetting failure count.');
   }
   _groqCB.failures = 0;
   _groqCB.trippedAt = null;
@@ -245,21 +280,41 @@ function _cbRecordSuccess() {
  * circuit once the threshold is reached.
  * @param {string} reason - Short description for logging.
  */
-function _cbRecordFailure(reason) {
-  // Do not trip circuit breaker for client-side/validation errors (400 Bad Request, 401 Unauthorized, 403 Forbidden)
-  // as they indicate prompt/auth issues rather than service downtime or rate limits.
+async function _cbRecordFailure(reason) {
   const isClientError = /Groq 40[013]/.test(reason);
   if (isClientError) {
     console.warn(`[aiRouter][CircuitBreaker] Client/validation error (not incrementing failure count): ${reason}`);
     return;
   }
 
+  if (redisClient) {
+    try {
+      const newFailures = await redisClient.incr('groqCB:failures');
+      console.warn(`[aiRouter][CircuitBreaker] Groq failure #${newFailures}: ${reason}`);
+      
+      if (newFailures >= CB_FAILURE_THRESHOLD) {
+        const alreadyTripped = await redisClient.get('groqCB:trippedAt');
+        if (!alreadyTripped) {
+          await redisClient.set('groqCB:trippedAt', Date.now().toString(), { PX: CB_RESET_MS });
+          console.error(
+            `[aiRouter][CircuitBreaker] ⚡ CIRCUIT TRIPPED after ${CB_FAILURE_THRESHOLD} failures. ` +
+            `Bypassing Groq for ${CB_RESET_MS / 60000} minutes.`
+          );
+        }
+      }
+      return;
+    } catch (err) {
+      console.warn('[aiRouter][CircuitBreaker] Redis error on _cbRecordFailure:', err);
+    }
+  }
+
+  // Memory fallback
   _groqCB.failures += 1;
-  console.warn(`[aiRouter][CircuitBreaker] Groq failure #${_groqCB.failures}: ${reason}`);
+  console.warn(`[aiRouter][CircuitBreaker] (Memory) Groq failure #${_groqCB.failures}: ${reason}`);
   if (_groqCB.failures >= CB_FAILURE_THRESHOLD && _groqCB.trippedAt === null) {
     _groqCB.trippedAt = Date.now();
     console.error(
-      `[aiRouter][CircuitBreaker] ⚡ CIRCUIT TRIPPED after ${CB_FAILURE_THRESHOLD} failures. ` +
+      `[aiRouter][CircuitBreaker] (Memory) ⚡ CIRCUIT TRIPPED after ${CB_FAILURE_THRESHOLD} failures. ` +
       `Bypassing Groq for ${CB_RESET_MS / 60000} minutes.`
     );
   }
@@ -371,7 +426,7 @@ async function executeAICall(taskKey, prompt, systemPrompt = '', options = {}) {
   };
 
   // ── Circuit Breaker check ─────────────────────────────────────────────────
-  const circuitOpen = _cbIsOpen();
+  const circuitOpen = await _cbIsOpen();
   if (circuitOpen) {
     console.warn(`[aiRouter][${taskKey}] ⚡ Circuit open — skipping Groq Tier 1 & Tier 2, going straight to Gemini.`);
   }
@@ -388,11 +443,11 @@ async function executeAICall(taskKey, prompt, systemPrompt = '', options = {}) {
         timeoutMs: groqTimeoutMs,
       });
       tierUsed = `Groq ${modelConfig.PRIMARY}`;
-      _cbRecordSuccess();
+      await _cbRecordSuccess();
     } catch (err) {
       console.warn(`[aiRouter][${taskKey}] Tier 1 Groq Primary failed: ${err.message}`);
       errors.push({ tier: 1, model: modelConfig.PRIMARY, error: err.message });
-      _cbRecordFailure(err.message);
+      await _cbRecordFailure(err.message);
     }
   }
 
@@ -418,11 +473,11 @@ async function executeAICall(taskKey, prompt, systemPrompt = '', options = {}) {
         timeoutMs: groqTimeoutMs,
       });
       tierUsed = `Groq ${tier2Model}`;
-      _cbRecordSuccess();
+      await _cbRecordSuccess();
     } catch (err) {
       console.warn(`[aiRouter][${taskKey}] Tier 2 Groq Fallback failed: ${err.message}`);
       errors.push({ tier: 2, model: tier2Model, error: err.message });
-      _cbRecordFailure(err.message);
+      await _cbRecordFailure(err.message);
     }
   }
 

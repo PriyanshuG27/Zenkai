@@ -26,14 +26,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
     }
 
-    // Are the signed-in user and the target user in the same gym?
-    function isSameGym(targetUid) {
-      return isAuth() &&
-        exists(/databases/$(database)/documents/users/$(targetUid)) &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(targetUid)).data.get('gymId', '') != '' &&
-        get(/databases/$(database)/documents/users/$(targetUid)).data.get('gymId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('gymId', '');
-    }
+
 
     // ── Field-level validation helpers for users/{uid} ────────────────────────
 
@@ -112,6 +105,16 @@ service cloud.firestore {
           request.resource.data.equipmentList.size() <= 50);
     }
 
+    // Ensure the client cannot modify critical gamification economy data
+    // (Skills, cooldowns, auras, and titles are deferred to Phase 2 for backend migration)
+    function isNotModifyingGamificationData() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'xp', 'cumulativeXP', 'level', 'levelName', 
+        'streak', 'streakLastDate', 'powerUps', 'badges', 
+        'xpBoosterUntil', 'lastRescuedBySquad'
+      ]);
+    }
+
     // Ensure the client cannot set or modify the isAdmin flag
     function isNotModifyingAdmin() {
       return !('isAdmin' in request.resource.data) ||
@@ -144,18 +147,8 @@ service cloud.firestore {
       // Owner creates their own profile (signup — Phase 1)
       allow create: if isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin();
 
-      // Owner updates, or gym/squad members updating powerUps for streak rescue
-      allow update: if (isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin())
-        || (
-          (isSameGym(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps'])) ||
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['powerUps', 'lastRescuedBySquad']) &&
-            request.resource.data.get('lastRescuedBySquad', '') != '' &&
-            exists(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)) &&
-            request.auth.uid in get(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)).data.memberUids &&
-            uid in get(/databases/$(database)/documents/shared_squads/$(request.resource.data.lastRescuedBySquad)).data.memberUids
-          )
-        );
+      // Owner updates (Gamification fields locked down)
+      allow update: if isOwner(uid) && isValidUserData() && isValidXP() && isValidLevel() && isNotModifyingAdmin() && isNotModifyingGamificationData();
 
 
       // Profiles are never deleted from client
@@ -395,19 +388,7 @@ service cloud.firestore {
         request.resource.data.upvotes.size() == 0 &&
         request.resource.data.downvotes.size() == 0;
         
-      allow update: if isAuth() && (
-        isAdmin() ||
-        (
-          request.resource.data.title == resource.data.title &&
-          request.resource.data.description == resource.data.description &&
-          request.resource.data.category == resource.data.category &&
-          request.resource.data.status == resource.data.status &&
-          request.resource.data.uid == resource.data.uid &&
-          request.resource.data.userName == resource.data.userName &&
-          request.resource.data.createdAt == resource.data.createdAt &&
-          request.resource.data.get('screenshot', null) == resource.data.get('screenshot', null)
-        )
-      );
+      allow update: if isAuth() && isAdmin();
       
       allow delete: if isAdmin();
     }

@@ -381,35 +381,7 @@ function App() {
                   const data = snap.data();
                   publicData = data;
                   
-                  // Auto-initialize / heal cumulativeXP and correct any past level corruption
-                  if (data.cumulativeXP === undefined || data.cumulativeXP < (data.xp ?? 0)) {
-                    (async () => {
-                      try {
-                        const { getDocs, collection, updateDoc } = await import('firebase/firestore');
-                        const xpLogCol = collection(db, 'users', firebaseUser.uid, 'xpLog');
-                        const xpLogSnap = await getDocs(xpLogCol);
-                        
-                        let calculatedCumulative = 0;
-                        xpLogSnap.forEach((logDoc) => {
-                          calculatedCumulative += (logDoc.data().amount || 0);
-                        });
-                        
-                        // Fallback to current xp if calculated is lower (e.g. legacy user with incomplete logs)
-                        const finalCumulative = Math.max(data.xp || 0, calculatedCumulative);
-                        const derived = deriveLevelFromXP(finalCumulative);
-                        
-                        await updateDoc(publicRef, {
-                          cumulativeXP: finalCumulative,
-                          level: derived.level,
-                          levelName: derived.levelName
-                        });
-                        
-                        console.log(`[App] Initialized cumulativeXP to ${finalCumulative} (Level ${derived.level}) for user ${firebaseUser.uid}`);
-                      } catch (migrationErr) {
-                        console.warn('[App] Failed to migrate/initialize cumulativeXP:', migrationErr);
-                      }
-                    })();
-                  }
+                  // Legacy migration removed for security. Backend handles XP exclusively.
                 } else {
                   publicData = null;
                 }
@@ -446,6 +418,11 @@ function App() {
               unsubPrivate();
             };
           } else {
+            // User signed out or session expired — tear down squad listeners
+            // BEFORE clearAuth() so they don't fire with a revoked token.
+            import('./stores/useSquadStore').then(({ useSquadStore }) => {
+              useSquadStore.getState().unsubscribeAll();
+            }).catch(() => {});
             if (unsubProfile) {
               unsubProfile();
               unsubProfile = null;

@@ -58,12 +58,25 @@ export const useUIStore = create((set) => ({
 
 
   addToast: (message, type = 'info', duration = 3500) => {
-    const id = ++toastCounter;
-    set((state) => ({ toasts: [...state.toasts, { id, message, type, duration }] }));
-    // Auto-remove after duration
-    setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, duration);
+    set((state) => {
+      // Deduplication: if an identical toast already exists, refresh it in place
+      // rather than stacking a new one on screen.
+      const existingIdx = state.toasts.findIndex(
+        (t) => t.message === message && t.type === type
+      );
+      if (existingIdx !== -1) {
+        // Bump the toast to the top by replacing it with a fresh timestamp
+        const refreshed = { ...state.toasts[existingIdx], refreshedAt: Date.now() };
+        const next = [...state.toasts];
+        next.splice(existingIdx, 1, refreshed);
+        return { toasts: next };
+      }
+      const id = ++toastCounter;
+      setTimeout(() => {
+        set((state2) => ({ toasts: state2.toasts.filter((t) => t.id !== id) }));
+      }, duration);
+      return { toasts: [...state.toasts, { id, message, type, duration }] };
+    });
   },
 
   removeToast: (id) =>

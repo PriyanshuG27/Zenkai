@@ -117,9 +117,8 @@ function validatePlan(plan) {
         throw new Error('plan_parse_failed');
       }
     } else {
-      if (exercises.length > 0) {
-        throw new Error('plan_parse_failed');
-      }
+      // Model sometimes puts exercises on Rest days — silently clear rather than hard-fail
+      day.exercises = [];
     }
 
     for (const ex of exercises) {

@@ -13,7 +13,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "firebase-admin": "^13.10.0",
-    "groq-sdk": "^0.3.3"
+    "groq-sdk": "^0.3.3",
+    "redis": "^6.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

@@ -66,6 +66,14 @@ require.cache[firebaseAdminPath] = {
     admin: {},
     adminDb: {
       doc: mockAdminDbDoc,
+      runTransaction: vi.fn(async (cb) => {
+        const mockTransaction = {
+          get: (ref) => ref.get(),
+          set: (ref, data, options) => ref.set(data, options),
+          update: (ref, data) => ref.update(data),
+        };
+        return await cb(mockTransaction);
+      }),
     },
     adminAuth: {
       verifyIdToken: vi.fn(),

@@ -153,108 +153,35 @@ export const MobileChallenges = () => {
       addToast('Insufficient XP Balance!', 'error');
       return;
     }
-    
+
     try {
-      const { doc, updateDoc, increment } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      
-      const userRef = doc(db, 'users', user.uid);
-      let updates = {
-        xp: increment(-finalCost)
+      const res = await callZenkaiAPI('purchaseStoreItem', {
+        itemKey: item.key,
+        durationDays,
+        finalCost
+      });
+      const { nextPowerUps, updates, finalCost: backendCost } = res.data;
+
+      const updatedProfile = {
+        ...profile,
+        xp: xp - backendCost,
+        powerUps: nextPowerUps,
+        ...(updates.aura ? { aura: updates.aura } : {}),
+        ...(updates.activeTitle ? { activeTitle: updates.activeTitle } : {})
       };
-      
+
+      useAuthStore.getState().setProfile(updatedProfile);
+
       if (isConsumable) {
-        updates[`powerUps.${item.key}`] = increment(1);
-        await updateDoc(userRef, updates);
-        
-        const nextPowerUps = {
-          ...profile.powerUps,
-          [item.key]: (profile.powerUps?.[item.key] || 0) + 1
-        };
-        useAuthStore.getState().setProfile({
-          ...profile,
-          xp: xp - finalCost,
-          powerUps: nextPowerUps
-        });
-        
         addToast(`Purchased ${item.name}! 🚀`, 'success');
       } else {
-        const key = item.key;
-        const type = item.type;
-        const powerUpKey = `unlocked_${type}_${key}_until`;
-        
-        const currentUntil = profile.powerUps?.[powerUpKey];
-        const currentMs = currentUntil 
-          ? (typeof currentUntil.toDate === 'function' ? currentUntil.toDate().getTime() : new Date(currentUntil).getTime())
-          : 0;
-        
-        let activeUpgradeKey = null;
-        if (key === 'golden' && isAuraActive('crimson', profile.powerUps)) {
-          activeUpgradeKey = 'unlocked_aura_crimson_until';
-        } else if (key === 'shadow') {
-          if (isAuraActive('golden', profile.powerUps)) {
-            activeUpgradeKey = 'unlocked_aura_golden_until';
-          } else if (isAuraActive('crimson', profile.powerUps)) {
-            activeUpgradeKey = 'unlocked_aura_crimson_until';
-          }
-        }
-
-        let baseTime = currentMs > Date.now() ? currentMs : Date.now();
-        if (activeUpgradeKey) {
-          const upgradeUntil = profile.powerUps?.[activeUpgradeKey];
-          const upgradeMs = upgradeUntil
-            ? (typeof upgradeUntil.toDate === 'function' ? upgradeUntil.toDate().getTime() : new Date(upgradeUntil).getTime())
-            : 0;
-          if (upgradeMs > Date.now()) {
-            baseTime = upgradeMs; // Inherit remaining active days from upgraded aura!
-          }
-        }
-
-        const newExpiration = new Date(baseTime + durationDays * 24 * 60 * 60 * 1000);
-        
-        updates[`powerUps.${powerUpKey}`] = newExpiration;
-        if (activeUpgradeKey) {
-          updates[`powerUps.${activeUpgradeKey}`] = new Date(0); // Deactivate the lower-tier aura
-        }
-        
-        if (type === 'aura') {
-          updates.aura = key;
-        } else {
-          updates.activeTitle = item.name;
-        }
-        
-        await updateDoc(userRef, updates);
-        
-        const nextPowerUps = {
-          ...profile.powerUps,
-          [powerUpKey]: newExpiration,
-          ...(activeUpgradeKey ? { [activeUpgradeKey]: new Date(0) } : {})
-        };
-        useAuthStore.getState().setProfile({
-          ...profile,
-          xp: xp - finalCost,
-          powerUps: nextPowerUps,
-          ...(type === 'aura' ? { aura: key } : { activeTitle: item.name })
-        });
-        
-        if (profile.squadCode) {
-          const codeRef = doc(db, 'squad_codes', profile.squadCode);
-          await updateDoc(codeRef, {
-            powerUps: nextPowerUps,
-            ...(type === 'aura' ? { aura: key } : { activeTitle: item.name }),
-            xp: xp - finalCost
-          }).catch(err => console.warn('[MobileChallenges] Failed to sync squad code on rental:', err));
-        }
-        
-        const successMsg = activeUpgradeKey 
-          ? `Upgraded to ${item.name}! Expiration extended by ${durationDays} days! ✨`
-          : `Rented & Equipped ${item.name} for ${durationDays} days! ✨`;
-        addToast(successMsg, 'success');
-        setSelectedShopItem(null);
+        addToast(`Successfully acquired ${item.name}! ✨`, 'success');
       }
+      
+      setSelectedShopItem(null);
     } catch (err) {
-      console.error('[MobileChallenges] Shop purchase error:', err);
-      addToast('Failed to complete purchase.', 'error');
+      console.error('[MobileChallenges] Store purchase error:', err);
+      addToast(err.message, 'error');
     }
   };
 
@@ -1265,6 +1192,16 @@ export const MobileChallenges = () => {
                         </motion.div>
                       );
                     })}
+                  </div>
+                ) : activeCampaigns.length > 0 ? (
+                  <div className="border-2 border-dashed border-[var(--border)] bg-[var(--surface)] p-6 rounded-lg text-center flex flex-col items-center gap-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                    <CheckCircle2 size={20} className="text-[var(--accent-xp)]" />
+                    <span className="text-xs font-display font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      Campaign Slot Full
+                    </span>
+                    <span className="text-[10px] font-sans text-[var(--text-secondary)] max-w-xs leading-relaxed">
+                      You already have an active campaign running. Complete or abandon it to unlock new challenges! 🏆
+                    </span>
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-[var(--border)] bg-[var(--surface)] p-6 rounded-lg text-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">

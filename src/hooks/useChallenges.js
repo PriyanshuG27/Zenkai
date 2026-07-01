@@ -16,7 +16,6 @@ import {
   where,
   orderBy,
   limit,
-  runTransaction,
   serverTimestamp,
   onSnapshot,
 } from 'firebase/firestore';
@@ -24,7 +23,7 @@ import { db } from '../lib/firebase';
 import { callZenkaiAPI } from '../lib/apiClient';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useUIStore } from '../stores/useUIStore';
-import { useXPEngine } from './useXPEngine';
+import { useXPStore } from '../stores/useXPStore';
 
 // Helper to compute progress percentage defined outside the hook to avoid circular dependency
 function calculateProgressPct(challenge, uid) {
@@ -57,7 +56,7 @@ let reignitionScheduled = false;
 
 export function useChallenges() {
   const { user, profile } = useAuthStore();
-  const { awardXP } = useXPEngine();
+  const { setXP } = useXPStore();
   const { addToast } = useUIStore();
 
   const [challenges, setChallenges] = useState([]);
@@ -359,8 +358,19 @@ export function useChallenges() {
 
         // Build template list using already-fetched personalTemplates state
         // (no getDocs call here — templates are loaded separately on mount)
-        const templates = [...personalTemplates];
         const joinedTypes = userChallenges.map((c) => c.type);
+        const activeSubtypes = userChallenges
+          .filter((c) => c.status === 'active')
+          .map((c) => c.subtype || 'campaign');
+
+        // Only show personalTemplates (all are weak_point/campaign subtype) if the user
+        // doesn't already have an active campaign running. This prevents the UI from showing
+        // unjoinable challenges that the backend would reject with 400.
+        const filteredPersonalTemplates = personalTemplates.filter(
+          (t) => !activeSubtypes.includes(t.subtype || 'campaign')
+        );
+        const templates = [...filteredPersonalTemplates];
+
         if (!joinedTypes.includes('comeback') && profile?.userType === 'Comeback') {
           templates.push({
             id: 'comeback',
@@ -405,55 +415,14 @@ export function useChallenges() {
       throw new Error('Invalid challenge type.');
     }
 
-    const activeChalls = await getActiveChallenges(uid);
-    const hasActiveSameType = activeChalls.some(c => c.type === type);
-    if (hasActiveSameType) {
-      throw new Error('You already have an active challenge of this type');
+    try {
+      const res = await callZenkaiAPI('startChallenge', { type });
+      await loadChallenges(uid);
+      return res?.challengeId;
+    } catch (err) {
+      console.error('[useChallenges] Error starting challenge:', err);
+      throw err;
     }
-    const hasActiveCampaign = activeChalls.some(c => (c.subtype || 'campaign') === 'campaign');
-    if (hasActiveCampaign) {
-      throw new Error('You already have an active campaign running.');
-    }
-
-    const docRef = doc(collection(db, 'challenges'));
-    const challengeId = docRef.id;
-
-    const challengeDoc = {
-      type,
-      subtype: 'campaign',
-      creatorUid: uid,
-      participants: [uid],
-      startDate: serverTimestamp(),
-      status: 'active',
-    };
-
-    if (type === 'comeback') {
-      challengeDoc.endDate = new Date(Date.now() + 84 * 24 * 60 * 60 * 1000);
-      challengeDoc.goal = { durationWeeks: 12, startCapacityPct: 40 };
-      challengeDoc.durationDays = 84;
-      challengeDoc.progress = {
-        [uid]: { currentWeek: 1, completedSessions: 0, badgeEarned: false }
-      };
-    } else if (type === 'streak') {
-      challengeDoc.endDate = new Date(Date.now() + 56 * 24 * 60 * 60 * 1000);
-      challengeDoc.goal = { workoutsPerWeek: 3, durationWeeks: 8 };
-      challengeDoc.durationDays = 56;
-      challengeDoc.progress = {
-        [uid]: { currentWeek: 1, weeklyCount: [0, 0, 0, 0, 0, 0, 0, 0], badgeEarned: false }
-      };
-    } else if (type === 'weak_point') {
-      challengeDoc.endDate = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000);
-      challengeDoc.goal = { targetSets: 15, muscleGroup: 'Core' };
-      challengeDoc.durationDays = 28;
-      challengeDoc.progress = {
-        [uid]: { completedSets: 0, badgeEarned: false }
-      };
-    }
-
-    await setDoc(docRef, challengeDoc);
-    await loadChallenges(uid);
-
-    return challengeId;
   }, [loadChallenges]);
 
   // getActiveChallenges(uid)
@@ -546,311 +515,66 @@ export function useChallenges() {
       throw new Error('Invalid challenge ID format');
     }
 
-    let loggedMuscleGroups = [];
-    let isSameDaySession = false;
     try {
-      const sessionsRef = collection(db, 'users', uid, 'sessions');
-      const sessQuery = query(sessionsRef, orderBy('date', 'desc'), limit(2));
-      const sessSnap = await getDocs(sessQuery);
-      const docs = sessSnap.docs || [];
-      if (docs.length > 0) {
-        const latestSessDoc = docs[0];
-        const latestSessData = latestSessDoc.data();
-        if (latestSessData.exercises && Array.isArray(latestSessData.exercises) && latestSessData.exercises.length > 0) {
-          loggedMuscleGroups = latestSessData.exercises.map(exData => {
-            const doneSets = (exData.sets || []).filter(s => s.done || s.completed);
-            return {
-              muscleGroup: (exData.muscleGroup || '').toLowerCase(),
-              count: doneSets.length
-            };
-          });
-        } else {
-          const exercisesRef = collection(db, 'users', uid, 'sessions', latestSessDoc.id, 'exercises');
-          const exSnap = await getDocs(exercisesRef);
-          loggedMuscleGroups = exSnap.docs.map(exDoc => {
-            const exData = exDoc.data();
-            const doneSets = (exData.sets || []).filter(s => s.done || s.completed);
-            return {
-              muscleGroup: (exData.muscleGroup || '').toLowerCase(),
-              count: doneSets.length
-            };
-          });
-        }
-
-        if (docs.length >= 2) {
-          const date0 = docs[0].data().date;
-          const date1 = docs[1].data().date;
-          if (date0 && date1) {
-            const d0 = date0.toDate ? date0.toDate() : new Date(date0);
-            const d1 = date1.toDate ? date1.toDate() : new Date(date1);
-            if (!isNaN(d0.getTime()) && !isNaN(d1.getTime())) {
-              isSameDaySession = d0.getFullYear() === d1.getFullYear() &&
-                                 d0.getMonth() === d1.getMonth() &&
-                                 d0.getDate() === d1.getDate();
-            }
-          }
-        }
+      const res = await callZenkaiAPI('updateChallengeProgress', { 
+        challengeId, 
+        sessionDate: sessionDate instanceof Date ? sessionDate.toISOString() : sessionDate
+      });
+      
+      const { shouldAwardXP, xpAmount } = res;
+      if (shouldAwardXP && xpAmount) {
+        addToast(`Challenge complete! +${xpAmount} XP earned`, 'success');
       }
-    } catch (queryErr) {
-      console.error('[useChallenges] Error fetching latest session for progress update:', queryErr);
+
+      await loadChallenges(uid);
+    } catch (err) {
+      console.error('[useChallenges] Error updating progress:', err);
+      throw err;
     }
-
-    const challengeRef = doc(db, 'challenges', challengeId);
-    let shouldAwardXP = false;
-    let xpAmount = 500;
-
-    await runTransaction(db, async (transaction) => {
-      const docSnap = await transaction.get(challengeRef);
-      if (!docSnap.exists()) {
-        throw new Error('Challenge document does not exist');
-      }
-
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await transaction.get(userRef);
-
-      const data = docSnap.data();
-      if (data.status !== 'active') {
-        throw new Error('Challenge is not active');
-      }
-
-      const start = data.startDate?.toDate ? data.startDate.toDate() : new Date(data.startDate);
-      const session = sessionDate instanceof Date ? sessionDate : new Date(sessionDate);
-      const diffTime = session.getTime() - start.getTime();
-      const diffDays = Math.floor(diffTime / (24 * 60 * 60 * 1000));
-      const durationWeeks = data.goal?.durationWeeks || (data.type === 'comeback' ? 12 : 8);
-      const currentWeek = Math.min(durationWeeks, Math.max(1, Math.floor(diffDays / 7) + 1));
-
-      const userProg = { ...(data.progress?.[uid] || {}) };
-
-      if (data.type === 'comeback') {
-        if (!isSameDaySession) {
-          userProg.completedSessions = (userProg.completedSessions || 0) + 1;
-        }
-        userProg.currentWeek = currentWeek;
-      } else if (data.type === 'streak') {
-        if (!isSameDaySession) {
-          const weeklyCount = [...(userProg.weeklyCount || [0, 0, 0, 0, 0, 0, 0, 0])];
-          weeklyCount[currentWeek - 1] = (weeklyCount[currentWeek - 1] || 0) + 1;
-          userProg.weeklyCount = weeklyCount;
-        }
-        userProg.currentWeek = currentWeek;
-      } else if (data.type === 'weak_point') {
-        const targetGroup = (data.goal?.muscleGroup || '').toLowerCase();
-        let completedSetsCount = 0;
-        loggedMuscleGroups.forEach(item => {
-          let group = item.muscleGroup;
-          if (group === 'legs' || group === 'quads' || group === 'hamstrings' || group === 'calves' || group === 'glutes') {
-            group = 'legs';
-          } else if (group === 'chest' || group === 'pecs') {
-            group = 'chest';
-          } else if (group === 'back' || group === 'lats' || group === 'traps') {
-            group = 'back';
-          } else if (group === 'core' || group === 'abs' || group === 'abdominal') {
-            group = 'core';
-          } else if (group === 'shoulders' || group === 'delts') {
-            group = 'shoulders';
-          } else if (group === 'arms' || group === 'biceps' || group === 'triceps' || group === 'forearms') {
-            group = 'arms';
-          }
-
-          if (targetGroup === 'any' || targetGroup === '' || group === targetGroup) {
-            completedSetsCount += item.count;
-          }
-        });
-        userProg.completedSets = (userProg.completedSets || 0) + completedSetsCount;
-      }
-
-      let isComplete = false;
-      if (data.type === 'comeback') {
-        isComplete = userProg.completedSessions >= 3 * durationWeeks;
-      } else if (data.type === 'streak') {
-        isComplete = userProg.weeklyCount.every((count) => count >= 3);
-      } else if (data.type === 'weak_point') {
-        const targetSets = data.goal?.targetSets || 15;
-        isComplete = (userProg.completedSets || 0) >= targetSets;
-      }
-
-      const updates = {
-        [`progress.${uid}`]: userProg,
-      };
-
-      if (isComplete) {
-        updates.status = 'completed';
-        userProg.badgeEarned = true;
-        if (!data.progress?.[uid]?.badgeEarned) {
-          shouldAwardXP = true;
-          xpAmount = data.rewardXP || 500;
-
-           // Award power-up rewards in profile (skip for wagers)
-          const userData = userSnap.exists() ? userSnap.data() : {};
-          const powerUps = userData.powerUps || {};
-          let streakShield = powerUps.streakShield || 0;
-          let xpBooster = powerUps.xpBooster || 0;
-          let challengeSkip = powerUps.challengeSkip || 0;
-          let planRefresh = powerUps.planRefresh || 0;
-
-          if (data.subtype !== 'wager') {
-            if (data.type === 'weak_point' || data.type === 'comeback') {
-              streakShield += 1;
-              challengeSkip += 1;
-            }
-            if (data.type === 'streak' || data.type === 'comeback') {
-              xpBooster += 1;
-              planRefresh += 1;
-            }
-          }
-
-          const userUpdates = {
-            powerUps: {
-              ...powerUps,
-              streakShield,
-              xpBooster,
-              challengeSkip,
-              planRefresh,
-            }
-          };
-          if (data.type === 'comeback') {
-            userUpdates.userType = 'Regular';
-          }
-          transaction.update(userRef, userUpdates);
-        }
-      }
-
-      transaction.update(challengeRef, updates);
-    });
-
-    if (shouldAwardXP) {
-      await awardXP(uid, 'challenge_complete', xpAmount, { challengeId });
-    }
-
-    await loadChallenges(uid);
-  }, [awardXP, loadChallenges]);
+  }, [loadChallenges, addToast]);
 
   // joinChallenge(challengeId)
   const joinChallenge = useCallback(async (challengeId) => {
     if (!user?.uid) return;
 
     try {
-      const personalTemplateRef = doc(db, 'users', user.uid, 'personalTemplates', challengeId);
-      const templateSnap = await getDoc(personalTemplateRef);
-      if (templateSnap.exists()) {
-        const templateData = templateSnap.data();
-        const type = templateData.type || 'weak_point';
-        const subtype = templateData.subtype || 'campaign';
-
-        const activeChalls = await getActiveChallenges(user.uid);
-        const hasActiveOfSubtype = activeChalls.some(
-          c => (c.subtype || 'campaign') === subtype
-        );
-        if (hasActiveOfSubtype) {
-          throw new Error(`You already have an active ${subtype} running.`);
-        }
-        
-        const docRef = doc(collection(db, 'challenges'));
-        const challengeIdNew = docRef.id;
-
-        const challengeDoc = {
-          type,
-          subtype,
-          name: templateData.name,
-          description: templateData.description,
-          templateId: challengeId, // Save the original template ID
-          creatorUid: user.uid,
-          participants: [user.uid],
-          startDate: serverTimestamp(),
-          status: 'active',
-          durationDays: templateData.durationDays || 28,
-          endDate: new Date(Date.now() + (templateData.durationDays || 28) * 24 * 60 * 60 * 1000),
-          goal: templateData.goal,
-          progress: {
-            [user.uid]: { completedSets: 0, badgeEarned: false }
-          }
-        };
-        if (templateData.rewardXP) {
-          challengeDoc.rewardXP = templateData.rewardXP;
-        }
-
-        await setDoc(docRef, challengeDoc);
-        await deleteDoc(personalTemplateRef);
-        // Immediately remove from local state so onSnapshot doesn't re-add it while
-        // Firestore propagates the delete (fixes duplicate display in Available section)
-        setPersonalTemplates(prev => prev.filter(t => t.id !== challengeId));
-
-        await loadChallenges(user.uid);
-        addToast('Challenge accepted! Let\'s get after it! 🔥', 'success');
-        return challengeIdNew;
-      }
-    } catch (err) {
-      console.error('[useChallenges] Error joining personalized challenge:', err);
-      addToast(err.message || 'Failed to join challenge.', 'error');
-      return;
-    }
-
-    const type = challengeId === 'comeback' || challengeId === 'comeback_template' ? 'comeback' : 'streak';
-    try {
-      const activeChalls = await getActiveChallenges(user.uid);
-      const hasActiveCampaign = activeChalls.some(c => (c.subtype || 'campaign') === 'campaign');
-      if (hasActiveCampaign) {
-        throw new Error('You already have an active campaign running.');
-      }
-      await startChallenge(user.uid, type);
+      const res = await callZenkaiAPI('joinChallenge', { challengeId });
+      
+      setPersonalTemplates(prev => prev.filter(t => t.id !== challengeId));
+      
+      await loadChallenges(user.uid);
       addToast('Challenge joined successfully! 🔥', 'success');
+      return res?.challengeId;
     } catch (err) {
+      console.error('[useChallenges] Error joining challenge:', err);
       addToast(err.message || 'Failed to join challenge.', 'error');
     }
-  }, [user?.uid, startChallenge, loadChallenges, getActiveChallenges, addToast]);
+  }, [user?.uid, loadChallenges, addToast]);
 
   // createWager(uid, amount)
   const createWager = useCallback(async (uid, amount) => {
     if (!uid || !amount) throw new Error('UID and Amount are required.');
 
-    const userRef = doc(db, 'users', uid);
-    const challengeRef = doc(collection(db, 'challenges'));
-    const challengeId = challengeRef.id;
-
-    await runTransaction(db, async (transaction) => {
-      const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists()) {
-        throw new Error('User profile not found');
+    try {
+      const res = await callZenkaiAPI('createWager', { amount });
+      
+      // Update local profile XP optimistically
+      const currentProfile = useAuthStore.getState().profile;
+      if (currentProfile && res?.nextXp !== undefined) {
+        useAuthStore.getState().setProfile({
+          ...currentProfile,
+          xp: res.nextXp
+        });
       }
 
-      const userData = userSnap.data();
-      const currentXP = userData.xp || 0;
-      if (currentXP < amount) {
-        throw new Error('Insufficient XP for wager');
-      }
-
-      // Deduct XP immediately
-      transaction.update(userRef, {
-        xp: currentXP - amount
-      });
-
-      // Create the wager challenge document
-      const wagerDoc = {
-        type: 'streak',
-        subtype: 'wager',
-        name: `Flame Wager: ${amount} XP`,
-        description: `Complete 3 workouts this week to claim double your XP back! 🔥`,
-        creatorUid: uid,
-        participants: [uid],
-        startDate: serverTimestamp(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        status: 'active',
-        durationDays: 7,
-        goal: { workoutsPerWeek: 3, durationWeeks: 1 },
-        wagerAmount: amount,
-        rewardXP: amount * 2,
-        progress: {
-          [uid]: { currentWeek: 1, weeklyCount: [0], badgeEarned: false }
-        }
-      };
-
-      transaction.set(challengeRef, wagerDoc);
-    });
-
-    addToast(`Wager placed successfully! Log 3 sessions to claim your reward! 🔥`, 'success');
-    await loadChallenges(uid);
-    return challengeId;
+      addToast(`Wager placed successfully! Log 3 sessions to claim your reward! 🔥`, 'success');
+      await loadChallenges(uid);
+      return res?.challengeId;
+    } catch (err) {
+      console.error('[useChallenges] Error creating wager:', err);
+      addToast(err.message || 'Failed to place wager.', 'error');
+      throw err;
+    }
   }, [addToast, loadChallenges]);
 
   // leaveChallenge(challengeId)
@@ -984,115 +708,39 @@ export function useChallenges() {
   const useChallengeSkip = useCallback(async (challengeId) => {
     if (!user?.uid || !challengeId) return;
 
-    const userRef = doc(db, 'users', user.uid);
-    const challengeRef = doc(db, 'challenges', challengeId);
-
-    let shouldAwardXP = false;
-    let xpAmount = 500;
-
     try {
-      await runTransaction(db, async (transaction) => {
-        const userSnap = await transaction.get(userRef);
-        if (!userSnap.exists()) {
-          throw new Error('User profile not found');
-        }
-        const userData = userSnap.data();
-        const powerUps = userData.powerUps || {};
-        const challengeSkipCount = powerUps.challengeSkip || 0;
-        if (challengeSkipCount <= 0) {
-          throw new Error('No Challenge Skips remaining');
-        }
+      const res = await callZenkaiAPI('useChallengeSkip', { challengeId });
 
-        const challSnap = await transaction.get(challengeRef);
-        if (!challSnap.exists()) {
-          throw new Error('Challenge not found');
-        }
-        const data = challSnap.data();
-        if (data.status !== 'active') {
-          throw new Error('Challenge is not active');
-        }
+      const { challengeCompleted, xpAmount, newXP, newCumulativeXP, remainingSkips } = res;
 
-        const userProg = { ...(data.progress?.[user.uid] || {}) };
-        
-        // Calculate currentWeek
-        const start = data.startDate?.toDate ? data.startDate.toDate() : new Date(data.startDate);
-        const diffTime = Date.now() - start.getTime();
-        const diffDays = Math.floor(diffTime / (24 * 60 * 60 * 1000));
-        const durationWeeks = data.goal?.durationWeeks || (data.type === 'comeback' ? 12 : 8);
-        const currentWeek = Math.min(durationWeeks, Math.max(1, Math.floor(diffDays / 7) + 1));
+      // Sync local XP store if the challenge was completed and XP was awarded server-side
+      if (challengeCompleted && xpAmount > 0) {
+        setXP(newXP, newCumulativeXP, useAuthStore.getState().profile?.streak ?? 0);
+        addToast(`Challenge complete! +${xpAmount} XP earned 🎉`, 'success');
+      }
 
-        if (data.type === 'comeback') {
-          userProg.completedSessions = (userProg.completedSessions || 0) + 1;
-          userProg.currentWeek = currentWeek;
-        } else if (data.type === 'streak') {
-          const weeklyCount = [...(userProg.weeklyCount || [0, 0, 0, 0, 0, 0, 0, 0])];
-          weeklyCount[currentWeek - 1] = (weeklyCount[currentWeek - 1] || 0) + 1;
-          userProg.weeklyCount = weeklyCount;
-          userProg.currentWeek = currentWeek;
-        } else if (data.type === 'weak_point') {
-          userProg.completedSets = (userProg.completedSets || 0) + 3;
-        }
-
-        let isComplete = false;
-        if (data.type === 'comeback') {
-          isComplete = userProg.completedSessions >= 3 * durationWeeks;
-        } else if (data.type === 'streak') {
-          isComplete = userProg.weeklyCount.every((count) => count >= 3);
-        } else if (data.type === 'weak_point') {
-          const targetSets = data.goal?.targetSets || 15;
-          isComplete = (userProg.completedSets || 0) >= targetSets;
-        }
-
-        const updates = {
-          [`progress.${user.uid}`]: userProg,
-        };
-
-        if (isComplete) {
-          updates.status = 'completed';
-          userProg.badgeEarned = true;
-          if (!data.progress?.[user.uid]?.badgeEarned) {
-            shouldAwardXP = true;
-            xpAmount = data.rewardXP || 500;
-          }
-        }
-
-        // Deduct 1 Challenge Skip
-        transaction.update(userRef, {
-          powerUps: {
-            ...powerUps,
-            challengeSkip: challengeSkipCount - 1
-          }
-        });
-
-        // Update challenge document
-        transaction.update(challengeRef, updates);
-      });
-
-      // Update local profile state
+      // Update local profile state (power-ups)
       const currentProfile = useAuthStore.getState().profile;
       if (currentProfile) {
         useAuthStore.getState().setProfile({
           ...currentProfile,
           powerUps: {
             ...(currentProfile.powerUps || {}),
-            challengeSkip: Math.max(0, (currentProfile.powerUps?.challengeSkip || 1) - 1)
+            challengeSkip: remainingSkips
           }
         });
       }
 
-      // Post-transaction completion check to award rewards
-      if (shouldAwardXP) {
-        await awardXP(user.uid, 'challenge_complete', xpAmount, { challengeId });
+      if (!challengeCompleted) {
+        addToast('Challenge Skip consumed! Progress updated! ⏭️', 'success');
       }
-
-      addToast('Challenge Skip consumed! Progress updated! ⏭️', 'success');
       await loadChallenges(user.uid);
     } catch (err) {
       console.error('[useChallenges] Error using challenge skip:', err);
       addToast(err.message || 'Failed to use Challenge Skip.', 'error');
       throw err;
     }
-  }, [user?.uid, addToast, loadChallenges, awardXP]);
+  }, [user?.uid, addToast, loadChallenges, setXP]);
 
   return {
     challenges: challenges.filter((c) => !deletedChallengeIds.has(c.id)),

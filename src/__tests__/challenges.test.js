@@ -1,8 +1,14 @@
-import { mockGetDocs, mockRunTransaction } from '../__mocks__/firebase';
+import { mockGetDoc, mockSetDoc, mockGetDocs } from '../__mocks__/firebase';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useChallenges } from '../hooks/useChallenges';
 import { useAuthStore } from '../stores/useAuthStore';
+
+// Mock callZenkaiAPI
+const mockCallZenkaiAPI = vi.fn();
+vi.mock('../lib/apiClient', () => ({
+  callZenkaiAPI: (...args) => mockCallZenkaiAPI(...args),
+}));
 
 const { mockUseAuthStore } = vi.hoisted(() => {
   const store = Object.assign(vi.fn(), {
@@ -19,159 +25,39 @@ vi.mock('../stores/useUIStore', () => ({
   useUIStore: () => ({ addToast: vi.fn() }),
 }));
 
-const { mockAwardXP, mockUseXPEngine } = vi.hoisted(() => {
-  const mockAwardXP = vi.fn();
-  const mockUseXPEngine = vi.fn(() => ({ awardXP: mockAwardXP }));
-  return { mockAwardXP, mockUseXPEngine };
-});
-
-vi.mock('../hooks/useXPEngine', () => ({
-  useXPEngine: mockUseXPEngine,
-}));
-
 describe('Challenges System TDD', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuthStore).mockReturnValue({ user: { uid: 'test-uid' }, profile: {} });
     mockGetDocs.mockResolvedValue({ docs: [], empty: true, size: 0 });
+    mockCallZenkaiAPI.mockResolvedValue({ success: true });
   });
 
-  it('1. startChallenge() with duplicate active challenge throws error', async () => {
-    mockGetDocs.mockResolvedValue({
-      docs: [
-        {
-          id: 'existing-chall',
-          data: () => ({ type: 'comeback', status: 'active', startDate: new Date() })
-        }
-      ]
-    });
-
+  it('1. startChallenge() successfully calls the backend API', async () => {
     const { result } = renderHook(() => useChallenges());
     
-    await expect(result.current.startChallenge('test-uid', 'comeback')).rejects.toThrow('You already have an active challenge of this type');
-  });
-
-  it('2. updateProgress() increments comeback completedSessions correctly & 3. uses Firestore transaction', async () => {
-    mockGetDocs.mockResolvedValueOnce({ empty: true });
-    
-    const mockUpdate = vi.fn();
-    mockRunTransaction.mockImplementation(async (db, callback) => {
-      const mockTransaction = {
-        get: vi.fn((ref) => {
-          if (ref._path.includes('challenges')) {
-            return Promise.resolve({
-              exists: () => true,
-              data: () => ({
-                type: 'comeback',
-                status: 'active',
-                startDate: new Date(Date.now() - 1000),
-                goal: { durationWeeks: 12 },
-                progress: {
-                  'test-uid': { completedSessions: 2, currentWeek: 1 }
-                }
-              })
-            });
-          }
-          return Promise.resolve({ exists: () => true, data: () => ({}) });
-        }),
-        update: mockUpdate,
-      };
-      await callback(mockTransaction);
-    });
-
-    const { result } = renderHook(() => useChallenges());
     await act(async () => {
-      await result.current.updateProgress('test-uid', 'mock_id', new Date());
+      await result.current.startChallenge('test-uid', 'comeback');
     });
 
-    expect(mockRunTransaction).toHaveBeenCalled();
-    expect(mockUpdate).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      'progress.test-uid': expect.objectContaining({ completedSessions: 3 })
-    }));
+    expect(mockCallZenkaiAPI).toHaveBeenCalledWith('startChallenge', { type: 'comeback' });
   });
 
-  it('4. Challenge completion detected at correct threshold (3 sessions x 12 weeks = 36)', async () => {
-    mockGetDocs.mockResolvedValueOnce({ empty: true });
-    
-    const mockUpdate = vi.fn();
-    mockRunTransaction.mockImplementation(async (db, callback) => {
-      const mockTransaction = {
-        get: vi.fn((ref) => {
-          if (ref._path.includes('challenges')) {
-            return Promise.resolve({
-              exists: () => true,
-              data: () => ({
-                type: 'comeback',
-                status: 'active',
-                startDate: new Date(),
-                goal: { durationWeeks: 12 },
-                progress: {
-                  'test-uid': { completedSessions: 35, currentWeek: 12 }
-                }
-              })
-            });
-          }
-          return Promise.resolve({ exists: () => true, data: () => ({}) });
-        }),
-        update: mockUpdate,
-      };
-      await callback(mockTransaction);
-    });
-
+  it('2. updateProgress() calls the backend updateChallengeProgress API', async () => {
     const { result } = renderHook(() => useChallenges());
-    await act(async () => {
-      await result.current.updateProgress('test-uid', 'mock_id', new Date());
-    });
-
-    expect(mockUpdate).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      status: 'completed',
-      'progress.test-uid': expect.objectContaining({ completedSessions: 36, badgeEarned: true })
-    }));
-  });
-
-  it('5. Badge XP awarded only when badgeEarned is false (idempotent check)', async () => {
-    mockGetDocs.mockResolvedValueOnce({ empty: true });
-    let awardXPMock = vi.fn();
+    const sessionDate = new Date();
     
-    // We can't easily mock the internal awardXP destructured at the top level without re-mocking the file
-    // But since we mocked useXPEngine globally, let's just spy on the mocked awardXP
-    const { useXPEngine: useXPEngineMock } = await import('../hooks/useXPEngine');
-    useXPEngineMock.mockReturnValue({ awardXP: awardXPMock });
-
-    mockRunTransaction.mockImplementation(async (db, callback) => {
-      const mockTransaction = {
-        get: vi.fn((ref) => {
-          if (ref._path.includes('challenges')) {
-            return Promise.resolve({
-              exists: () => true,
-              data: () => ({
-                type: 'comeback',
-                status: 'active',
-                startDate: new Date(),
-                goal: { durationWeeks: 12 },
-                progress: {
-                  // Already completed and earned badge previously
-                  'test-uid': { completedSessions: 36, currentWeek: 12, badgeEarned: true }
-                }
-              })
-            });
-          }
-          return Promise.resolve({ exists: () => true, data: () => ({}) });
-        }),
-        update: vi.fn(),
-      };
-      await callback(mockTransaction);
-    });
-
-    const { result } = renderHook(() => useChallenges());
     await act(async () => {
-      await result.current.updateProgress('test-uid', 'mock_id', new Date());
+      await result.current.updateProgress('test-uid', 'challenge-123', sessionDate);
     });
 
-    expect(awardXPMock).not.toHaveBeenCalled();
+    expect(mockCallZenkaiAPI).toHaveBeenCalledWith('updateChallengeProgress', {
+      challengeId: 'challenge-123',
+      sessionDate: sessionDate.toISOString(),
+    });
   });
 
-  it('6. getProgressPercent() returns 0 at start, 100 at completion', () => {
+  it('3. getProgressPercent() returns 0 at start, 100 at completion', () => {
     const { result } = renderHook(() => useChallenges());
     
     const startObj = {
@@ -187,9 +73,7 @@ describe('Challenges System TDD', () => {
     expect(result.current.getProgressPercent(completeObj, 'test-uid')).toBe(100);
   });
 
-  it('7. leaveChallenge() marks challenge abandoned, sets cooldown on user document, and updates local auth state', async () => {
-    const { mockGetDoc, mockSetDoc } = await import('../__mocks__/firebase');
-    
+  it('4. leaveChallenge() marks challenge abandoned, sets cooldown on user document, and updates local auth state', async () => {
     mockGetDoc
       .mockResolvedValueOnce({
         exists: () => true,

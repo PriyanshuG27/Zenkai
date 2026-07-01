@@ -41,22 +41,39 @@ app.get('/ping', (req, res) => {
 app.post('/api/verifyGymImage', require('./routes/verifyGymImage'));
 app.post('/api/generatePlan', require('./routes/generatePlan'));
 app.post('/api/generateChallenge', require('./routes/generateChallenge'));
-app.post('/api/getPRStats', require('./routes/getPRStats'));
 app.post('/api/generateSquadChallenge', require('./routes/generateSquadChallenge'));
 app.post('/api/generateWeeklyMagazine', require('./routes/generateWeeklyMagazine'));
 app.post('/api/sendNotification', require('./routes/sendNotification'));
 app.post('/api/scheduleRestNotification', require('./routes/scheduleRestNotification'));
 app.post('/api/cancelRestNotification', require('./routes/cancelRestNotification'));
+app.post('/api/getPRStats', require('./routes/getPRStats'));
 app.post('/api/openTreasureChest', require('./routes/openTreasureChest'));
 app.post('/api/summonNextTitan', require('./routes/summonNextTitan'));
 
-// Initialize automated weekly challenge background scheduler
-const { initWeeklyChallengeScheduler } = require('./lib/weeklyChallengeScheduler');
-initWeeklyChallengeScheduler();
+// Core Gamification Routers
+app.use('/api/rescueStreak', require('./routes/rescueStreak'));
+app.use('/api/createWager', require('./routes/createWager'));
+app.use('/api/redeemEasterEgg', require('./routes/redeemEasterEgg'));
+app.use('/api/logWorkout', require('./routes/logWorkout'));
+app.use('/api/updateChallengeProgress', require('./routes/updateChallengeProgress'));
+app.use('/api/startChallenge', require('./routes/startChallenge'));
+app.use('/api/joinChallenge', require('./routes/joinChallenge'));
+app.use('/api/purchaseStoreItem', require('./routes/purchaseStoreItem'));
+app.use('/api/upvoteFeedback', require('./routes/upvoteFeedback'));
+app.use('/api/updateFeedbackStatus', require('./routes/updateFeedbackStatus'));
+app.use('/api/deleteFeedback', require('./routes/deleteFeedback'));
+app.use('/api/useChallengeSkip', require('./routes/useChallengeSkip'));
 
-// Initialize automated 1-hour gym time reminder background scheduler
-const { initReminderScheduler } = require('./lib/reminderScheduler');
-initReminderScheduler();
+// Cron Endpoints
+app.use('/api/cron/reminders', require('./routes/cronReminders'));
+app.use('/api/cron/weeklyChallenges', require('./routes/cronWeeklyChallenges'));
+
+// Cron jobs are driven externally by Google Cloud Scheduler via:
+//   POST /api/cron/reminders
+//   POST /api/cron/weeklyChallenges
+// The in-process setInterval schedulers have been removed to prevent
+// duplicate execution when multiple server instances are running.
+
 
 // Trigger one-time production update broadcast
 const { runProductionBroadcast } = require('./lib/productionBroadcast');
