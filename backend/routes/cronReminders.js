@@ -10,6 +10,8 @@ function verifyCronSecret(req, res, next) {
     console.error('[cronReminders] CRON_SECRET environment variable is not set. Rejecting all cron requests.');
     return res.status(500).json({ error: 'Cron secret not configured on server.' });
   }
+  console.log('[cronReminders] Incoming header x-cron-secret length:', req.headers['x-cron-secret'] ? req.headers['x-cron-secret'].length : 0);
+  console.log('[cronReminders] Server CRON_SECRET length:', secret ? secret.length : 0);
   if (req.headers['x-cron-secret'] !== secret) {
     console.warn('[cronReminders] Unauthorized cron trigger attempt from IP:', req.ip);
     return res.status(401).json({ error: 'Unauthorized.' });
