@@ -5,7 +5,7 @@ const authGuard = require('../middleware/authGuard');
 
 router.post('/', authGuard, async (req, res) => {
   const uid = req.user.uid;
-  const { challengeId, sessionDate } = req.body;
+  const { challengeId, sessionDate, sessionId } = req.body;
 
   if (!challengeId || !sessionDate) {
     return res.status(400).json({ error: 'Missing challengeId or sessionDate' });
@@ -85,6 +85,13 @@ router.post('/', authGuard, async (req, res) => {
 
       const userProg = { ...(data.progress?.[uid] || {}) };
 
+      // F-12: Skip if this session already credited this challenge.
+      // Guards against concurrent calls from the same workout completion.
+      if (sessionId && userProg.lastCreditedSessionId === sessionId) {
+        console.log(`[updateChallengeProgress] Session ${sessionId} already credited challenge ${challengeId} — skipping.`);
+        return { alreadyCredited: true };
+      }
+
       if (data.type === 'comeback') {
         if (!isSameDaySession) {
           userProg.completedSessions = (userProg.completedSessions || 0) + 1;
@@ -133,6 +140,11 @@ router.post('/', authGuard, async (req, res) => {
         isComplete = (userProg.completedSets || 0) >= targetSets;
       }
 
+      // Store which session last credited this challenge (idempotency key).
+      if (sessionId) {
+        userProg.lastCreditedSessionId = sessionId;
+      }
+
       const updates = {
         [`progress.${uid}`]: userProg,
       };
@@ -146,7 +158,9 @@ router.post('/', authGuard, async (req, res) => {
         
         if (!data.progress?.[uid]?.badgeEarned) {
           shouldAwardXP = true;
-          xpAmount = data.rewardXP || 500;
+          // Cap rewardXP at 2000 regardless of what the challenge document says.
+          // Prevents F-03 exploit: client creates challenge with rewardXP:999999.
+          xpAmount = Math.min(data.rewardXP || 500, 2000);
 
           const userData = userSnap.exists ? userSnap.data() : {};
           const powerUps = userData.powerUps || {};
@@ -195,9 +209,18 @@ router.post('/', authGuard, async (req, res) => {
 
       transaction.update(challengeRef, updates);
       
-      return { success: true, isComplete, shouldAwardXP, xpAmount };
+      return { success: true, isComplete, shouldAwardXP, xpAmount, type: data.type };
     });
 
+    if (result && result.isComplete && result.type) {
+      adminDb.doc(`challenge_locks/${uid}_${result.type}`).delete().catch(err =>
+        console.warn('[updateChallengeProgress] Lock cleanup failed (non-critical):', err.message)
+      );
+    }
+
+    if (result && result.alreadyCredited) {
+      return res.status(200).json({ success: true, alreadyCredited: true });
+    }
     return res.status(200).json(result);
   } catch (error) {
     console.error('[updateChallengeProgress] Error:', error);

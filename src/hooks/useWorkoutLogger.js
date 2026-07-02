@@ -103,7 +103,7 @@ export function useWorkoutLogger() {
       try {
         const activeChalls = await getActiveChallenges(uid);
         for (const ch of activeChalls) {
-          await updateProgress(uid, ch.id, new Date());
+          await updateProgress(uid, ch.id, new Date(), payload.session.sessionId);
         }
       } catch (chErr) {
         console.error('[useWorkoutLogger] Failed to update challenge progress:', chErr);

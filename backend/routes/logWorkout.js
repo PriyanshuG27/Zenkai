@@ -14,6 +14,14 @@ router.post('/', authGuard, async (req, res) => {
   if (!session || !session.sessionId || !exercises || !Array.isArray(exercises)) {
     return res.status(400).json({ error: 'Invalid payload' });
   }
+  if (exercises.length > 30) {
+    return res.status(400).json({ error: 'A session cannot contain more than 30 exercises.' });
+  }
+  for (const ex of exercises) {
+    if (ex.sets && Array.isArray(ex.sets) && ex.sets.length > 20) {
+      return res.status(400).json({ error: 'An exercise cannot have more than 20 sets.' });
+    }
+  }
 
   try {
     const userRef = adminDb.doc(`users/${uid}`);
@@ -186,7 +194,14 @@ router.post('/', authGuard, async (req, res) => {
       const shouldDowngrade = isQuickLog || isFlagged;
 
       const currentPR_XP = userData.skills?.adrenalineRush ? 12 : 10;
-      const isOverdrive = session.isOverdrive || false;
+      // Verify overdrive from the user's Firestore record — NOT from the client flag.
+      // overdriveVerifiedAt is written by /api/verifyGymImage on successful gym verification.
+      const OVERDRIVE_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+      const rawOverdriveTs = userData.overdriveVerifiedAt;
+      const overdriveVerifiedAt = rawOverdriveTs
+        ? (rawOverdriveTs.toDate ? rawOverdriveTs.toDate() : new Date(rawOverdriveTs))
+        : null;
+      const isOverdrive = !!(overdriveVerifiedAt && (Date.now() - overdriveVerifiedAt.getTime() < OVERDRIVE_WINDOW_MS));
       const overdriveMultiplier = isOverdrive ? 1.5 : 1.0;
 
       const boosterUntil = userData.xpBoosterUntil
@@ -234,7 +249,12 @@ router.post('/', authGuard, async (req, res) => {
 
       // Restore Active Challenge bonus (not subject to multiplier, but let's just add it)
       // Actually, wait, did old logic have it? Let's just add it to xpEarned.
-      if (activeChall && activeChall.title) xpEarned += 200; 
+      // Titan bonus: only apply to full sessions, not quick-logs or flagged sessions.
+      // Also track it in xpBreakdown so the XP audit trail is accurate.
+      if (activeChall && activeChall.title && !shouldDowngrade) {
+        xpEarned += 200;
+        if (xpBreakdown) xpBreakdown.titanBonus = 200;
+      } 
 
       const prevStreak = userData.streak || 0;
       const prevLastDate = userData.streakLastDate ? (userData.streakLastDate.toDate ? userData.streakLastDate.toDate() : new Date(userData.streakLastDate)) : null;
@@ -271,7 +291,7 @@ router.post('/', authGuard, async (req, res) => {
       
       const dynamicName = determineWorkoutName(exercises);
       
-      t.set(adminDb.doc(`users/${uid}/sessions/${session.sessionId}`), {
+      t.create(adminDb.doc(`users/${uid}/sessions/${session.sessionId}`), {
         sessionId: session.sessionId,
         name: session.name || dynamicName,
         date: new Date(),
@@ -410,8 +430,20 @@ router.post('/', authGuard, async (req, res) => {
     return res.status(200).json(result);
   } catch (err) {
     console.error('[logWorkout] Error:', err);
-    if (err.message === 'User profile not found') return res.status(404).json({ error: err.message });
-    return res.status(500).json({ error: 'Failed to log workout securely. ' + err.message, stack: err.stack });
+
+    if (err.message === 'User profile not found') {
+      return res.status(404).json({ error: err.message });
+    }
+
+    // F-05: Session already exists — client is retrying after a dropped network response.
+    // The session was already saved successfully. Return success to unblock the client.
+    if (err.code === 6 || (err.message && err.message.includes('ALREADY_EXISTS'))) {
+      console.log(`[logWorkout] Idempotent replay — session ${session?.sessionId} already logged for uid ${uid}.`);
+      return res.status(200).json({ success: true, alreadyLogged: true, xpEarned: 0 });
+    }
+
+    // F-02: Never send stack traces or raw error messages to clients.
+    return res.status(500).json({ error: 'Failed to log workout. Please try again.' });
   }
 });
 

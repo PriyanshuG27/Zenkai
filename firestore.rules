@@ -356,9 +356,22 @@ service cloud.firestore {
     //         deleteDoc will fail → fallback update succeeds.
     match /challenges/{challengeId} {
       allow read:   if isParticipant();
-      allow create: if isAuth();
+      allow create: if isAuth()
+        && (
+          !('rewardXP' in request.resource.data)
+          || (
+            request.resource.data.rewardXP is number
+            && request.resource.data.rewardXP >= 0
+            && request.resource.data.rewardXP <= 2000
+          )
+        );
       allow update: if isParticipant();
-      allow delete: if false;
+    }
+
+    match /challenge_locks/{lockId} {
+      allow read: if isAuth();
+      // Lock ID format is {uid}_{type}. Users can only create or delete their own locks.
+      allow create, delete: if isAuth() && lockId.matches('^' + request.auth.uid + '_.*');
     }
 
     // ─── rateLimit/{uid} — Phase 3 ───────────────────────────────────────────

@@ -506,8 +506,8 @@ export function useChallenges() {
     });
   }, []);
 
-  // updateProgress(uid, challengeId, sessionDate)
-  const updateProgress = useCallback(async (uid, challengeId, sessionDate) => {
+  // updateProgress(uid, challengeId, sessionDate, sessionId)
+  const updateProgress = useCallback(async (uid, challengeId, sessionDate, sessionId) => {
     if (!uid || !challengeId || !sessionDate) {
       throw new Error('Missing required arguments for progress update');
     }
@@ -518,7 +518,8 @@ export function useChallenges() {
     try {
       const res = await callZenkaiAPI('updateChallengeProgress', { 
         challengeId, 
-        sessionDate: sessionDate instanceof Date ? sessionDate.toISOString() : sessionDate
+        sessionDate: sessionDate instanceof Date ? sessionDate.toISOString() : sessionDate,
+        sessionId
       });
       
       const { shouldAwardXP, xpAmount } = res;
@@ -686,6 +687,16 @@ export function useChallenges() {
               [cooldownKey]: cooldownTime,
             },
           });
+        }
+      }
+
+      // 6. Delete challenge lock so the user can start another challenge of this type immediately
+      if (challengeType) {
+        try {
+          const lockRef = doc(db, 'challenge_locks', `${user.uid}_${challengeType}`);
+          await deleteDoc(lockRef);
+        } catch (lockErr) {
+          console.warn('[useChallenges] Failed to delete challenge lock:', lockErr);
         }
       }
 

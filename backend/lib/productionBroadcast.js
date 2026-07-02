@@ -17,10 +17,28 @@ async function runProductionBroadcast() {
   try {
     const configRef = adminDb.doc('system_config/updates');
     const configSnap = await configRef.get();
-    
     if (configSnap.exists && configSnap.data().broadcast_v1_1_1_sent === true) {
       console.log('[productionBroadcast] v1.1.1 update broadcast has already been sent.');
       return;
+    }
+
+    // Transactional lock: only one server instance can claim the broadcast right.
+    // t.create() fails atomically if another instance already claimed it.
+    const lockRef = adminDb.doc('system_config/broadcast_v1_1_1_lock');
+    try {
+      await adminDb.runTransaction(async (t) => {
+        const lockSnap = await t.get(lockRef);
+        if (lockSnap.exists) {
+          throw new Error('BROADCAST_ALREADY_CLAIMED');
+        }
+        t.set(lockRef, { claimedAt: new Date(), sent: false });
+      });
+    } catch (lockErr) {
+      if (lockErr.message === 'BROADCAST_ALREADY_CLAIMED') {
+        console.log('[productionBroadcast] Another instance already claimed broadcast. Skipping.');
+        return;
+      }
+      throw lockErr;
     }
 
     console.log('[productionBroadcast] Starting one-time production update broadcast...');
@@ -70,6 +88,8 @@ async function runProductionBroadcast() {
 
     // Mark as sent in Firestore so it never runs again
     await configRef.set({ broadcast_v1_1_1_sent: true }, { merge: true });
+    // Mark lock as complete for audit trail.
+    await lockRef.set({ sent: true, completedAt: new Date() }, { merge: true });
     console.log(`[productionBroadcast] One-time v1.1.1 update broadcast sent to ${totalSent} users and flagged successfully.`);
   } catch (err) {
     console.error('[productionBroadcast] Failed to run update broadcast:', err);

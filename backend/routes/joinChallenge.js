@@ -71,7 +71,27 @@ router.post('/', authGuard, async (req, res) => {
         };
       }
 
-      await docRef.set(challengeDoc);
+      // Atomic guard: use a lock document to prevent concurrent double-joins.
+      // If two requests both pass the query-based pre-flight above simultaneously,
+      // only one will succeed in t.create(lockRef) — the other gets ALREADY_EXISTS.
+      const lockRef = adminDb.doc(`challenge_locks/${uid}_${type}`);
+
+      try {
+        await adminDb.runTransaction(async (t) => {
+          const lockSnap = await t.get(lockRef);
+          if (lockSnap.exists) {
+            throw new Error('LOCK_EXISTS');
+          }
+          t.set(lockRef, { uid, type, challengeId: newChallengeId, createdAt: new Date() });
+          t.set(docRef, challengeDoc);
+        });
+      } catch (txErr) {
+        if (txErr.message === 'LOCK_EXISTS') {
+          return res.status(400).json({ error: `You already have an active ${type} challenge running.` });
+        }
+        throw txErr;
+      }
+
       return res.status(200).json({ success: true, challengeId: newChallengeId });
     }
 
@@ -127,6 +147,13 @@ router.post('/', authGuard, async (req, res) => {
         challengeDoc.rewardXP = templateData.rewardXP;
       }
 
+      const lockRef = adminDb.doc(`challenge_locks/${uid}_${type}`);
+      const lockSnap = await t.get(lockRef);
+      if (lockSnap.exists) {
+        throw new Error('You already have an active challenge of this type.');
+      }
+
+      t.set(lockRef, { uid, type, challengeId: challengeIdNew, createdAt: new Date() });
       t.set(docRef, challengeDoc);
       t.delete(personalTemplateRef);
 

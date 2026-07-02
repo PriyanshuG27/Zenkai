@@ -82,6 +82,25 @@ module.exports = [
       let activeChallenge;
       try {
         activeChallenge = await generateChallengeForSquad(squadCode);
+      } catch (genErr) {
+        console.error('[summonNextTitan] Titan generation failed — refunding boss key:', genErr.message);
+        // Compensating transaction: refund the key that was deducted before generation.
+        try {
+          await adminDb.runTransaction(async (t) => {
+            const userSnap = await t.get(adminDb.doc(`users/${uid}`));
+            if (userSnap.exists) {
+              const currentPowerUps = userSnap.data().powerUps || {};
+              const currentKeys = Number(currentPowerUps.bossFightKey) || 0;
+              t.update(adminDb.doc(`users/${uid}`), {
+                [`powerUps.bossFightKey`]: currentKeys + result.cost
+              });
+            }
+          });
+          console.log(`[summonNextTitan] Refunded ${result.cost} boss key(s) to uid ${uid}.`);
+        } catch (refundErr) {
+          console.error('[summonNextTitan] CRITICAL: Refund also failed for uid', uid, ':', refundErr.message);
+        }
+        throw genErr; // Re-throw to trigger catch block error response
       } finally {
         await adminDb.doc(`shared_squads/${squadCode}`).set({ isSummoning: false }, { merge: true });
       }

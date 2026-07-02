@@ -119,14 +119,31 @@ router.post('/', authGuard, async (req, res) => {
         newCumulativeXP,
         newLevel,
         newLevelName,
-        remainingSkips: challengeSkipCount - 1
+        remainingSkips: challengeSkipCount - 1,
+        type: data.type
       };
     });
+
+    if (result && result.challengeCompleted && result.type) {
+      adminDb.doc(`challenge_locks/${uid}_${result.type}`).delete().catch(err =>
+        console.warn('[useChallengeSkip API] Lock cleanup failed (non-critical):', err.message)
+      );
+    }
 
     return res.status(200).json(result);
   } catch (err) {
     console.error('[useChallengeSkip API] Error:', err);
-    return res.status(500).json({ error: err.message });
+    // Only surface known business-logic messages. Never leak Firestore SDK internals.
+    const knownMessages = [
+      'No Challenge Skips remaining',
+      'Challenge not found',
+      'Challenge is not active',
+      'User profile not found',
+    ];
+    if (knownMessages.includes(err.message)) {
+      return res.status(400).json({ error: err.message });
+    }
+    return res.status(500).json({ error: 'Failed to use challenge skip. Please try again.' });
   }
 });
 

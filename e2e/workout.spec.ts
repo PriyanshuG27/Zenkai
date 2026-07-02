@@ -204,9 +204,11 @@ test.describe('Workout logging journeys', () => {
     // We match any "+N" where N > 0
     const xpCounter = page.locator('text=/^\\+\\d+$/').first();
     await expect(xpCounter).toBeVisible({ timeout: 5_000 });
-    const xpText = await xpCounter.textContent();
-    const xpValue = parseInt((xpText ?? '+0').replace('+', ''), 10);
-    expect(xpValue).toBeGreaterThan(0);
+    await expect(async () => {
+      const xpText = await xpCounter.textContent();
+      const xpValue = parseInt((xpText ?? '+0').replace('+', ''), 10);
+      expect(xpValue).toBeGreaterThan(0);
+    }).toPass({ timeout: 5_000 });
   });
 
   // ─────────────────────────────────────────────────────────────────────────

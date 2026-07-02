@@ -75,9 +75,18 @@ app.use('/api/cron/weeklyChallenges', require('./routes/cronWeeklyChallenges'));
 // duplicate execution when multiple server instances are running.
 
 
-// Trigger one-time production update broadcast
-const { runProductionBroadcast } = require('./lib/productionBroadcast');
-runProductionBroadcast().catch(err => console.error('[productionBroadcast] Init error:', err));
+// One-time admin broadcast endpoint.
+// Protected by ADMIN_SECRET env var. Remove after broadcast confirmed sent.
+app.post('/api/admin/triggerBroadcast', async (req, res) => {
+  if (!process.env.ADMIN_SECRET || req.headers['x-admin-secret'] !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+  const { runProductionBroadcast } = require('./lib/productionBroadcast');
+  runProductionBroadcast()
+    .then(() => console.log('[admin] Broadcast completed.'))
+    .catch(err => console.error('[admin] Broadcast failed:', err));
+  return res.status(200).json({ message: 'Broadcast triggered in background.' });
+});
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Zenkai Engine operational on port ${PORT}`));
