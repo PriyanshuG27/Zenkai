@@ -41,7 +41,9 @@ export function useWorkoutLogger() {
       if (onProgress) onProgress('Securing workout to the blockchain...');
       
       const token = await useAuthStore.getState().user.getIdToken();
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:10000'; // Default to localhost for dev, VITE_API_URL handles prod
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || (
+        import.meta.env.DEV ? 'http://localhost:10000' : ''
+      );
       const res = await fetch(`${apiUrl}/api/logWorkout`, {
         method: 'POST',
         headers: {
